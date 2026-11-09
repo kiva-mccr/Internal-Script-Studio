@@ -40,7 +40,10 @@ and suggestions, keeps every version, and exports them for production.
 
 ## Phase 2: the core app
 
-- [ ] **AP-1** Set-up: stack, tests, GitHub Pages deploy, CI that skips docs-only pushes.
+- [x] **AP-1** Set-up: stack, tests, GitHub Pages deploy, CI that skips docs-only pushes.
+  Built: Svelte 5 + TypeScript with Vite (picked by default: small and readable; React and plain JS offered);
+  Vitest for logic, Playwright for the app in Chromium; tests.yml and deploy.yml skip `.md` and docs-only pushes.
+  A placeholder page reads the link (`#/Episode%2003`) through src/lib/route.ts.
 - [ ] **AP-2** First-time screen: OneDrive set-up instructions ("Add shortcut to My files"), pick the folder,
   remember it.
 - [ ] **AP-3** Open a script from a link.
@@ -75,4 +78,4 @@ and suggestions, keeps every version, and exports them for production.
   reviewer, editor) on trust, protected by who has the folder; "… is editing" instead of live co-editing, with
   conflict resolution; the repo is public. Mock-ups of the five screens (open folder, list, Write, Review,
   History) were shown before planning. The script format is one section per row with labelled fields (SF-1).
-- **Open:** the stack (AP-1).
+- **Settled:** Svelte 5 + TypeScript (AP-1).

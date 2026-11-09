@@ -13,4 +13,8 @@ editor: see [the script format](docs/script-format.md).
 
 Needs Chrome or Edge on a desktop computer.
 
+## For developers
+
+`npm ci`, then `npm run dev`. Checks: `npm run check`, `npm test`, `npm run e2e`.
+
 License: GPL-3.0.

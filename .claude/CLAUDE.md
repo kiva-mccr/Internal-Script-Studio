@@ -7,7 +7,12 @@ desktop only). No server, no database, no sign-in. The roadmap (steps, status, d
 there as steps land and keep the IDs stable.
 
 ## Run and test
-- Not set up yet: AP-1 picks the stack, the test runner and the GitHub Pages deploy, then fills this in.
+- Svelte 5 + TypeScript, built with Vite. Install: `npm ci`. Run: `npm run dev`.
+- Checks: `npm run check` (types), `npm test` (Vitest, `tests/unit/`), `npm run e2e` (Playwright, `tests/e2e/`,
+  builds and serves the app itself). Playwright is pinned to 1.63.0 to match this container's Chromium.
+- svelte-check needs TypeScript 6 (TypeScript 7 is not supported by it yet).
+- GitHub Pages serves the app from `/Internal-Script-Studio/` (vite.config.ts `base`); `deploy.yml` publishes
+  every push to main that changes code. Pages' source must be "GitHub Actions" (repo Settings > Pages).
 - GitHub's workflows skip a push that changes only `.md` files, docs or images (a waste of time there).
 - For a text-only change, run only the tests that cover it.
 
@@ -37,7 +42,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
 
 ## Status
-- Next: AP-1 (stack, tests, GitHub Pages deploy), once the user approves it.
+- Next: AP-2 (first-time screen: OneDrive instructions, pick the folder), once the user approves it.
 - Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
