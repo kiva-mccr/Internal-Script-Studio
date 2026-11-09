@@ -1,8 +1,9 @@
 name: Tests
 
+# Every pull request runs the tests, even a docs-only one: the main branch's ruleset requires this check, and a
+# skipped check would leave the pull request waiting forever. Pushes to main still skip docs-only changes.
 on:
   pull_request:
-    paths-ignore: ['**.md', 'docs/**']
   push:
     branches: [main]
     paths-ignore: ['**.md', 'docs/**']

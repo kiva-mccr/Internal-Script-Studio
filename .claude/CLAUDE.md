@@ -13,7 +13,8 @@ there as steps land and keep the IDs stable.
 - svelte-check needs TypeScript 6 (TypeScript 7 is not supported by it yet).
 - GitHub Pages serves the app from `/Internal-Script-Studio/` (vite.config.ts `base`); `deploy.yml` publishes
   every push to main that changes code. Pages' source must be "GitHub Actions" (repo Settings > Pages).
-- GitHub's workflows skip a push that changes only `.md` files, docs or images (a waste of time there).
+- Pushes to main that change only `.md` files or docs skip the workflows; pull requests always run Tests, because
+  the main ruleset requires the `test` check (merge only through a PR, no force-push or deletion).
 - For a text-only change, run only the tests that cover it.
 
 ## Conventions worth keeping
