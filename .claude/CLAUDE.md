@@ -40,6 +40,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   not here. Keep this file short to save tokens.
 - Save tokens: search ROADMAP.md by step ID instead of reading it whole; read a file's note before the file.
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
+- No browser dialogs (confirm, alert, validation bubbles): messages and checks are shown in the page.
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status

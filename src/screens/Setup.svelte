@@ -18,10 +18,16 @@
   let error = $state('');
   let reopening = $state(untrack(() => remembered !== null));
   const supported = canOpenFolders();
+  let nameInput = $state<HTMLInputElement>();
 
   async function choose(event: SubmitEvent) {
     event.preventDefault();
     error = '';
+    if (!cleanName(name)) {
+      error = 'Type your name first.';
+      nameInput?.focus();
+      return;
+    }
     try {
       const folder = await pickFolder();
       if (folder) onOpen(folder, cleanName(name));
@@ -61,10 +67,10 @@
     {:else}
       <h1>Open your scripts folder</h1>
       <p class="lead">Pick the shared OneDrive folder your team keeps scripts in. You only do this once.</p>
-      <form onsubmit={choose}>
+      <form onsubmit={choose} novalidate>
         <label>
           Your name
-          <input bind:value={name} required maxlength="40" autocomplete="name" />
+          <input bind:this={nameInput} bind:value={name} maxlength="40" autocomplete="name" />
           <span class="hint">Shown on your edits and comments.</span>
         </label>
         <button class="primary" type="submit">Choose folder</button>

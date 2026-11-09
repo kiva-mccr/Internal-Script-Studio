@@ -62,8 +62,16 @@ and suggestions, keeps every version, and exports them for production.
   renamed, added, moved and deleted. Files: choose a file (copied into `assets/`), paste a link, or describe it.
   Saves 1.5 s after typing stops; adds you to `authors`. Someone else's save shows up on its own; if you had
   changes waiting, it asks "theirs or mine" (the row-by-row merge is AP-7). No history entries yet (AP-6).
+  The column headings stay at the top while scrolling, and there are no browser dialogs: deleting shows Undo,
+  messages sit at the bottom of the window (both asked by the user after the MVP).
 - [ ] **AP-6** History: every save, who and when, what changed, restore; outside changes logged.
 - [ ] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
+- [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
+  publisher, link, date), numbered in the row and gathered into a Sources list at the end of the script; exports
+  carry them (print, the video description). The format change (SF-1) and the look are agreed before building.
+- [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
+  fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
+  a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building.
 
 ## Phase 3: review
 
