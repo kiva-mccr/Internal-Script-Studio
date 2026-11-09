@@ -8,7 +8,8 @@ A free, minimalist web app for writing, reviewing and producing educational vide
 - **Review:** comments and suggestions that writers accept or reject.
 - **Production:** print, teleprompter, Fountain, Final Draft and subtitle exports, plus captions for YouTube.
 
-Status: planning. See [ROADMAP.md](ROADMAP.md).
+Status: planning. See [ROADMAP.md](ROADMAP.md). Scripts are plain Markdown files you can also open in any text
+editor: see [the script format](docs/script-format.md).
 
 Needs Chrome or Edge on a desktop computer.
 

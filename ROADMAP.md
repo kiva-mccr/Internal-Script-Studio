@@ -23,8 +23,12 @@ and suggestions, keeps every version, and exports them for production.
 
 ## Phase 1: script format
 
-- [ ] **SF-1** The script format: three-column Markdown (dialogue, on screen, images and files), rows numbered per
+- [x] **SF-1** The script format: three-column Markdown (dialogue, on screen, images and files), rows numbered per
   shot, front matter (title, status, authors), asset references. A short spec and one sample script.
+  Built: docs/script-format.md and a made-up example (docs/example/). The user picked one section per row
+  (`## 1 <!-- id: … -->` with `Dialogue:`, `On screen:`, `Files:` labels) over a Markdown table, which cannot hold
+  several paragraphs in a cell. Optional `# ` sections group rows. One folder per script (`script.md`, `assets/`,
+  `.studio/`). Row ids keep comments and history attached when rows move; numbers are renumbered on save.
 - [ ] **SF-2** The folder layout: each save and each comment as its own file, the "… is editing" marker, and how a
   change made outside the app (Notepad, a deleted history folder) is spotted and logged in History.
 
@@ -64,5 +68,5 @@ and suggestions, keeps every version, and exports them for production.
   Microsoft sign-in: the user's work IT will not approve apps); Chrome and Edge on desktop only; roles (writer,
   reviewer, editor) on trust, protected by who has the folder; "… is editing" instead of live co-editing, with
   conflict resolution; the repo is public. Mock-ups of the five screens (open folder, list, Write, Review,
-  History) were shown before planning.
+  History) were shown before planning. The script format is one section per row with labelled fields (SF-1).
 - **Open:** the stack (AP-1).
