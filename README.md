@@ -22,9 +22,11 @@ Status: a first working version. What it does today:
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
+- **Review:** Write · Review · History. Select any text to comment on it, or comment on a whole row; reply,
+  resolve, reopen. The Review tab shows how many comments are open.
 - **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
-  side for you to pick. Comments and review come next (see the roadmap).
+  side for you to pick.
 
 Needs Chrome or Edge on a desktop computer.
 

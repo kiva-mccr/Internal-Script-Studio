@@ -1,6 +1,7 @@
 # `src/screens/Editor.svelte`
 
-One script: the Write screen (mock-up 3) and, through the Write · History switch, `History.svelte`. Write: one script as rows of three columns. Edit in place, add, move and delete rows and
+One script: the Write screen (mock-up 3) and, through the Write · Review · History switch, `Review.svelte` and
+`History.svelte`. Write: one script as rows of three columns. Edit in place, add, move and delete rows and
 sections, add files, links and notes (`FilesCell.svelte`), Copy link. Saves on its own, shows who else is
 editing, and combines saves made at the same time (`Conflict.svelte`).
 
@@ -20,6 +21,7 @@ editing, and combines saves made at the same time (`Conflict.svelte`).
   merge version gets both as parents. A copy is removed only after the combined script is saved.
 - "… is editing": your `editing/` file is written on opening and every 30 s, removed on leaving. A script.md that
   matches someone's `last_written` is credited to them, not "Outside the app".
+- Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).
 - With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
 - The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to

@@ -135,6 +135,8 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
 }
 ```
 
+- `when` here keeps milliseconds (`2026-11-09T14:30:00.123Z`), so a resolve and a reopen in the same second
+  still come in order; file names keep seconds.
 - `kind` is `comment`, `reply` (with `"about": "<id>"`), or `suggestion` (with `"replace": "…"`, the new text for
   `quote`).
 - What happens to it later is a new file, never an edit: `resolve`, `reopen`, `accept` or `reject`, each with
