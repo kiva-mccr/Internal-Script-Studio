@@ -2,7 +2,10 @@
   import { onDestroy, onMount } from 'svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { emptyRow, frontValue, newId, parseScript, rows, withAuthor, writeScript, type Block, type Script } from '../lib/script';
+  import { editingText, othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, listVersions, OUTSIDE, sha256, type Version } from '../lib/history';
+  import { merge, type Merged, type Side } from '../lib/merge';
+  import Conflict from './Conflict.svelte';
   import FilesCell from './FilesCell.svelte';
   import History from './History.svelte';
 
@@ -11,12 +14,13 @@
   const SAVE_AFTER = 1500; // ms after the last change
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
   const ENTRY_EVERY = 5 * 60 * 1000; // a history entry at most every 5 minutes of editing (docs/studio-folder.md)
+  const HERE_EVERY = 30 * 1000; // the "… is editing" file is refreshed this often
 
   let dir = $state<FileSystemDirectoryHandle | null>(null);
   let script = $state<Script | null>(null);
   let missing = $state(false);
   // saved: all written. waiting: changes not written yet. saving. failed: the last write failed.
-  // conflict: someone else saved while you had changes waiting.
+  // conflict: two saves made at the same time, waiting for the person to pick (`clash`).
   let status = $state<'saved' | 'waiting' | 'saving' | 'failed' | 'conflict'>('saved');
   let notice = $state('');
   // The last delete, kept a few seconds so it can be undone (no browser dialogs: the user's rule).
@@ -29,6 +33,14 @@
   let mode = $state<'write' | 'history'>('write');
   let last: Version | null = null; // the newest history entry this page knows of
   let pendingSince = 0; // when the first save not yet in History was made
+  let clash = $state<{
+    merged: Merged; heading: string; mineLabel: string; theirsLabel: string; combined: string;
+    parents: string[]; note: string; copy?: string;
+  } | null>(null);
+  let editors = $state<string[]>([]); // other people with this script open
+  let heartbeat: ReturnType<typeof setInterval> | undefined;
+  const since = new Date().toISOString();
+  let lastWritten = ''; // fingerprint of what this page last wrote to script.md
 
   const title = $derived(script ? frontValue(script.front, 'title') || path.at(-1) : path.at(-1));
   const numbers = $derived.by(() => {
@@ -48,7 +60,10 @@
       const text = await readScript(dir);
       load(text);
       await startHistory(dir, text);
+      await here();
+      await lookForClashes(dir, text);
       checker = setInterval(checkOutside, CHECK_EVERY);
+      heartbeat = setInterval(here, HERE_EVERY);
     } catch {
       notice = "The script couldn't be opened. If OneDrive is still syncing, wait a moment and reload.";
     }
@@ -56,22 +71,136 @@
 
   onDestroy(() => {
     clearInterval(checker);
-    leave();
+    clearInterval(heartbeat);
+    const d = dir;
+    leave().finally(() => d && removeEditing(d, name));
   });
+
+  // "… is editing": this person's file, with when they were last here and what they last wrote.
+  async function here() {
+    if (!dir) return;
+    const now = new Date().toISOString();
+    await writeEditing(dir, { v: 1, who: name, since, seen: now, last_written: lastWritten }).catch(() => {});
+  }
 
   // On opening: the newest version should match script.md. If not, it was changed outside the app (Notepad, a
   // laptop that closed before its entry was written), and that gets its own entry. No versions: History starts.
   async function startHistory(dir: FileSystemDirectoryHandle, text: string) {
     try {
-      const newest = (await listVersions(dir)).at(-1);
+      const versions = await listVersions(dir);
+      const newest = versions.at(-1);
+      const sha = await sha256(text);
+      const matching = heads(versions).findLast((v) => v.sha256 === sha);
       if (!newest) last = await addVersion(dir, { parents: [], who: name, kind: 'restart', text });
-      else if (newest.sha256 !== (await sha256(text))) {
-        last = await addVersion(dir, { parents: [newest.id], who: OUTSIDE, kind: 'outside', text });
-      } else last = newest;
+      else if (matching) last = matching;
+      else {
+        // Someone's last save that never got its entry (their laptop closed): credit it to them.
+        const writer = (await readEditing(dir)).find((e) => e.last_written === sha)?.who;
+        last = writer
+          ? await addVersion(dir, { parents: [newest.id], who: writer, kind: 'edit', text })
+          : await addVersion(dir, { parents: [newest.id], who: OUTSIDE, kind: 'outside', text });
+      }
     } catch {
       // History can't be written (read-only folder?): editing still works.
     }
   }
+
+  // On opening: two saves made at the same time show up as two newest versions, or as a copy OneDrive kept
+  // beside script.md (script-LAPTOP-SAM.md). Either way, the two are combined row by row.
+  async function lookForClashes(dir: FileSystemDirectoryHandle, text: string) {
+    try {
+      for await (const name of dir.keys()) {
+        if (!/^script-.+\.md$/i.test(name)) continue;
+        const copy = await (await (await dir.getFileHandle(name)).getFile()).text();
+        const base = last?.text ?? text;
+        return offer(merge(base, text, copy), {
+          heading: 'OneDrive kept two copies of this script', mineLabel: 'script.md', theirsLabel: name,
+          mineName: 'script.md', theirsName: name, parents: last ? [last.id] : [], copy: name,
+        });
+      }
+      const versions = await listVersions(dir);
+      const tips = heads(versions);
+      if (tips.length < 2) return;
+      const sha = await sha256(text);
+      const a = tips.findLast((v) => v.sha256 === sha) ?? tips.at(-1)!;
+      const b = tips.filter((v) => v !== a).at(-1)!;
+      const base = ancestor(versions, a, b);
+      const [aName, bName] = [person(a.who), person(b.who)];
+      offer(merge(base?.text ?? '', a.text, b.text), {
+        heading: `${cap(bName)} and ${aName} both saved at the same time`,
+        mineLabel: label(a.who), theirsLabel: label(b.who), mineName: aName, theirsName: bName, parents: [a.id, b.id],
+      });
+    } catch {
+      // Can't be read yet (mid-sync): looked at again next time the script opens.
+    }
+  }
+
+  // Shows a combination of two saves, or saves it straight away when nothing clashes.
+  async function offer(
+    merged: Merged,
+    o: { heading: string; mineLabel: string; theirsLabel: string; mineName: string; theirsName: string; parents: string[]; copy?: string },
+  ) {
+    const note = `Combined ${o.theirsName === OUTSIDE ? 'two saves' : `${o.theirsName}’s and ${o.mineName === 'you' ? 'your' : `${o.mineName}’s`} changes`}`;
+    if (!merged.clashes.length) return combine(merged.text({}), o.parents, note, o.copy);
+    const parts = [
+      ...merged.onlyTheirs.map((n) => `row ${n} (only ${o.theirsName} changed it)`),
+      ...merged.onlyMine.map((n) => `row ${n} (only ${o.mineName} changed it)`),
+    ];
+    clash = {
+      merged, heading: o.heading, mineLabel: o.mineLabel, theirsLabel: o.theirsLabel, parents: o.parents, note, copy: o.copy,
+      combined: parts.length ? `Also combined: ${parts.join(', ')}.` : '',
+    };
+    status = 'conflict';
+  }
+
+  // Writes the combined script and its "merge" entry, with both saves as parents.
+  async function combine(text: string, parents: string[], note: string, copy?: string) {
+    if (!dir) return;
+    try {
+      await writeScriptFile(dir, text);
+      lastWritten = await sha256(text);
+      last = await addVersion(dir, { parents, who: name, kind: 'merge', text, note });
+      if (copy) await dir.removeEntry(copy).catch(() => {}); // deleted only once its merge is saved
+      pendingSince = 0;
+      clash = null;
+      load(text);
+      await here();
+    } catch {
+      notice = "The combined script couldn't be saved. If OneDrive is still syncing, wait a moment and try again.";
+    }
+  }
+
+  function resolve(picks: Record<string, Side>) {
+    if (clash) combine(clash.merged.text(picks), clash.parents, clash.note, clash.copy);
+  }
+
+  // Versions nothing was made from: normally one. Two means two saves at the same time.
+  function heads(versions: Version[]): Version[] {
+    const used = new Set(versions.flatMap((v) => v.parents));
+    return versions.filter((v) => !used.has(v.id));
+  }
+
+  // The newest version both were made from.
+  function ancestor(versions: Version[], a: Version, b: Version): Version | undefined {
+    const byId = new Map(versions.map((v) => [v.id, v]));
+    const above = (v: Version) => {
+      const seen = new Set<string>();
+      const todo = [...v.parents];
+      while (todo.length) {
+        const id = todo.shift()!;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        todo.push(...(byId.get(id)?.parents ?? []));
+      }
+      return seen;
+    };
+    const fromA = above(a);
+    return versions.filter((v) => fromA.has(v.id) && above(b).has(v.id)).at(-1);
+  }
+
+  const person = (who: string) => (who === name ? 'you' : who);
+  const label = (who: string) => (who === name ? 'Yours' : `${who}’s`);
+  const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
   // After someone else's change is shown: follow their newest version, if it has synced.
   async function followHistory(text: string) {
@@ -137,14 +266,23 @@
     timer = setTimeout(save, SAVE_AFTER);
   }
 
-  async function save(force = false) {
+  async function save() {
     if (!dir || !script) return;
     clearTimeout(timer);
     status = 'saving';
     try {
       const now = await readScript(dir);
-      if (now !== onDisk && !force) {
-        status = 'conflict';
+      if (now !== onDisk) {
+        // Someone else saved while you were typing: combine the two, row by row.
+        const mine = writeScript(withAuthor($state.snapshot(script) as Script, name));
+        const newest = (await listVersions(dir)).at(-1);
+        const theirsSynced = newest && newest.sha256 === (await sha256(now)) && newest.id !== last?.id;
+        const who = editors[0] ?? (theirsSynced && newest.who !== name ? newest.who : 'Someone else');
+        await offer(merge(onDisk, mine, now), {
+          heading: `${who} and you both saved at the same time`, mineLabel: 'Yours', theirsLabel: label(who),
+          mineName: 'you', theirsName: who,
+          parents: [...(last ? [last.id] : []), ...(theirsSynced ? [newest.id] : [])],
+        });
         return;
       }
       script.blocks = script.blocks.filter((b) => b.type === 'row' || b.title.trim() || b.note);
@@ -152,7 +290,9 @@
       const text = writeScript($state.snapshot(script) as Script);
       if (text !== now) await writeScriptFile(dir, text);
       onDisk = text;
+      lastWritten = await sha256(text);
       await record(text, false).catch(() => {});
+      here();
       // Edits typed while saving start another save.
       if (status === 'saving') status = 'saved';
     } catch {
@@ -163,7 +303,9 @@
 
   // Someone else saved (OneDrive brought their change): with nothing of yours waiting, show it quietly.
   async function checkOutside() {
-    if (!dir || status !== 'saved' || document.hidden) return;
+    if (!dir || document.hidden) return;
+    editors = othersEditing(await readEditing(dir).catch(() => []), name);
+    if (status !== 'saved') return;
     try {
       const now = await readScript(dir);
       if (now !== onDisk && status === 'saved') {
@@ -173,13 +315,6 @@
     } catch {
       // Mid-sync: try again next time.
     }
-  }
-
-  async function takeTheirs() {
-    if (!dir) return;
-    const theirs = await readScript(dir);
-    load(theirs);
-    await followHistory(theirs);
   }
 
   function move(i: number, by: number) {
@@ -250,6 +385,9 @@
       <button aria-current={mode === 'history' ? 'page' : undefined} onclick={showHistory}>History</button>
     </nav>
     <div class="right">
+      {#if editors.length}
+        <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
+      {/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
       <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
     </div>
@@ -258,13 +396,6 @@
 
 <!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->
 <div class="toasts">
-  {#if status === 'conflict'}
-    <div class="banner" role="alert">
-      <p>Someone else saved this script while you were editing. Your changes are not saved yet.</p>
-      <button class="outline" onclick={takeTheirs}>Show their version (drop mine)</button>
-      <button class="outline" onclick={() => save(true)}>Keep mine (replace theirs)</button>
-    </div>
-  {/if}
   {#if undo}
     <div class="banner quiet" aria-live="polite">
       <p>{undo.what}</p>
@@ -286,6 +417,9 @@
       <p>It isn't in {folder.name}. It may have been renamed, or OneDrive may still be bringing it to this computer.</p>
       <p><a href="#/">Back to the list</a></p>
     </div>
+  {:else if clash}
+    <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
+      theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} />
   {:else if script && dir}
@@ -340,6 +474,9 @@
   .crumbs span[aria-hidden] { color: #9a9a9a; }
   .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
+  .editing { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #fff4e5;
+    color: #7a4a00; font-size: 13px; font-weight: 500; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #e08a1e; }
   .modes { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
   .modes button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 14px; font-weight: 500; }
   .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }

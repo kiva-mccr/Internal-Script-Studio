@@ -61,7 +61,7 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 3, without the Write · Review · History switch and Export until those exist. Sections can be
   renamed, added, moved and deleted. Files: choose a file (copied into `assets/`), paste a link, or describe it.
   Saves 1.5 s after typing stops; adds you to `authors`. Someone else's save shows up on its own; if you had
-  changes waiting, it asks "theirs or mine" (the row-by-row merge is AP-7). No history entries yet (AP-6).
+  changes waiting, it asked "theirs or mine" (replaced by the row-by-row merge in AP-7). No history entries yet (AP-6).
   The column headings stay at the top while scrolling, and there are no browser dialogs: deleting shows Undo,
   messages sit at the bottom of the window; images show a thumbnail in the Images & files column (all asked by
   the user after the MVP).
@@ -70,15 +70,22 @@ and suggestions, keeps every version, and exports them for production.
   minutes of editing, on leaving the script or opening History, on restore; a new script's first version; a
   script.md that doesn't match the newest version is logged "Changed outside the app". A script with no history
   starts with "History starts here" (wording changed from "started again", since scripts made before AP-6 have
-  none). The list now shows who edited last. Not yet: the `editing/` check that credits a closed laptop's last
-  edits to its owner (AP-7), and History for comments (RV).
-- [ ] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
+  none). The list now shows who edited last. Not yet: History for comments (RV).
+- [x] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
+  Built as mock-up 6. Saves at the same time are combined row by row (rows matched by id); only a field both people
+  changed is shown side by side to pick, then saved as a "merge" version with both as parents. Caught three ways:
+  on saving over someone's change, two newest versions on opening, and a OneDrive copy beside script.md (removed
+  once combined). "Sam is editing" shows in the header from `.studio/editing/`; a closed laptop's last save is
+  credited to its owner. Picks are per field (dialogue, on screen, files), finer than per row.
 - [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
   publisher, link, date), numbered in the row and gathered into a Sources list at the end of the script; exports
   carry them (print, the video description). The format change (SF-1) and the look are agreed before building.
 - [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
   fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
   a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building.
+- [ ] **AP-10** Official versions (asked by the user): publish a named, numbered version (v1, v2 …) from History;
+  History shows official versions and folds the small saves between them into one line until opened. Mock-up:
+  board 7.
 
 ## Phase 3: review
 
@@ -98,6 +105,14 @@ and suggestions, keeps every version, and exports them for production.
 
 - [ ] **CC-1** Drop in the final video; Whisper (open source, in the browser) hears it; the script's own words are
   lined up with the audio; nudge timings; download SRT or VTT for YouTube. Takes the video file, not a YouTube link.
+
+## Phase 6: later (asked by the user; mock-ups agreed before any of these is built)
+
+- [ ] **HI-2** A graph view of the changes: versions as a timeline or tree, showing who changed what and where two
+  saves were combined.
+- [ ] **SB-1** Animatic / storyboard timeline: the rows' images laid out in order along a timeline, with timings.
+- [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
+  the script.
 
 ## Decisions
 
