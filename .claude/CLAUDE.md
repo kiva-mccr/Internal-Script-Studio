@@ -45,7 +45,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AP-6 (History), once the user approves. AP-2 to AP-5 (the MVP) were built unattended at the user's request.
+- Next: AP-7 ("… is editing" and the row-by-row conflict merge). The user said go ahead with the roadmap from AP-6.
 - Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps

@@ -82,3 +82,18 @@ export async function writeFile(page: Page, path: string, text: string) {
     [path, text],
   );
 }
+
+// The names of the files in a folder of the stand-in folder (empty if it isn't there).
+export async function listFiles(page: Page, path: string): Promise<string[]> {
+  return page.evaluate(async (path) => {
+    try {
+      let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
+      for (const part of path.split('/')) dir = await dir.getDirectoryHandle(part);
+      const names: string[] = [];
+      for await (const name of dir.keys()) names.push(name);
+      return names.sort();
+    } catch {
+      return [];
+    }
+  }, path);
+}

@@ -2,12 +2,15 @@
   import { onDestroy, onMount } from 'svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { emptyRow, frontValue, newId, parseScript, rows, withAuthor, writeScript, type Block, type Script } from '../lib/script';
+  import { addVersion, listVersions, OUTSIDE, sha256, type Version } from '../lib/history';
   import FilesCell from './FilesCell.svelte';
+  import History from './History.svelte';
 
   let { folder, path, name }: { folder: FileSystemDirectoryHandle; path: string[]; name: string } = $props();
 
   const SAVE_AFTER = 1500; // ms after the last change
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
+  const ENTRY_EVERY = 5 * 60 * 1000; // a history entry at most every 5 minutes of editing (docs/studio-folder.md)
 
   let dir = $state<FileSystemDirectoryHandle | null>(null);
   let script = $state<Script | null>(null);
@@ -23,6 +26,9 @@
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
+  let mode = $state<'write' | 'history'>('write');
+  let last: Version | null = null; // the newest history entry this page knows of
+  let pendingSince = 0; // when the first save not yet in History was made
 
   const title = $derived(script ? frontValue(script.front, 'title') || path.at(-1) : path.at(-1));
   const numbers = $derived.by(() => {
@@ -39,7 +45,9 @@
         missing = true;
         return;
       }
-      load(await readScript(dir));
+      const text = await readScript(dir);
+      load(text);
+      await startHistory(dir, text);
       checker = setInterval(checkOutside, CHECK_EVERY);
     } catch {
       notice = "The script couldn't be opened. If OneDrive is still syncing, wait a moment and reload.";
@@ -48,8 +56,69 @@
 
   onDestroy(() => {
     clearInterval(checker);
-    if (status === 'waiting') save();
+    leave();
   });
+
+  // On opening: the newest version should match script.md. If not, it was changed outside the app (Notepad, a
+  // laptop that closed before its entry was written), and that gets its own entry. No versions: History starts.
+  async function startHistory(dir: FileSystemDirectoryHandle, text: string) {
+    try {
+      const newest = (await listVersions(dir)).at(-1);
+      if (!newest) last = await addVersion(dir, { parents: [], who: name, kind: 'restart', text });
+      else if (newest.sha256 !== (await sha256(text))) {
+        last = await addVersion(dir, { parents: [newest.id], who: OUTSIDE, kind: 'outside', text });
+      } else last = newest;
+    } catch {
+      // History can't be written (read-only folder?): editing still works.
+    }
+  }
+
+  // After someone else's change is shown: follow their newest version, if it has synced.
+  async function followHistory(text: string) {
+    if (!dir) return;
+    const newest = (await listVersions(dir).catch(() => [])).at(-1);
+    if (newest && newest.sha256 === (await sha256(text))) last = newest;
+  }
+
+  // A history entry for what was saved: at most every 5 minutes of editing, or now when `now` is set.
+  async function record(text: string, now: boolean) {
+    if (!dir || !last) return;
+    if ((await sha256(text)) === last.sha256) return;
+    pendingSince ||= Date.now();
+    if (!now && Date.now() - pendingSince < ENTRY_EVERY) return;
+    last = await addVersion(dir, { parents: [last.id], who: name, kind: 'edit', text });
+    pendingSince = 0;
+  }
+
+  // Leaving the script (or opening History): save what is waiting and put it in History.
+  async function leave() {
+    if (status === 'waiting') await save();
+    if (status === 'saved' && onDisk) await record(onDisk, true).catch(() => {});
+  }
+
+  async function showHistory() {
+    await leave();
+    mode = 'history';
+  }
+
+  async function restore(version: Version) {
+    if (!dir) return;
+    try {
+      await leave();
+      await writeScriptFile(dir, version.text);
+      const when = new Date(version.when).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      last = await addVersion(dir, {
+        parents: last ? [last.id] : [], who: name, kind: 'restore', text: version.text,
+        note: `Restored the version from ${when.replace(' AM', ' am').replace(' PM', ' pm')}`,
+      });
+      pendingSince = 0;
+      undo = null;
+      load(version.text);
+      mode = 'write';
+    } catch {
+      notice = "That version couldn't be restored. If OneDrive is still syncing, wait a moment and try again.";
+    }
+  }
 
   function load(text: string) {
     const parsed = parseScript(text);
@@ -83,6 +152,7 @@
       const text = writeScript($state.snapshot(script) as Script);
       if (text !== now) await writeScriptFile(dir, text);
       onDisk = text;
+      await record(text, false).catch(() => {});
       // Edits typed while saving start another save.
       if (status === 'saving') status = 'saved';
     } catch {
@@ -96,14 +166,20 @@
     if (!dir || status !== 'saved' || document.hidden) return;
     try {
       const now = await readScript(dir);
-      if (now !== onDisk && status === 'saved') load(now);
+      if (now !== onDisk && status === 'saved') {
+        load(now);
+        await followHistory(now);
+      }
     } catch {
       // Mid-sync: try again next time.
     }
   }
 
   async function takeTheirs() {
-    if (dir) load(await readScript(dir));
+    if (!dir) return;
+    const theirs = await readScript(dir);
+    load(theirs);
+    await followHistory(theirs);
   }
 
   function move(i: number, by: number) {
@@ -152,7 +228,7 @@
 
   // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
-    if (status === 'waiting') save();
+    leave();
     if (status === 'failed') event.preventDefault();
   }
 
@@ -169,8 +245,14 @@
     <span class="title">{title}</span>
   </nav>
   {#if script}
-    <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
-    <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
+    <nav class="modes" aria-label="Mode">
+      <button aria-current={mode === 'write' ? 'page' : undefined} onclick={() => (mode = 'write')}>Write</button>
+      <button aria-current={mode === 'history' ? 'page' : undefined} onclick={showHistory}>History</button>
+    </nav>
+    <div class="right">
+      <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
+      <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
+    </div>
   {/if}
 </header>
 
@@ -204,6 +286,8 @@
       <p>It isn't in {folder.name}. It may have been renamed, or OneDrive may still be bringing it to this computer.</p>
       <p><a href="#/">Back to the list</a></p>
     </div>
+  {:else if script && dir && mode === 'history'}
+    <History {dir} onRestore={restore} />
   {:else if script && dir}
     {#if script.intro}<p class="note">{script.intro}</p>{/if}
     <div class="table">
@@ -255,10 +339,12 @@
   .crumbs a:hover { color: var(--accent); }
   .crumbs span[aria-hidden] { color: #9a9a9a; }
   .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
+  .modes { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
+  .modes button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 14px; font-weight: 500; }
+  .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }
   .status { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
-  .outline { min-height: 44px; padding: 0 16px; border: 1px solid #dadada; border-radius: 8px; background: #fff; color: var(--ink); font-size: 14px; font-weight: 500; }
-  .outline:hover { border-color: var(--accent); }
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 8px; }
   .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; border-radius: 10px;

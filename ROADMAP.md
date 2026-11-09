@@ -65,7 +65,13 @@ and suggestions, keeps every version, and exports them for production.
   The column headings stay at the top while scrolling, and there are no browser dialogs: deleting shows Undo,
   messages sit at the bottom of the window; images show a thumbnail in the Images & files column (all asked by
   the user after the MVP).
-- [ ] **AP-6** History: every save, who and when, what changed, restore; outside changes logged.
+- [x] **AP-6** History: every save, who and when, what changed, restore; outside changes logged.
+  Built as mock-up 5 with a Write · History switch (Review joins it in RV-1). Entries as SF-2 says: at most every 5
+  minutes of editing, on leaving the script or opening History, on restore; a new script's first version; a
+  script.md that doesn't match the newest version is logged "Changed outside the app". A script with no history
+  starts with "History starts here" (wording changed from "started again", since scripts made before AP-6 have
+  none). The list now shows who edited last. Not yet: the `editing/` check that credits a closed laptop's last
+  edits to its owner (AP-7), and History for comments (RV).
 - [ ] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
 - [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
   publisher, link, date), numbered in the row and gathered into a Sources list at the end of the script; exports
