@@ -111,9 +111,9 @@ test('an official version is published by name, and the small saves before it fo
   await expect(versions(page)).toHaveCount(2); // v1 and the folded line
   await fold.click();
   await expect(versions(page).getByText('History starts here')).toBeVisible();
-  const files = await listFiles(page, VERSIONS);
-  const official = JSON.parse(await readFile(page, `${VERSIONS}/${files.sort().at(-1)}`));
-  expect(official).toMatchObject({ kind: 'official', note: 'First draft', who: 'Sam' });
+  // Files made in the same second sort by their random id, so the official one is found by its kind.
+  const saved = await Promise.all((await listFiles(page, VERSIONS)).map(async (f) => JSON.parse(await readFile(page, `${VERSIONS}/${f}`))));
+  expect(saved.filter((v) => v.kind === 'official')).toMatchObject([{ note: 'First draft', who: 'Sam' }]);
 });
 
 test('the next official version is compared with the one before it', async ({ page }) => {
