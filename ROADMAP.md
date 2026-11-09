@@ -29,8 +29,14 @@ and suggestions, keeps every version, and exports them for production.
   (`## 1 <!-- id: … -->` with `Dialogue:`, `On screen:`, `Files:` labels) over a Markdown table, which cannot hold
   several paragraphs in a cell. Optional `# ` sections group rows. One folder per script (`script.md`, `assets/`,
   `.studio/`). Row ids keep comments and history attached when rows move; numbers are renumbered on save.
-- [ ] **SF-2** The folder layout: each save and each comment as its own file, the "… is editing" marker, and how a
+- [x] **SF-2** The folder layout: each save and each comment as its own file, the "… is editing" marker, and how a
   change made outside the app (Notepad, a deleted history folder) is spotted and logged in History.
+  Built: docs/studio-folder.md. Files in `.studio/` are written once, never edited (`editing/` aside). Versions
+  are full copies with parents and a fingerprint; an entry at most every 5 minutes of editing plus on leaving,
+  review, restore and merge (the user agreed). Outside changes and a deleted `.studio/` get their own entries.
+  Conflicts (two newest versions, or OneDrive's `script-*.md` copies) are merged row by row. "… is editing"
+  refreshes every 30 s and is ignored after 2 min. Comments, replies and suggestions are one file each; resolve,
+  accept and reject are new files about them. Your name is typed once per computer.
 
 ## Phase 2: the core app
 

@@ -10,7 +10,7 @@ Video Scripts/                       the shared folder each person picks once
   Episode 03 - How Photosynthesis Works/
     script.md                        the script
     assets/                          images and small files the script uses
-    .studio/                         history, comments, "is editing" (SF-2; hidden, the app's own)
+    .studio/                         history, comments, "is editing": see studio-folder.md
 ```
 
 The folder's name is the script's name in links and in the list. Big videos stay wherever the team keeps them; the
