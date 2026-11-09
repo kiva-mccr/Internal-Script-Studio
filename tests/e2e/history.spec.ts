@@ -91,3 +91,49 @@ test('versions made in the same second stay in order', async ({ page }) => {
   await expect(versions(page).nth(1)).toContainText('Edited row 3');
   await expect(versions(page).nth(2)).toContainText('History starts here');
 });
+
+test('an official version is published by name, and the small saves before it fold away', async ({ page }) => {
+  await openExample(page);
+  await page.getByLabel('On screen, row 1').fill('Wide shot of a forest.');
+  await page.getByRole('button', { name: 'History' }).click();
+  await page.getByRole('button', { name: 'Publish official version' }).click();
+  const form = page.getByRole('form', { name: 'Publish official version' });
+  await form.getByRole('button', { name: 'Publish v1' }).click();
+  await expect(form.getByRole('alert')).toHaveText('Give it a name first.');
+  await form.getByLabel('Name it').fill('First draft');
+  await form.getByRole('button', { name: 'Publish v1' }).click();
+  await expect(form).toHaveCount(0);
+  await expect(versions(page).first()).toContainText('v1First draft');
+  await expect(versions(page).first()).toContainText('Published by Sam ·');
+  await expect(page.getByRole('heading', { name: 'v1 · First draft' })).toBeVisible();
+  const fold = page.getByRole('button', { name: '2 changes before v1' });
+  await expect(fold).toHaveAttribute('aria-expanded', 'false');
+  await expect(versions(page)).toHaveCount(2); // v1 and the folded line
+  await fold.click();
+  await expect(versions(page).getByText('History starts here')).toBeVisible();
+  const files = await listFiles(page, VERSIONS);
+  const official = JSON.parse(await readFile(page, `${VERSIONS}/${files.sort().at(-1)}`));
+  expect(official).toMatchObject({ kind: 'official', note: 'First draft', who: 'Sam' });
+});
+
+test('the next official version is compared with the one before it', async ({ page }) => {
+  await openExample(page);
+  const publish = async (name: string) => {
+    await page.getByRole('button', { name: 'History' }).click();
+    await page.getByRole('button', { name: 'Publish official version' }).click();
+    await page.getByLabel('Name it').fill(name);
+    await page.getByRole('button', { name: /^Publish v\d$/ }).click();
+    await expect(page.getByRole('heading', { name: new RegExp(`· ${name}$`) })).toBeVisible();
+    await page.getByRole('button', { name: 'Write' }).click();
+  };
+  await publish('First draft');
+  await page.getByLabel('On screen, row 1').fill('Wide shot of a forest.');
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByRole('button', { name: '1 change since v1' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'v1 · First draft' })).toBeVisible(); // opens on the newest official
+  await page.getByRole('button', { name: 'Write' }).click();
+  await publish('Sent to the narrator');
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByText(/changes compared with v1/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Changes' })).toContainText('Wide shot of a forest.');
+});

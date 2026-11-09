@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { changes, describe as say, summary, type Version } from '../../src/lib/history';
+import { changes, describe as say, officialNumbers, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -39,5 +39,17 @@ describe('changes', () => {
       { where: 'Row 1 · On screen', old: 'Slow push-in on a sunlit leaf.', new: 'Wide shot.' },
     ]);
     expect(changes(undefined, example)).toEqual([{ where: 'Script', old: '(new file)', new: 'How Photosynthesis Works' }]);
+  });
+});
+
+describe('officialNumbers', () => {
+  it('numbers official versions v1, v2 … in the order they were published', () => {
+    const list = [
+      version(example, { id: 'a' }),
+      version(example, { id: 'b', kind: 'official', note: 'First draft' }),
+      version(example, { id: 'c' }),
+      version(example, { id: 'd', kind: 'official', note: 'Sent to the narrator' }),
+    ];
+    expect([...officialNumbers(list)]).toEqual([['b', 1], ['d', 2]]);
   });
 });

@@ -12,3 +12,4 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
   versions lie before them); sorting by name alone put them in a random order (bug found while building).
 - A file that can't be read (half-synced) is skipped, never an error.
 - Rows are matched by id, so a moved row is not "edited".
+- Official versions (kind `official`) get their number from `officialNumbers`, by publish order; never stored.

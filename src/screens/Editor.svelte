@@ -249,6 +249,21 @@
     }
   }
 
+  // An official version: the script as it is now, named. Returns null if it couldn't be written.
+  async function publish(official: string): Promise<Version | null> {
+    if (!dir) return null;
+    try {
+      await leave();
+      const text = await readScript(dir);
+      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'official', text, note: official });
+      pendingSince = 0;
+      return last;
+    } catch {
+      notice = "The official version couldn't be published. If OneDrive is still syncing, wait a moment and try again.";
+      return null;
+    }
+  }
+
   function load(text: string) {
     const parsed = parseScript(text);
     // Ids are given now, not on save, so a row keeps the same id from its first save on.
@@ -421,7 +436,7 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'history'}
-    <History {dir} onRestore={restore} />
+    <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
     {#if script.intro}<p class="note">{script.intro}</p>{/if}
     <div class="table">
