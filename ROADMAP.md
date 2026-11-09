@@ -69,6 +69,9 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
   publisher, link, date), numbered in the row and gathered into a Sources list at the end of the script; exports
   carry them (print, the video description). The format change (SF-1) and the look are agreed before building.
+- [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
+  fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
+  a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building.
 
 ## Phase 3: review
 
