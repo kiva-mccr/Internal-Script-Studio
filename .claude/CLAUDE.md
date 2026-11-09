@@ -13,7 +13,9 @@ there as steps land and keep the IDs stable.
 
 ## Conventions worth keeping
 - Minimalist above all (the user's words: "minimalist as hell"). See the guardrails in ROADMAP.md.
-- Scripts and their assets never go in this repo: it is public, and the content lives in OneDrive.
+- Scripts and their assets never go in this repo: it is public, and the content lives in OneDrive. The one
+  exception is the made-up example in docs/example/.
+- The script format is docs/script-format.md: read it before touching anything that reads or writes `script.md`.
 - Every code file gets a short note beside it (`name.md`): purpose, then "Rules and pitfalls". Read it before
   editing the file; add the rule or the bug there when you fix one.
 - Every new behaviour gets a test.
@@ -34,7 +36,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
 
 ## Status
-- Next: SF-1 (script format), once the user approves the roadmap.
+- Next: SF-2 (folder layout: saves, comments, "is editing", outside changes), once the user approves it.
 - Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
