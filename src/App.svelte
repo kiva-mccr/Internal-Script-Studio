@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { parseRoute } from './lib/route';
   import { hasAccess, loadFolder, loadName, saveFolder, saveName } from './lib/remember';
+  import Editor from './screens/Editor.svelte';
+  import List from './screens/List.svelte';
   import Setup from './screens/Setup.svelte';
 
   let route = $state(parseRoute(location.hash));
@@ -39,24 +41,11 @@
 {#if screen === 'setup'}
   <Setup {name} remembered={needsOk ? folder : null} onOpen={open} />
 {:else if screen === 'open' && folder}
-  <header>
-    <span class="folder">{folder.name}</span>
-    <button class="link" onclick={() => (screen = 'setup')}>Change folder</button>
-  </header>
-  <main>
-    {#if route.length === 0}
-      <h1>Script Studio</h1>
-      <p>Being built. See the roadmap.</p>
-    {:else}
-      <h1>{route.join(' / ')}</h1>
-    {/if}
-  </main>
+  {#if route.length === 0}
+    <List {folder} {name} onChangeFolder={() => (screen = 'setup')} />
+  {:else}
+    {#key route.join('/')}
+      <Editor {folder} path={route} {name} />
+    {/key}
+  {/if}
 {/if}
-
-<style>
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--line); }
-  .folder { flex: 1 1 200px; font-size: 15px; font-weight: 600; }
-  main { max-width: 880px; margin: 0 auto; padding: 40px 16px; }
-  h1 { margin: 0 0 12px; font-size: 28px; font-weight: 600; }
-  p { margin: 0; color: var(--muted); }
-</style>
