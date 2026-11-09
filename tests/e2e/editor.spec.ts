@@ -86,18 +86,6 @@ test('a change someone else saved shows up on its own', async ({ page }) => {
   await expect(page.getByLabel('On screen, row 1')).toHaveValue('Wide shot of a forest.', { timeout: 10000 });
 });
 
-test('saving over someone else’s change asks first', async ({ page }) => {
-  await openExample(page);
-  await page.getByLabel('Dialogue, row 1').fill('Mine.');
-  await writeFile(page, SCRIPT, example.replace('Slow push-in on a sunlit leaf.', 'Theirs.'));
-  await expect(page.getByRole('alert')).toContainText('Someone else saved this script');
-  await page.getByRole('button', { name: 'Keep mine (replace theirs)' }).click();
-  await saved(page);
-  const text = await readFile(page, SCRIPT);
-  expect(text).toContain('Mine.');
-  expect(text).not.toContain('Theirs.');
-});
-
 test('a link to a script that is not there says so', async ({ page }) => {
   await setUp(page, '#/Episode%2099');
   await expect(page.getByRole('heading', { name: 'No script called "Episode 99"' })).toBeVisible();

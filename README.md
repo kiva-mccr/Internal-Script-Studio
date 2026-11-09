@@ -20,8 +20,9 @@ Status: a first working version. What it does today:
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
-- **Two people:** someone else's saved changes appear on their own. If you both changed it, you're asked whose to
-  keep. Comments and review come next (see the roadmap).
+- **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
+  both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
+  side for you to pick. Comments and review come next (see the roadmap).
 
 Needs Chrome or Edge on a desktop computer.
 

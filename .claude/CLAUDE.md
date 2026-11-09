@@ -45,14 +45,16 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AP-7 ("… is editing" and the row-by-row conflict merge). The user said go ahead with the roadmap from AP-6.
-- Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Next: AP-10 official versions, as drawn on board 7 (approved), then RV-1. Phase 6 steps need mock-ups first.
+- Mock-ups (boards 1 to 7): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
+- e2e tests run as "Sam": use other names for other people's versions and editing files.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.
 - The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
+- Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
