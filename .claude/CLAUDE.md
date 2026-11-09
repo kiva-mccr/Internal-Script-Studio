@@ -40,13 +40,16 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   not here. Keep this file short to save tokens.
 - Save tokens: search ROADMAP.md by step ID instead of reading it whole; read a file's note before the file.
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
+- Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AP-2 (first-time screen: OneDrive instructions, pick the folder), once the user approves it.
+- Next: AP-3 to AP-5. The user asked for an MVP (AP-2 to AP-5) built unattended, matching the mock-ups.
 - Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
-- (none yet)
+- Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
+  with a real folder handle from the browser's private storage standing in for the picked folder.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.
+- Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

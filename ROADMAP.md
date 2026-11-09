@@ -44,8 +44,12 @@ and suggestions, keeps every version, and exports them for production.
   Built: Svelte 5 + TypeScript with Vite (picked by default: small and readable; React and plain JS offered);
   Vitest for logic, Playwright for the app in Chromium; tests.yml and deploy.yml skip `.md` and docs-only pushes.
   A placeholder page reads the link (`#/Episode%2003`) through src/lib/route.ts.
-- [ ] **AP-2** First-time screen: OneDrive set-up instructions ("Add shortcut to My files"), pick the folder,
+- [x] **AP-2** First-time screen: OneDrive set-up instructions ("Add shortcut to My files"), pick the folder,
   remember it.
+  Built as mock-up 1 plus what was proposed: a name field (kept in the browser), "Before you start" folded under
+  the button, a Chrome-or-Edge note for other browsers, and a "Welcome back" one-click screen when the browser
+  asks for permission again. "Change folder" in the header goes back. The user approved building on to an MVP
+  (AP-2 to AP-5) unattended, merging once checks pass.
 - [ ] **AP-3** Open a script from a link.
 - [ ] **AP-4** The script list: name, status, last edited by and when.
 - [ ] **AP-5** The three-column editor: edit, add, move and remove rows, link assets, autosave.
