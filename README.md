@@ -19,6 +19,8 @@ Status: a first working version. What it does today:
   It saves on its own a moment after you stop typing.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
+  Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
+  saves between them folded away until you open them.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by

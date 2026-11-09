@@ -45,7 +45,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AP-10 official versions, as drawn on board 7 (approved), then RV-1. Phase 6 steps need mock-ups first.
+- Next: RV-1 (review). Phase 6 steps need mock-ups first.
 - Mock-ups (boards 1 to 7): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps

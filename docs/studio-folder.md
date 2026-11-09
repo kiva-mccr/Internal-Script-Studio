@@ -60,6 +60,11 @@ except as the `who` of what they write.
 | `merge` | a conflict resolved | "Combined Sam's and Ana's changes" |
 | `outside` | `script.md` changed outside the app | "Changed outside the app" |
 | `restart` | `.studio/` was missing or empty | "History starts here" (also for scripts made before History existed) |
+| `official` | someone publishes an official version, `note` its name | "v2 · Sent to the narrator" (numbered by publish order) |
+
+Official versions are numbered from the order they were published, so the number is never stored. Once a script
+has one, History shows the official versions and folds the small saves between them into one line ("6 changes
+since v2") until opened.
 
 ### When an entry is made
 

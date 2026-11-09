@@ -83,9 +83,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
   fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
   a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building.
-- [ ] **AP-10** Official versions (asked by the user): publish a named, numbered version (v1, v2 …) from History;
+- [x] **AP-10** Official versions (asked by the user): publish a named, numbered version (v1, v2 …) from History;
   History shows official versions and folds the small saves between them into one line until opened. Mock-up:
-  board 7.
+  board 7. Built as drawn (the user picked "Yes, as drawn", not also on Approved): a version of kind `official`
+  named by the person; numbers come from publish order. History opens on the newest official version, which is
+  compared with the one before it.
 
 ## Phase 3: review
 

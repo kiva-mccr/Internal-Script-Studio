@@ -3,7 +3,7 @@
 
 import { frontValue, parseScript, type Row, type Script } from './script';
 
-export type Kind = 'edit' | 'review' | 'restore' | 'merge' | 'outside' | 'restart';
+export type Kind = 'edit' | 'review' | 'restore' | 'merge' | 'outside' | 'restart' | 'official';
 export type Version = {
   v: 1;
   id: string;
@@ -94,6 +94,11 @@ export async function lastEditor(dir: FileSystemDirectoryHandle): Promise<string
 export async function sha256(text: string): Promise<string> {
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Official versions are numbered v1, v2 … in the order they were published (versions oldest first).
+export function officialNumbers(versions: Version[]): Map<string, number> {
+  return new Map(versions.filter((v) => v.kind === 'official').map((v, i) => [v.id, i + 1]));
 }
 
 // What History shows as a version's title.
