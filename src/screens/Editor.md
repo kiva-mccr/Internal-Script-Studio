@@ -11,5 +11,7 @@ sections, add files, links and notes (`FilesCell.svelte`), Copy link. Saves on i
 - Before writing, `script.md` is read again: if it is not what this page last read or wrote, someone else saved,
   and nothing is written until the person picks theirs or mine (the side-by-side merge is AP-7).
 - With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
+- The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to
+  it instead of the window. A narrow window scrolls the page sideways instead.
 - Row tools are placed over the number column so they never make a row taller.
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

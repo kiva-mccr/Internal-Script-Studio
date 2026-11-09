@@ -102,3 +102,12 @@ test('a link to a script that is not there says so', async ({ page }) => {
   await setUp(page, '#/Episode%2099');
   await expect(page.getByRole('heading', { name: 'No script called "Episode 99"' })).toBeVisible();
 });
+
+test('the column headings stay in view while scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 500 });
+  await openExample(page);
+  await page.mouse.wheel(0, 800);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  const box = await page.locator('.head').boundingBox();
+  expect(box?.y).toBeLessThan(5);
+});
