@@ -1,9 +1,10 @@
 // Reading and writing inside the picked folder: the scripts in it, one script's script.md, and its assets.
 // See docs/script-format.md for the layout.
 
+import { addVersion, lastEditor } from './history';
 import { frontValue, newId, parseScript } from './script';
 
-export type ScriptInfo = { path: string[]; title: string; status: string; edited: number };
+export type ScriptInfo = { path: string[]; title: string; status: string; edited: number; who: string };
 
 const SCRIPT = 'script.md';
 // Characters Windows and OneDrive refuse in a file or folder name.
@@ -22,6 +23,7 @@ export async function listScripts(root: FileSystemDirectoryHandle): Promise<Scri
       title: frontValue(front, 'title') || entry.name,
       status: frontValue(front, 'status') || 'draft',
       edited: file.lastModified,
+      who: await lastEditor(entry as FileSystemDirectoryHandle),
     });
   }
   return found.sort((a, b) => b.edited - a.edited);
@@ -70,6 +72,7 @@ export async function createScript(root: FileSystemDirectoryHandle, name: string
     '',
   ].join('\n');
   await writeScriptFile(dir, text);
+  await addVersion(dir, { parents: [], who: author, kind: 'edit', text });
   return folderName;
 }
 

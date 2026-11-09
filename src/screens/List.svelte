@@ -81,7 +81,7 @@
           <a class="row" href={routeHash(script.path)}>
             <span class="title">{script.title}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
-            <span class="when">{ago(script.edited)}</span>
+            <span class="when">{script.who ? `${script.who} · ` : ''}{ago(script.edited)}</span>
           </a>
         {/each}
       </div>

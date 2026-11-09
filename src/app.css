@@ -13,7 +13,7 @@
 }
 body { margin: 0; }
 
-/* The two kinds of button used everywhere. */
+/* The kinds of button used everywhere. */
 button { font: inherit; cursor: pointer; }
 .primary {
   display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px;
@@ -25,3 +25,8 @@ button { font: inherit; cursor: pointer; }
   color: var(--muted); font-size: 14px;
 }
 .link:hover { color: var(--accent); }
+.outline {
+  min-height: 44px; padding: 0 16px; border: 1px solid #dadada; border-radius: 8px; background: #fff; color: var(--ink);
+  font-size: 14px; font-weight: 500;
+}
+.outline:hover { border-color: var(--accent); }

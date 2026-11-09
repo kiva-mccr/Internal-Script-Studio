@@ -59,7 +59,7 @@ except as the `who` of what they write.
 | `restore` | an earlier version restored | "Restored the version from Nov 6" |
 | `merge` | a conflict resolved | "Combined Sam's and Ana's changes" |
 | `outside` | `script.md` changed outside the app | "Changed outside the app" |
-| `restart` | `.studio/` was missing or empty | "History started again (earlier history was deleted)" |
+| `restart` | `.studio/` was missing or empty | "History starts here" (also for scripts made before History existed) |
 
 ### When an entry is made
 
