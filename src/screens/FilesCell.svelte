@@ -1,0 +1,100 @@
+<script lang="ts">
+  import { addAsset, assetFile } from '../lib/folder';
+  import { readFileRef } from '../lib/script';
+
+  // files: the row's Files lines. onChange: called with the new list. onNotice: a message for the page.
+  let {
+    files,
+    dir,
+    onChange,
+    onNotice,
+  }: {
+    files: string[];
+    dir: FileSystemDirectoryHandle;
+    onChange: (files: string[]) => void;
+    onNotice: (message: string) => void;
+  } = $props();
+
+  let adding = $state(false);
+  let typed = $state('');
+  let picker: HTMLInputElement;
+
+  async function openAsset(path: string) {
+    const file = await assetFile(dir, path);
+    if (!file) {
+      onNotice(`${path} isn't in the script's folder. If someone just added it, OneDrive may still be syncing.`);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  async function picked() {
+    const chosen = Array.from(picker.files ?? []);
+    picker.value = '';
+    try {
+      const paths = [];
+      for (const file of chosen) paths.push(await addAsset(dir, file));
+      onChange([...files, ...paths]);
+      adding = false;
+    } catch {
+      onNotice("The file couldn't be copied into the script's folder.");
+    }
+  }
+
+  function addTyped(event: SubmitEvent) {
+    event.preventDefault();
+    const line = typed.trim();
+    if (line) onChange([...files, line]);
+    typed = '';
+    adding = false;
+  }
+</script>
+
+<div class="files">
+  {#each files as line, i (i + line)}
+    {@const ref = readFileRef(line)}
+    <span class="chip">
+      {#if ref.kind === 'link'}
+        <a href={ref.target} target="_blank" rel="noopener noreferrer" title={ref.target}>{ref.label}</a>
+      {:else if ref.kind === 'path'}
+        <button class="open" title={ref.target} onclick={() => openAsset(ref.target)}>{ref.label}</button>
+      {:else}
+        <span class="words">{ref.label}</span>
+      {/if}
+      <button class="remove" aria-label="Remove {ref.label}" onclick={() => onChange(files.filter((_, j) => j !== i))}>×</button>
+    </span>
+  {/each}
+
+  {#if adding}
+    <form class="add-form" onsubmit={addTyped}>
+      <button type="button" class="choose" onclick={() => picker.click()}>Choose a file…</button>
+      <!-- svelte-ignore a11y_autofocus -->
+      <input bind:value={typed} placeholder="or paste a link, or describe it" aria-label="Link or description" autofocus
+        onkeydown={(e) => e.key === 'Escape' && (adding = false)} />
+    </form>
+  {:else}
+    <button class="add" onclick={() => (adding = true)}>+ Add</button>
+  {/if}
+  <input type="file" multiple hidden bind:this={picker} onchange={picked} />
+</div>
+
+<style>
+  .files { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; max-width: 100%; border-radius: 6px; background: #f5f5f5; font-size: 13px; }
+  .chip > a, .open, .words { padding: 6px 4px 6px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+  .chip > a { text-decoration: underline; text-decoration-color: var(--line-strong); }
+  .open { border: 0; background: none; font-size: 13px; text-align: left; }
+  .open:hover, .chip > a:hover { color: var(--accent); }
+  .words { color: var(--muted); font-style: italic; }
+  .remove { border: 0; background: none; color: var(--muted); padding: 4px 8px; font-size: 15px; opacity: 0; }
+  .chip:hover .remove, .remove:focus-visible { opacity: 1; }
+  .remove:hover { color: var(--danger); }
+  .add { border: 0; background: none; padding: 4px 0; color: var(--muted); font-size: 13px; opacity: 0; }
+  .add:focus-visible, :global(.row:hover) .add, :global(.row:focus-within) .add { opacity: 1; }
+  .add:hover { color: var(--accent); }
+  .add-form { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .choose { align-self: flex-start; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; padding: 5px 10px; font-size: 13px; }
+  .add-form input { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: 6px; }
+</style>

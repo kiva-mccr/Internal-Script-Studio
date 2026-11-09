@@ -50,9 +50,18 @@ and suggestions, keeps every version, and exports them for production.
   the button, a Chrome-or-Edge note for other browsers, and a "Welcome back" one-click screen when the browser
   asks for permission again. "Change folder" in the header goes back. The user approved building on to an MVP
   (AP-2 to AP-5) unattended, merging once checks pass.
-- [ ] **AP-3** Open a script from a link.
-- [ ] **AP-4** The script list: name, status, last edited by and when.
-- [ ] **AP-5** The three-column editor: edit, add, move and remove rows, link assets, autosave.
+- [x] **AP-3** Open a script from a link.
+  Built: `#/<script folder>` opens that script, also straight after set-up; Copy link in the editor; a link to a
+  script that is not there says so (renamed, or not synced yet).
+- [x] **AP-4** The script list: name, status, last edited by and when.
+  Built as mock-up 2: title (or folder name), status dot, when, newest first; New script (makes the folder and a
+  `script.md` with one empty row); re-read when the window gets focus. Not yet: "by whom", which needs History's
+  files (AP-6). Picking one script's folder by mistake is explained.
+- [x] **AP-5** The three-column editor: edit, add, move and remove rows, link assets, autosave.
+  Built as mock-up 3, without the Write · Review · History switch and Export until those exist. Sections can be
+  renamed, added, moved and deleted. Files: choose a file (copied into `assets/`), paste a link, or describe it.
+  Saves 1.5 s after typing stops; adds you to `authors`. Someone else's save shows up on its own; if you had
+  changes waiting, it asks "theirs or mine" (the row-by-row merge is AP-7). No history entries yet (AP-6).
 - [ ] **AP-6** History: every save, who and when, what changed, restore; outside changes logged.
 - [ ] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
 

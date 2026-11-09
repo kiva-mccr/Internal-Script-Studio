@@ -43,7 +43,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AP-3 to AP-5. The user asked for an MVP (AP-2 to AP-5) built unattended, matching the mock-ups.
+- Next: AP-6 (History), once the user approves. AP-2 to AP-5 (the MVP) were built unattended at the user's request.
 - Mock-ups of the five main screens: https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -52,4 +52,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.
+- The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

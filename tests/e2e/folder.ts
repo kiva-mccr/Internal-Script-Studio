@@ -58,3 +58,27 @@ export async function setUp(page: Page, hash = '', files: Record<string, string>
   await page.getByLabel('Your name').fill('Sam');
   await page.getByRole('button', { name: 'Choose folder' }).click();
 }
+
+// Reads or writes a file in the stand-in folder, as another person's OneDrive would.
+export async function readFile(page: Page, path: string): Promise<string> {
+  return page.evaluate(async (path) => {
+    let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
+    const parts = path.split('/');
+    for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
+    return (await (await dir.getFileHandle(parts.at(-1)!)).getFile()).text();
+  }, path);
+}
+
+export async function writeFile(page: Page, path: string, text: string) {
+  await page.evaluate(
+    async ([path, text]) => {
+      let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
+      const parts = path.split('/');
+      for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part, { create: true });
+      const writable = await (await dir.getFileHandle(parts.at(-1)!, { create: true })).createWritable();
+      await writable.write(text);
+      await writable.close();
+    },
+    [path, text],
+  );
+}
