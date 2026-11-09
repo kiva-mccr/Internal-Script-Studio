@@ -7,6 +7,8 @@ sections, add files, links and notes (`FilesCell.svelte`), Copy link. Saves on i
 
 ## Rules and pitfalls
 
+- No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.
+  Only a failed save keeps the browser's "Leave site?" prompt, because leaving then would lose work.
 - Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
 - Before writing, `script.md` is read again: if it is not what this page last read or wrote, someone else saved,
   and nothing is written until the person picks theirs or mine (the side-by-side merge is AP-7).

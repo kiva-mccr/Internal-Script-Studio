@@ -10,4 +10,5 @@ note for other browsers.
 
 - The folder picker and the permission prompt only open from a click, so both are called straight from the
   button's handler, before anything else is awaited.
+- A missing name is said in the page (`novalidate`), not by the browser's bubble.
 - Closing the picker is not an error (no message).

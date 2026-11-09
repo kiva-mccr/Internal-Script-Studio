@@ -14,7 +14,8 @@ test('needs a name before choosing the folder', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Choose folder' }).click();
   await expect(page.getByRole('heading', { name: 'Open your scripts folder' })).toBeVisible();
-  expect(await page.getByLabel('Your name').evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+  await expect(page.getByRole('alert')).toHaveText('Type your name first.');
+  await expect(page.getByLabel('Your name')).toBeFocused();
 });
 
 test('shows the OneDrive steps', async ({ page }) => {

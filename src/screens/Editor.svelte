@@ -16,6 +16,9 @@
   // conflict: someone else saved while you had changes waiting.
   let status = $state<'saved' | 'waiting' | 'saving' | 'failed' | 'conflict'>('saved');
   let notice = $state('');
+  // The last delete, kept a few seconds so it can be undone (no browser dialogs: the user's rule).
+  let undo = $state<{ blocks: Block[]; what: string } | null>(null);
+  let undoTimer: ReturnType<typeof setTimeout> | undefined;
   let copied = $state(false);
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -120,9 +123,18 @@
   function remove(i: number) {
     if (!script) return;
     const block = script.blocks[i];
-    const what = block.type === 'row' ? `row ${numbers.get(block)}` : `the section "${block.title}" (its rows stay)`;
-    if (!confirm(`Delete ${what}?`)) return;
+    const what = block.type === 'row' ? `Row ${numbers.get(block)} deleted.` : `Section "${block.title}" deleted (its rows stay).`;
+    undo = { blocks: [...script.blocks], what };
     script.blocks.splice(i, 1);
+    changed();
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => (undo = null), 10000);
+  }
+
+  function undoDelete() {
+    if (!script || !undo) return;
+    script.blocks = undo.blocks;
+    undo = null;
     changed();
   }
 
@@ -138,11 +150,10 @@
     setTimeout(() => (copied = false), 2000);
   }
 
+  // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
-    if (status === 'waiting' || status === 'saving' || status === 'failed') {
-      save();
-      event.preventDefault();
-    }
+    if (status === 'waiting') save();
+    if (status === 'failed') event.preventDefault();
   }
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
@@ -163,19 +174,28 @@
   {/if}
 </header>
 
-{#if status === 'conflict'}
-  <div class="banner" role="alert">
-    <p>Someone else saved this script while you were editing. Your changes are not saved yet.</p>
-    <button class="outline" onclick={takeTheirs}>Show their version (drop mine)</button>
-    <button class="outline" onclick={() => save(true)}>Keep mine (replace theirs)</button>
-  </div>
-{/if}
-{#if notice}
-  <div class="banner" role="alert">
-    <p>{notice}</p>
-    <button class="link" onclick={() => (notice = '')}>OK</button>
-  </div>
-{/if}
+<!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->
+<div class="toasts">
+  {#if status === 'conflict'}
+    <div class="banner" role="alert">
+      <p>Someone else saved this script while you were editing. Your changes are not saved yet.</p>
+      <button class="outline" onclick={takeTheirs}>Show their version (drop mine)</button>
+      <button class="outline" onclick={() => save(true)}>Keep mine (replace theirs)</button>
+    </div>
+  {/if}
+  {#if undo}
+    <div class="banner quiet" aria-live="polite">
+      <p>{undo.what}</p>
+      <button class="outline" onclick={undoDelete}>Undo</button>
+    </div>
+  {/if}
+  {#if notice}
+    <div class="banner" role="alert">
+      <p>{notice}</p>
+      <button class="link" onclick={() => (notice = '')}>OK</button>
+    </div>
+  {/if}
+</div>
 
 <main>
   {#if missing}
@@ -239,7 +259,11 @@
   .status.bad { color: var(--danger); }
   .outline { min-height: 44px; padding: 0 16px; border: 1px solid #dadada; border-radius: 8px; background: #fff; color: var(--ink); font-size: 14px; font-weight: 500; }
   .outline:hover { border-color: var(--accent); }
-  .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 24px; background: #fff7ed; border-bottom: 1px solid #f5d9b5; }
+  .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
+    display: flex; flex-direction: column; gap: 8px; }
+  .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; border-radius: 10px;
+    background: #fff7ed; border: 1px solid #f5d9b5; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
+  .banner.quiet { background: var(--ground); border-color: var(--line); }
   .banner p { margin: 0; flex: 1 1 300px; font-size: 14px; }
   main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
   .table { min-width: 860px; }

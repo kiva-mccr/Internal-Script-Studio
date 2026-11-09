@@ -45,3 +45,10 @@ test("picking one script's folder says which folder to pick", async ({ page }) =
   await setUp(page, '', { 'script.md': example });
   await expect(page.getByRole('heading', { name: "This is one script's folder" })).toBeVisible();
 });
+
+test('an empty name is refused in the page', async ({ page }) => {
+  await setUp(page);
+  await page.getByRole('button', { name: 'New script' }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page.getByRole('alert')).toHaveText('Type a name for the script.');
+});

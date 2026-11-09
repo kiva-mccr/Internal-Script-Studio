@@ -53,7 +53,7 @@
       <label for="new-name">Name of the new script</label>
       <div class="new-row">
         <!-- svelte-ignore a11y_autofocus -->
-        <input id="new-name" bind:value={newName} placeholder="Episode 05 - Food Chains" autofocus required maxlength="120" />
+        <input id="new-name" bind:value={newName} placeholder="Episode 05 - Food Chains" autofocus maxlength="120" />
         <button class="primary small" type="submit">Create</button>
         <button class="link" type="button" onclick={() => { adding = false; addError = ''; }}>Cancel</button>
       </div>

@@ -41,8 +41,8 @@ test('rows can be added, moved and deleted', async ({ page }) => {
   await page.getByLabel('Dialogue, row 2').fill('A new line.');
   await page.getByRole('button', { name: 'Move row 2 up' }).click();
   await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('A new line.');
-  page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Delete row 6' }).click();
+  await expect(page.getByText('Row 6 deleted.')).toBeVisible();
   await saved(page);
   const text = await readFile(page, SCRIPT);
   expect(text).toMatch(/## 1 <!-- id: [a-z0-9]{5} -->\nDialogue:\nA new line\.\n/);
@@ -110,4 +110,17 @@ test('the column headings stay in view while scrolling', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
   const box = await page.locator('.head').boundingBox();
   expect(box?.y).toBeLessThan(5);
+});
+
+test('a delete can be undone, without any browser dialog', async ({ page }) => {
+  page.on('dialog', () => {
+    throw new Error('a browser dialog was shown');
+  });
+  await openExample(page);
+  await page.getByRole('button', { name: 'Delete row 1' }).click();
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue(/It needs three simple ingredients/);
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('Every leaf you have ever seen is running a tiny factory.');
+  await saved(page);
+  expect(await readFile(page, SCRIPT)).toBe(example);
 });
