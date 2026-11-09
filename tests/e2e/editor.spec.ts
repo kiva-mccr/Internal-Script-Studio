@@ -124,3 +124,13 @@ test('a delete can be undone, without any browser dialog', async ({ page }) => {
   await saved(page);
   expect(await readFile(page, SCRIPT)).toBe(example);
 });
+
+test('images show a preview', async ({ page }) => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"><rect width="80" height="40" fill="green"/></svg>';
+  await setUp(page, '#/Episode%2003', { [SCRIPT]: example, 'Episode 03/assets/icons-ingredients.svg': svg });
+  const thumb = page.getByRole('button', { name: 'Open icons-ingredients.svg' });
+  await expect(thumb).toBeVisible();
+  expect(await thumb.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(80);
+  // A file that is missing, or not a real image, shows no preview.
+  await expect(page.getByRole('button', { name: 'Open glucose-model.png' })).toHaveCount(0);
+});

@@ -15,7 +15,37 @@
     onNotice: (message: string) => void;
   } = $props();
 
+  const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i;
+
   let adding = $state(false);
+  // Thumbnails: image files in the script's folder, by path, as short-lived blob URLs. Linked images use their link.
+  let previews = $state<Record<string, string>>({});
+
+  $effect(() => {
+    const paths = files.map(readFileRef).filter((ref) => ref.kind === 'path' && IMAGE.test(ref.target)).map((ref) => ref.target);
+    let gone = false;
+    const made: string[] = [];
+    (async () => {
+      const next: Record<string, string> = {};
+      for (const path of paths) {
+        const file = await assetFile(dir, path);
+        if (!file) continue;
+        const url = URL.createObjectURL(file);
+        if (gone) URL.revokeObjectURL(url);
+        else made.push((next[path] = url));
+      }
+      if (!gone) previews = next;
+    })();
+    return () => {
+      gone = true;
+      made.forEach((url) => URL.revokeObjectURL(url));
+    };
+  });
+
+  function previewOf(ref: { kind: string; target: string }): string {
+    if (!IMAGE.test(ref.target)) return '';
+    return ref.kind === 'path' ? (previews[ref.target] ?? '') : ref.kind === 'link' ? ref.target : '';
+  }
   let typed = $state('');
   let picker: HTMLInputElement;
 
@@ -55,6 +85,13 @@
 <div class="files">
   {#each files as line, i (i + line)}
     {@const ref = readFileRef(line)}
+    {@const preview = previewOf(ref)}
+    {#if preview}
+      <button class="thumb" aria-label="Open {ref.label}"
+        onclick={() => (ref.kind === 'path' ? openAsset(ref.target) : window.open(ref.target, '_blank', 'noopener'))}>
+        <img src={preview} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).parentElement!.hidden = true)} />
+      </button>
+    {/if}
     <span class="chip">
       {#if ref.kind === 'link'}
         <a href={ref.target} target="_blank" rel="noopener noreferrer" title={ref.target}>{ref.label}</a>
@@ -82,6 +119,9 @@
 
 <style>
   .files { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .thumb { display: block; max-width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: #fafafa; overflow: hidden; }
+  .thumb:hover { border-color: var(--accent); }
+  .thumb img { display: block; max-width: 100%; max-height: 120px; object-fit: contain; }
   .chip { display: inline-flex; align-items: center; max-width: 100%; border-radius: 6px; background: #f5f5f5; font-size: 13px; }
   .chip > a, .open, .words { padding: 6px 4px 6px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
   .chip > a { text-decoration: underline; text-decoration-color: var(--line-strong); }

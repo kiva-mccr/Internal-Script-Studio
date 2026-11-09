@@ -15,6 +15,7 @@ Status: a first working version. What it does today:
 - **The list:** every script in the folder, its status and when it was last edited. New script starts one.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
   add or delete it. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
+  Images show a small preview; click it to see it full size.
   It saves on its own a moment after you stop typing.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Two people:** someone else's saved changes appear on their own. If you both changed it, you're asked whose to

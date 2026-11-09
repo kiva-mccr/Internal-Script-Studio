@@ -63,7 +63,8 @@ and suggestions, keeps every version, and exports them for production.
   Saves 1.5 s after typing stops; adds you to `authors`. Someone else's save shows up on its own; if you had
   changes waiting, it asks "theirs or mine" (the row-by-row merge is AP-7). No history entries yet (AP-6).
   The column headings stay at the top while scrolling, and there are no browser dialogs: deleting shows Undo,
-  messages sit at the bottom of the window (both asked by the user after the MVP).
+  messages sit at the bottom of the window; images show a thumbnail in the Images & files column (all asked by
+  the user after the MVP).
 - [ ] **AP-6** History: every save, who and when, what changed, restore; outside changes logged.
 - [ ] **AP-7** "… is editing" and conflict resolution: colliding saves shown side by side, pick per row.
 - [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
