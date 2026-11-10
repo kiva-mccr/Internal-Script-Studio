@@ -1,9 +1,9 @@
 # `src/screens/Editor.svelte`
 
-One script: the Write screen (mock-up 3) and, through the Write · Review · History switch, `Review.svelte` and
-`History.svelte`. Write: one script as rows of three columns. Edit in place, add, move and delete rows and
-sections, add files, links and notes (`FilesCell.svelte`), Print (`Print.svelte`), Copy link. Saves on its own, shows who else is
-editing, and combines saves made at the same time (`Conflict.svelte`).
+One script: opens it, saves it on its own, keeps its History, shows who else is editing, and combines saves made
+at the same time (`Conflict.svelte`). The screens themselves are separate files: the bar at the top
+(`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`) and the print
+version (`Print.svelte`).
 
 - **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`, `print.spec.ts`.
 
@@ -27,11 +27,10 @@ editing, and combines saves made at the same time (`Conflict.svelte`).
   pick the Write tab with `exact: true`.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).
 - With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
-- The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to
-  it instead of the window. A narrow window scrolls the page sideways instead.
-- Row tools are placed over the number column so they never make a row taller.
-- Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
-- Print saves what is waiting first. Its choices (notes column, notes space, text size) are remembered in
-  localStorage, wrapped in try/catch (a private window may refuse). It shows "v3" only while the newest version is
+- Split up (cleanup asked by the user): the header and Print's choices are `Header.svelte`, the rows are
+  `Write.svelte`, and finding two saves' heads and ancestor is `lib/history.ts`. Saving and History stay here;
+  put a new screen or panel in its own file, not in this one.
+- Deleting happens in Write, but the Undo bar and its 10 s timer are here, so it stays up across the tabs.
+- `Print.svelte` is mounted here, at the top level, never inside another element (its print CSS needs that).
+- Print saves what is waiting first. Its choices come from `Header.svelte`. It shows "v3" only while the newest version is
   official and script.md still matches it (`officialNumber`); otherwise "Draft".
-- Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

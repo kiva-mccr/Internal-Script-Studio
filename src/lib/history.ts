@@ -108,6 +108,30 @@ export function officialNumber(versions: Version[], sha: string): number {
   return newest?.kind === 'official' && newest.sha256 === sha ? (officialNumbers(versions).get(newest.id) ?? 0) : 0;
 }
 
+// Versions nothing was made from: normally one. Two means two saves at the same time.
+export function heads(versions: Version[]): Version[] {
+  const used = new Set(versions.flatMap((v) => v.parents));
+  return versions.filter((v) => !used.has(v.id));
+}
+
+// The newest version both were made from.
+export function ancestor(versions: Version[], a: Version, b: Version): Version | undefined {
+  const byId = new Map(versions.map((v) => [v.id, v]));
+  const above = (v: Version) => {
+    const seen = new Set<string>();
+    const todo = [...v.parents];
+    while (todo.length) {
+      const id = todo.shift()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      todo.push(...(byId.get(id)?.parents ?? []));
+    }
+    return seen;
+  };
+  const fromA = above(a);
+  return versions.filter((v) => fromA.has(v.id) && above(b).has(v.id)).at(-1);
+}
+
 // What History shows as a version's title.
 export function summary(version: Version, before: Version | undefined): string {
   if (version.note) return version.note;

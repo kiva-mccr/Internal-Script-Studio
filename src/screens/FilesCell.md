@@ -5,7 +5,7 @@ opens its page, plain words are shown in italics), × to remove, and + Add (choo
 describe something still to find). Images (a file in the folder, or a link ending in an image type) show a
 thumbnail above their chip; clicking it opens the image.
 
-- **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`.
+- **Used by:** `screens/Write.svelte`. **Tests:** `tests/e2e/editor.spec.ts`.
 
 ## Rules and pitfalls
 

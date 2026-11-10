@@ -4,7 +4,7 @@ A Write cell (Dialogue, On screen) with formatting (mock-up 8): while typing you
 show as formatting. Selecting text shows a toolbar: Bold, Italic, Underline, Strikethrough, Link, Equation, Clear.
 Ctrl+B, I, U and K work too.
 
-- **Used by:** `Editor.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`.
+- **Used by:** `Write.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`.
 
 ## Rules and pitfalls
 

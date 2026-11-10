@@ -2,7 +2,7 @@
 
 The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell, or use
 Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
-suggestions, with Undo. Approve / Send back (RV-3) are in `Editor.svelte`'s header.
+suggestions, with Undo. Approve / Send back (RV-3) are in `Header.svelte`.
 
 - **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`.
 
