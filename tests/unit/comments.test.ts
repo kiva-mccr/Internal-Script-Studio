@@ -21,3 +21,19 @@ describe('threads', () => {
     ]);
   });
 });
+
+describe('suggestions', () => {
+  it('are accepted or rejected by the newest decision, and reopened by Undo', () => {
+    const list = threads([
+      note('s', 'suggestion', '00:00', { quote: 'catch', replace: 'absorb' }),
+      note('t', 'suggestion', '01:00', { quote: 'slide', replace: 'pop' }),
+      note('a', 'accept', '02:00', { about: 's' }),
+      note('r', 'reject', '02:00', { about: 't' }),
+      note('u', 'reopen', '03:00', { about: 't' }),
+    ]);
+    expect(list.map((t) => [t.comment.id, t.resolved, t.decision])).toEqual([
+      ['t', false, undefined],
+      ['s', true, 'accepted'],
+    ]);
+  });
+});

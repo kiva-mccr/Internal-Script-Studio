@@ -35,10 +35,10 @@ test('select text to comment on it; the comment is saved as its own file', async
   await selectText(page, 'On screen, row 1', 'sunlit leaf');
   const form = page.getByRole('form', { name: 'New comment' });
   await expect(form).toContainText('Comment on row 1 · On screen');
-  await form.getByRole('button', { name: 'Comment' }).click();
+  await form.getByRole('button', { name: 'Add comment' }).click();
   await expect(form.getByRole('alert')).toHaveText('Write a comment first.');
-  await form.getByLabel('Comment').fill('Could we shoot a real leaf?');
-  await form.getByRole('button', { name: 'Comment' }).click();
+  await form.getByLabel('Comment', { exact: true }).fill('Could we shoot a real leaf?');
+  await form.getByRole('button', { name: 'Add comment' }).click();
   await expect(form).toHaveCount(0);
   const card = page.getByRole('article', { name: 'Comment by Sam' });
   await expect(card).toContainText('Sam commented · row 1');
@@ -56,7 +56,7 @@ test('comment on a whole row, reply, resolve and reopen', async ({ page }) => {
   await openReview(page);
   await page.getByRole('button', { name: 'Comment on row 3' }).click();
   await page.getByLabel('Comment', { exact: true }).fill('Is this too fast?');
-  await page.getByRole('form', { name: 'New comment' }).getByRole('button', { name: 'Comment' }).click();
+  await page.getByRole('form', { name: 'New comment' }).getByRole('button', { name: 'Add comment' }).click();
   const card = page.getByRole('article', { name: 'Comment by Sam' });
   await card.getByRole('button', { name: 'Reply' }).click();
   await card.getByLabel('Reply').fill('A little.');
@@ -82,4 +82,52 @@ test('someone else’s comment appears, and one on changed text says so', async 
     JSON.stringify({ ...ana, id: 'lee00000', who: 'Lee', quote: 'sunlit', row: rowId, text: 'Morning light?' }));
   await expect(page.getByRole('article', { name: 'Comment by Lee' })).toBeVisible({ timeout: 10000 });
   await expect.poll(() => marked(page)).toEqual(['sunlit']);
+});
+
+async function suggestOn(page: Page, cell: string, text: string, replace: string) {
+  await selectText(page, cell, text);
+  const form = page.getByRole('form', { name: 'New comment' });
+  await form.getByRole('button', { name: 'Suggest a change' }).click();
+  await expect(form.getByLabel('Replace with')).toHaveValue(text);
+  await form.getByRole('button', { name: 'Add suggestion' }).click();
+  await expect(form.getByRole('alert')).toHaveText('Change the text first.');
+  await form.getByLabel('Replace with').fill(replace);
+  await form.getByRole('button', { name: 'Add suggestion' }).click();
+  await expect(form).toHaveCount(0);
+}
+
+test('suggest a change; accepting updates the script, and Undo puts it back', async ({ page }) => {
+  await openReview(page);
+  await suggestOn(page, 'Dialogue, row 3', 'catch', 'absorb');
+  const card = page.getByRole('article', { name: 'Suggestion by Sam' });
+  await expect(card).toContainText('Sam suggested · row 3');
+  await expect(card).toContainText('Replace “catch” with “absorb”.');
+  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
+  await card.getByRole('button', { name: 'Accept' }).click();
+  await expect(card).toContainText('Accepted. The script is updated.');
+  await expect(page.getByLabel('Dialogue, row 3')).toContainText('chloroplasts absorb the light');
+  await expect(page.getByRole('heading', { name: 'Open · 0' })).toBeVisible();
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('chloroplasts absorb the light');
+  await card.getByRole('button', { name: 'Undo' }).click();
+  await expect(card.getByRole('button', { name: 'Accept' })).toBeVisible();
+  await expect(page.getByLabel('Dialogue, row 3')).toContainText('chloroplasts catch the light');
+  await expect.poll(() => readFile(page, SCRIPT)).toBe(example);
+});
+
+test('rejecting keeps the original; a suggestion on changed text is not applied', async ({ page }) => {
+  await openReview(page);
+  await suggestOn(page, 'On screen, row 2', 'slide in one at a time', 'pop in, timed to each word');
+  const card = page.getByRole('article', { name: 'Suggestion by Sam' });
+  await card.getByRole('button', { name: 'Reject' }).click();
+  await expect(card).toContainText('Rejected. The original stays.');
+  await expect(page.getByLabel('On screen, row 2')).toContainText('slide in one at a time');
+  await card.getByRole('button', { name: 'Undo' }).click();
+  // Meanwhile the words were changed in Write.
+  await page.getByRole('button', { name: 'Write' }).click();
+  await page.getByLabel('On screen, row 2').fill('Icons appear.');
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await expect(card).toContainText('On text that has since changed');
+  await card.getByRole('button', { name: 'Accept' }).click();
+  await expect(page.getByRole('alert')).toContainText('That text has changed since the suggestion was made.');
+  await expect(card.getByRole('button', { name: 'Accept' })).toBeVisible();
 });

@@ -1,8 +1,8 @@
 # `src/screens/Review.svelte`
 
 The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell, or use
-Comment on a row, to write a comment; reply, resolve and reopen. Suggestions (RV-2) and Approve / Send back
-(RV-3) are not built yet.
+Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
+suggestions, with Undo. Approve / Send back (RV-3) is not built yet.
 
 - **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`.
 
@@ -13,4 +13,7 @@ Comment on a row, to write a comment; reply, resolve and reopen. Suggestions (RV
 - Images & files shows names, as Write does, so a quote there is of the name.
 - Cells show formatting (`lib/format.ts`), so a quote is of the text as it reads, marks taken out. Quotes are
   marked with CSS highlights (`CSS.highlights`, Chrome and Edge), not by changing the page; tests read them there.
+- Accepting goes through `Editor.svelte` (`onApply`): the quote is replaced in Write's text, then saved as usual. It
+  only works if the quote is there as typed (not across formatting marks); otherwise a message, nothing changed.
+- A suggestion decided here stays in the open list with Undo until the screen is left (`recent`).
 - No browser dialogs: an empty comment shows "Write a comment first." in the form.
