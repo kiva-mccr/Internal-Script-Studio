@@ -8,6 +8,8 @@ A free, minimalist web app for writing, reviewing and producing educational vide
 - **Review:** comments and suggestions that writers accept or reject.
 - **Production:** print, teleprompter, Fountain, Final Draft and subtitle exports, plus captions for YouTube.
 
+Open it at **https://p2p-script-studio.kivamccr.xyz/** (Chrome or Edge on a desktop computer).
+
 Status: a first working version. What it does today:
 
 - **First time:** type your name and choose your team's scripts folder (it explains how to add the shared OneDrive

@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-// GitHub Pages serves the app from /Internal-Script-Studio/.
+// Served at https://p2p-script-studio.kivamccr.xyz/ (custom domain) and, until that redirects, at
+// https://kiva-mccr.github.io/Internal-Script-Studio/. Relative paths work at both.
 export default defineConfig({
-  base: '/Internal-Script-Studio/',
+  base: './',
   plugins: [svelte()],
   test: { include: ['tests/unit/**/*.test.ts'] },
 });

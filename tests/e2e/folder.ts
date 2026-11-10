@@ -65,7 +65,16 @@ export async function readFile(page: Page, path: string): Promise<string> {
     let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
     const parts = path.split('/');
     for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
-    return (await (await dir.getFileHandle(parts.at(-1)!)).getFile()).text();
+    const handle = await dir.getFileHandle(parts.at(-1)!);
+    // A read while the app is saving the file can fail (NotReadableError); try again a moment later.
+    for (let tries = 0; ; tries++) {
+      try {
+        return await (await handle.getFile()).text();
+      } catch (e) {
+        if (tries >= 10) throw e;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    }
   }, path);
 }
 

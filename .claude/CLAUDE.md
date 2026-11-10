@@ -11,8 +11,10 @@ there as steps land and keep the IDs stable.
 - Checks: `npm run check` (types), `npm test` (Vitest, `tests/unit/`), `npm run e2e` (Playwright, `tests/e2e/`,
   builds and serves the app itself). Playwright is pinned to 1.63.0 to match this container's Chromium.
 - svelte-check needs TypeScript 6 (TypeScript 7 is not supported by it yet).
-- GitHub Pages serves the app from `/Internal-Script-Studio/` (vite.config.ts `base`); `deploy.yml` publishes
-  every push to main that changes code. Pages' source must be "GitHub Actions" (repo Settings > Pages).
+- The app is at https://p2p-script-studio.kivamccr.xyz/ (custom domain set in repo Settings > Pages; DNS is a
+  CNAME to kiva-mccr.github.io at Hostinger). GitHub redirects the old kiva-mccr.github.io/Internal-Script-Studio/
+  there. vite.config.ts `base` is `./`, so a build works at either address. `deploy.yml` publishes every push to main
+  that changes code; Pages' source must be "GitHub Actions" (no CNAME file needed with Actions).
 - Pushes to main that change only `.md` files or docs skip the workflows; pull requests always run Tests, because
   the main ruleset requires the `test` check (merge only through a PR, no force-push or deletion).
 - For a text-only change, run only the tests that cover it.
@@ -46,7 +48,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: Phase 4, exports (EX-1 first); mock-ups first. Phase 6 steps need mock-ups too.
-  Phase 6 steps need mock-ups first.
 - Mock-ups (boards 1 to 8): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
