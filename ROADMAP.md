@@ -141,10 +141,13 @@ and suggestions, keeps every version, and exports them for production.
   dialogue big, sections small, a marker a third of the way down; Start/Pause, speed in words a minute (150 to
   start, kept for AP-12 to share), text size, Mirror, On-screen cues, time left; Space, ↑ ↓, Esc. Following your
   voice is EX-8.
-- [ ] **EX-8** Teleprompter follows your voice (asked by the user): a "Follow my voice" switch; Whisper in the
+- [x] **EX-8** Teleprompter follows your voice (asked by the user): a "Follow my voice" switch; Whisper in the
   browser (as CC-1, nothing uploaded) hears the microphone, matches the words to the script and keeps the line
   being read at the marker; waits on pauses, copes with skipped or ad-libbed lines. A one-time model download
-  (about 40 to 80 MB) and about a second of lag on an ordinary laptop. Built after EX-2.
+  (about 40 to 80 MB) and about a second of lag on an ordinary laptop. Built after EX-2. Mock-up: board 10, built
+  as drawn (the user: "looks good"): whisper-base.en (about 75 MB at 8 bits) through transformers.js in a worker,
+  the last 4 s heard about once a second, matched to the script by its last 8 words; download progress, a
+  Listening dot, plain messages for a blocked microphone or a failed download. Never tried with a real voice yet.
 - [ ] **EX-3** Fountain (Trelby and other screenplay programs).
 - [ ] **EX-4** Final Draft (.fdx).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).

@@ -60,3 +60,54 @@ test('scrolling by hand moves where it goes on from', async ({ page }) => {
   await prompter.getByRole('button', { name: 'Exit' }).click();
   await expect(prompter).toHaveCount(0);
 });
+
+// Follow my voice (EX-8): the microphone and Whisper are stood in for by window.studioListen (lib/listen.ts).
+type Hooks = { onText: (text: string) => void; onProgress: (loaded: number, total: number) => void };
+type Fake = { hooks?: Hooks; ready?: () => void; stopped?: boolean; fail?: string };
+
+async function fakeVoice(page: Page, fail = '') {
+  await page.addInitScript((fail) => {
+    const fake: Fake = { fail };
+    (window as unknown as { fake: Fake }).fake = fake;
+    (window as unknown as { studioListen: unknown }).studioListen = async (hooks: Hooks) => {
+      if (fake.fail) throw { why: fake.fail };
+      fake.hooks = hooks;
+      hooks.onProgress(30e6, 75e6);
+      await new Promise<void>((resolve) => (fake.ready = resolve));
+      return { stop: () => (fake.stopped = true) };
+    };
+  }, fail);
+}
+
+test('Follow my voice: downloads once with progress, then the marker follows the words heard', async ({ page }) => {
+  await fakeVoice(page);
+  const prompter = await openPrompter(page);
+  await prompter.getByLabel('Follow my voice').check();
+  await expect(prompter.getByRole('status').filter({ hasText: 'Getting speech recognition ready' })).toContainText('30 of 75 MB');
+  await page.evaluate(() => (window as unknown as { fake: Fake }).fake.ready!());
+  await expect(prompter.getByText('Listening: it follows as you speak')).toBeVisible();
+  await expect(prompter.getByRole('button', { name: 'Start' })).toHaveCount(0); // the voice sets the pace
+  const say = (text: string) => page.evaluate((t) => (window as unknown as { fake: Fake }).fake.hooks!.onText(t), text);
+  await say('every leaf you have ever seen is running a tiny factory');
+  await expect(prompter.locator('.past').first()).toContainText('Every leaf'); // the first line has been read
+  const after = await scrollTop(page);
+  expect(after).toBeGreaterThan(50);
+  await say('sorry, can we start again'); // nothing in the script: it stays where it is
+  await page.waitForTimeout(500);
+  expect(Math.abs((await scrollTop(page)) - after)).toBeLessThan(5);
+  await prompter.getByLabel('Follow my voice').uncheck();
+  await expect(prompter.getByRole('button', { name: 'Start' })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { fake: Fake }).fake.stopped)).toBe(true);
+});
+
+test('Follow my voice: a blocked microphone or a failed download says what to do', async ({ page }) => {
+  await fakeVoice(page, 'microphone');
+  const prompter = await openPrompter(page);
+  const box = prompter.getByLabel('Follow my voice');
+  await box.click();
+  await expect(prompter.getByRole('alert')).toHaveText(/The microphone isn't allowed\. Allow it from the address bar/);
+  await expect(box).not.toBeChecked();
+  await page.evaluate(() => ((window as unknown as { fake: Fake }).fake.fail = 'download'));
+  await box.click();
+  await expect(prompter.getByRole('alert')).toHaveText(/couldn't be downloaded\. Check the internet connection/);
+});

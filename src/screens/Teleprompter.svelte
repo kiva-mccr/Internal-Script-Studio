@@ -1,12 +1,14 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte';
-  import { plain, toHtml } from '../lib/format';
+  import { clearMarks, plain, toHtml } from '../lib/format';
+  import { follow, normal } from '../lib/follow';
+  import { listen, type ListenError, type Listening } from '../lib/listen';
   import { clock, countWords, SPEED } from '../lib/readtime';
   import { keep, recall } from '../lib/remember';
   import type { Script } from '../lib/script';
 
   // The teleprompter (EX-2, mock-up 10): the dialogue, big, scrolling past a marker a third of the way down at a
-  // speed in words a minute. onClose: back to the script.
+  // speed in words a minute, or following the voice of whoever reads it (EX-8). onClose: back to the script.
   let { script, onClose }: { script: Script; onClose: () => void } = $props();
 
   let speed = $state(Number(recall('prompter-speed')) || SPEED); // words a minute
@@ -15,6 +17,13 @@
   let cues = $state(!!recall('prompter-cues')); // the On screen column, small, as cues
   let playing = $state(false);
   let read = $state(0); // words read so far: where the marker is
+  // Follow my voice (EX-8): '' off, 'loading' (microphone, then the one-time download), 'on' listening.
+  let voice = $state<'' | 'loading' | 'on'>('');
+  let got = $state({ loaded: 0, total: 0 }); // the download, in bytes
+  let voiceError = $state('');
+  let heardAt = 0; // the word the voice was last heard at; the marker glides there
+  let listening: Listening | null = null;
+  let voiceBox: HTMLInputElement;
 
   let root: HTMLElement;
   let scroller: HTMLElement;
@@ -32,6 +41,10 @@
   });
   const byBlock = $derived(new Map(lines.map((l) => [l.i, l])));
   const total = $derived(lines.reduce((n, l) => n + l.words, 0));
+  // Every word of the dialogue, as compared with what is heard; counted the same way as `lines`.
+  const scriptWords = $derived(
+    script.blocks.flatMap((b) => (b.type === 'row' ? clearMarks(b.dialogue).split(/\s+/).filter(Boolean).map(normal) : [])),
+  );
   let frame = 0;
   let lastTime = 0;
   let lastSet = 0; // the scroll position this view set itself; anything else was the person scrolling
@@ -42,6 +55,7 @@
   });
   onDestroy(() => {
     cancelAnimationFrame(frame);
+    listening?.stop();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   });
 
@@ -81,7 +95,7 @@
       if (y < top) break;
       at = line.start + Math.min(1, (y - top) / el.offsetHeight) * line.words;
     }
-    read = Math.min(at, total);
+    read = heardAt = Math.min(at, total);
   }
 
   function step(time: number) {
@@ -104,7 +118,51 @@
   const faster = (by: number) => (speed = Math.min(400, Math.max(60, speed + by)));
   const bigger = (by: number) => (size = Math.min(96, Math.max(24, size + by)));
 
+  // Follow my voice: the marker glides to where the voice was last heard, a little each frame.
+  function glide(time: number) {
+    if (voice !== 'on') return;
+    read += (heardAt - read) * Math.min(1, ((time - lastTime) / 1000) * 3);
+    if (Math.abs(heardAt - read) < 0.05) read = heardAt; // arrived (it would only ever come close)
+    lastTime = time;
+    place();
+    frame = requestAnimationFrame(glide);
+  }
+
+  async function toggleVoice() {
+    voiceError = '';
+    if (voice) {
+      listening?.stop();
+      listening = null;
+      voice = '';
+      return;
+    }
+    playing = false;
+    cancelAnimationFrame(frame);
+    voice = 'loading';
+    heardAt = read;
+    try {
+      const started = await listen({
+        onText: (text) => (heardAt = follow(scriptWords, text.split(/\s+/).map(normal).filter(Boolean), heardAt)),
+        onProgress: (loaded, total) => (got = { loaded, total }),
+      });
+      if (voice !== 'loading') return started.stop(); // switched off while it was getting ready
+      listening = started;
+      voice = 'on';
+      lastTime = performance.now();
+      frame = requestAnimationFrame(glide);
+    } catch (e) {
+      voice = '';
+      voiceBox.checked = false; // the box was ticked by the click, and `voice` stayed ''
+      voiceError = (e as ListenError)?.why === 'microphone'
+        ? "The microphone isn't allowed. Allow it from the address bar, then switch Follow my voice on again."
+        : "Speech recognition couldn't be downloaded. Check the internet connection, then try again.";
+    }
+  }
+
+  const mb = (bytes: number) => Math.round(bytes / 1e6);
+
   function key(event: KeyboardEvent) {
+    if (event.key === ' ' && voice) return;
     if (event.key === ' ') toggle();
     else if (event.key === 'ArrowUp') faster(10);
     else if (event.key === 'ArrowDown') faster(-10);
@@ -131,18 +189,31 @@
     </div>
   </div>
   <div class="marker" aria-hidden="true"></div>
+  {#if voice === 'on'}<p class="listening" role="status"><span class="dot" aria-hidden="true"></span>Listening: it follows as you speak</p>{/if}
+  {#if voice === 'loading' || voiceError}
+    <div class="notice" role={voiceError ? 'alert' : 'status'}>
+      {#if voiceError}{voiceError}
+      {:else if got.total}
+        Getting speech recognition ready: {mb(got.loaded)} of {mb(got.total)} MB. Only the first time; it stays on this computer.
+        <progress max={got.total} value={got.loaded}></progress>
+      {:else}Getting speech recognition ready…{/if}
+    </div>
+  {/if}
 
   <div class="controls">
-    <button class="play" onclick={toggle}>{playing ? 'Pause' : 'Start'}</button>
-    <span class="group" role="group" aria-label="Speed">
-      <button aria-label="Slower" onclick={() => faster(-10)}>−</button>
-      <span><b>{speed}</b> words a minute</span>
-      <button aria-label="Faster" onclick={() => faster(10)}>+</button>
-    </span>
+    {#if !voice}
+      <button class="play" onclick={toggle}>{playing ? 'Pause' : 'Start'}</button>
+      <span class="group" role="group" aria-label="Speed">
+        <button aria-label="Slower" onclick={() => faster(-10)}>−</button>
+        <span><b>{speed}</b> words a minute</span>
+        <button aria-label="Faster" onclick={() => faster(10)}>+</button>
+      </span>
+    {/if}
     <span class="group" role="group" aria-label="Text size">
       <button aria-label="Smaller text" onclick={() => bigger(-4)}>A−</button>
       <button aria-label="Bigger text" onclick={() => bigger(4)}>A+</button>
     </span>
+    <label><input type="checkbox" bind:this={voiceBox} checked={!!voice} onchange={toggleVoice} /> Follow my voice</label>
     <label><input type="checkbox" bind:checked={mirror} /> Mirror</label>
     <label><input type="checkbox" bind:checked={cues} /> On-screen cues</label>
     <span class="left">{clock(((total - read) / speed) * 60)} left</span>
@@ -172,4 +243,10 @@
   label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
   .left { color: #9a9a9a; font-variant-numeric: tabular-nums; }
   .controls .exit { padding: 0 12px; }
+  .listening { position: absolute; left: 24px; top: 24px; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px;
+    border-radius: 999px; background: rgba(40, 40, 40, 0.92); font-size: 13px; color: #e6e6e6; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; }
+  .notice { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); width: min(440px, calc(100% - 32px)); box-sizing: border-box;
+    padding: 12px 16px; border-radius: 12px; background: rgba(40, 40, 40, 0.92); font-size: 14px; line-height: 1.5; color: #e6e6e6; }
+  .notice progress { display: block; width: 100%; margin-top: 8px; accent-color: var(--accent); }
 </style>

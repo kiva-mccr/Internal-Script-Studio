@@ -2,7 +2,8 @@
 
 The teleprompter (EX-2, mock-up 10): full screen, the dialogue big and section names small, scrolling past a marker a
 third of the way down at a speed in words a minute. Start/Pause, speed, text size, Mirror (for a teleprompter
-glass), On-screen cues (the On screen column, small), time left, Exit. Keys: Space, ↑ ↓ (speed), Esc.
+glass), On-screen cues (the On screen column, small), time left, Exit. Keys: Space, ↑ ↓ (speed), Esc. Follow my
+voice (EX-8, `lib/listen.ts`, `lib/follow.ts`): the marker follows the words heard instead of the speed.
 
 - **Used by:** `screens/Editor.svelte` (the Teleprompter button in `Header.svelte`). **Tests:**
   `tests/e2e/teleprompter.spec.ts`.
@@ -20,3 +21,6 @@ glass), On-screen cues (the On screen column, small), time left, Exit. Keys: Spa
 - It asks for full screen; a refusal (tests, some browsers) is ignored. In full screen the first Esc is the
   browser's (leaves full screen), the next one closes it.
 - Space would also press a focused button: the key handler prevents the default.
+- Follow my voice hides Start and the speed. The marker glides to where the voice was heard (and snaps the last
+  bit, or it would never quite arrive and the line would never dim). A failed start unticks the box by hand: the
+  click ticked it while `voice` stayed ''.

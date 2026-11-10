@@ -47,7 +47,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: EX-8 (teleprompter follows your voice, Whisper in the browser), then Phase 4 onward; mock-ups first. Phase 6 steps need mock-ups too.
+- Next: the rest of Phase 4 (EX-3 Fountain onward); mock-ups first. Phase 6 steps need mock-ups too.
 - Mock-ups (boards 1 to 10): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -59,4 +59,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Nothing has been tried on a real OneDrive synced folder yet.
 - The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
 - Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
+- Follow my voice (EX-8) with real Whisper and a real microphone: this container can't reach Hugging Face, so
+  only the worker starting and asking for the model was seen; the following itself was tested with a fake.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
