@@ -10,6 +10,7 @@ Video Scripts/                       the shared folder each person picks once
   Episode 03 - How Photosynthesis Works/
     script.md                        the script
     assets/                          images and small files the script uses
+    voice/                           voice-over takes, one per row: row-<id>.webm and row-<id>.json
     .studio/                         history, comments, "is editing": see studio-folder.md
 ```
 

@@ -8,8 +8,8 @@
   import { keep, recall } from '../lib/remember';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, missingCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
-    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; editors: string[]; reviewStatus: string;
+  let { folder, title, ready, mode, openCount, missingCount, voiceText, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
+    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx') => void;
@@ -78,6 +78,7 @@
         <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
+      {#if voiceText}<span class="voice">{voiceText}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
       <span class="more" bind:this={exportEl}>
         <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
@@ -131,7 +132,7 @@
   .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
   .dark:hover { background: #333; }
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
-  .status { font-size: 13px; color: var(--muted); }
+  .status, .voice { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
   .more { position: relative; }
   .dots { min-width: 44px; padding: 0 12px; font-size: 18px; line-height: 1; }

@@ -40,3 +40,5 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Missing files (`lostFiles`) are worked out here, not in `Assets.svelte`, so the tab's count shows in every tab. They
   are checked when the Files lines change (`untrack`, or every keystroke would re-check), when the tab opens and with
   the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.
+- `voice` (a `VoiceOver`) holds the voice-over takes for Write and the top bar's total; it is read at open and with
+  the 5 s check (not while recording), so someone else's take appears.

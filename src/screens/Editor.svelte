@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { assetList, missingFiles } from '../lib/assets';
+  import { clock } from '../lib/readtime';
+  import { VoiceOver } from '../lib/voice.svelte';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
   import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
@@ -57,6 +59,16 @@
     parents: string[]; note: string; copy?: string;
   } | null>(null);
   let editors = $state<string[]>([]); // other people with this script open
+  // Voice-over takes (AU-1): read with the script and with the 5 s check, so others' takes appear.
+  const voice = new VoiceOver();
+  const voiceText = $derived.by(() => {
+    if (!script) return '';
+    const rowsNow = script.blocks.filter((b) => b.type === 'row');
+    const taken = rowsNow.filter((b) => voice.takes[b.id]);
+    if (!taken.length) return '';
+    const seconds = taken.reduce((sum, b) => sum + voice.takes[b.id].seconds, 0);
+    return `Voice-over ${taken.length} of ${rowsNow.length} rows · ${clock(seconds)}`;
+  });
   let heartbeat: ReturnType<typeof setInterval> | undefined;
   const since = new Date().toISOString();
   let lastWritten = ''; // fingerprint of what this page last wrote to script.md
@@ -76,6 +88,7 @@
       await here();
       await lookForClashes(dir, text);
       notes = await listNotes(dir).catch(() => []);
+      await voice.load(dir);
       checker = setInterval(checkOutside, CHECK_EVERY);
       heartbeat = setInterval(here, HERE_EVERY);
     } catch {
@@ -84,6 +97,7 @@
   });
 
   onDestroy(() => {
+    voice.stopPlaying();
     clearInterval(checker);
     clearInterval(heartbeat);
     const d = dir;
@@ -373,6 +387,7 @@
   async function checkOutside() {
     if (!dir || document.hidden) return;
     checkFiles();
+    if (!voice.recording) voice.load(dir);
     editors = othersEditing(await readEditing(dir).catch(() => []), name);
     notes = await listNotes(dir).catch(() => notes);
     if (status !== 'saved') return;
@@ -445,7 +460,7 @@
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} />
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {editors} {reviewStatus} {status}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
   onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
 
@@ -490,7 +505,7 @@
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    <Write bind:script {dir} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
+    <Write bind:script {dir} {voice} {name} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
 <style>
