@@ -22,6 +22,9 @@ editing, and combines saves made at the same time (`Conflict.svelte`).
 - "… is editing": your `editing/` file is written on opening and every 30 s, removed on leaving. A script.md that
   matches someone's `last_written` is credited to them, not "Outside the app".
 - Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
+- Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after
+  `leave()`), then add a `review` History entry. The button names contain "Write" (Send back to writer), so tests
+  pick the Write tab with `exact: true`.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).
 - With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
 - The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to
