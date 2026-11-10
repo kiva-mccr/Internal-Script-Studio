@@ -49,7 +49,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: Phase 4 is done but EX-5 SRT (shelved by the user) and EX-9 export preview (later); ask the user what next
   (CC-1 captions, or Phase 6); mock-ups first. Phase 6 steps need mock-ups too.
-- Mock-ups (boards 1 to 12): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Mock-ups (boards 1 to 13): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
@@ -64,4 +64,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   only the worker starting and asking for the model was seen; the following itself was tested with a fake.
   Works on the user's desktop; doesn't follow on a Pixel 8 in Chrome (issue #24, shelved).
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
+- Voice-over takes (AU-1) with a real microphone and real OneDrive: tests fake the recording.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
