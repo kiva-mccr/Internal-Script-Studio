@@ -101,7 +101,11 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 4, without suggestions (RV-2) and Approve / Send back (RV-3). A Review tab, with the number of
   open comments, shows the script to read and the comments beside it; quotes are marked in their cells. Resolved
   comments fold under "Resolved" and can be reopened. Not yet: comments in History.
-- [ ] **RV-2** Suggestions: accept or reject.
+- [x] **RV-2** Suggestions: accept or reject.
+  Built as mock-up 4: select text, Suggest a change (starts from the selected words); the card says "Replace … with
+  …" with Accept, Reject and Reply. Accepting changes the script; a decision stays in place with Undo. The old words
+  are struck through in the script; the new ones show in the card, not inline. A suggestion on text that has since
+  changed is not applied (a message says to change it in Write). Not on Images & files.
 - [ ] **RV-3** Status: Draft, In review, Approved; Approve and Send back to writer.
 
 ## Phase 4: exports

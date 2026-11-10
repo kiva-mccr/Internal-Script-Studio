@@ -10,7 +10,7 @@
   import TextField from './TextField.svelte';
   import History from './History.svelte';
   import Review from './Review.svelte';
-  import { addNote, listNotes, threads, type Note } from '../lib/comments';
+  import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
 
   let { folder, path, name }: { folder: FileSystemDirectoryHandle; path: string[]; name: string } = $props();
 
@@ -283,6 +283,20 @@
     }
   }
 
+  // An accepted suggestion (or its Undo): `from` becomes `to` in the row's field, then saved as usual.
+  function apply(row: string, field: Field, from: string, to: string): boolean {
+    const block = script?.blocks.find((b) => b.type === 'row' && b.id === row);
+    if (!block || block.type !== 'row' || field === 'files') return false;
+    const key = field === 'on_screen' ? 'onScreen' : 'dialogue';
+    if (!from || !block[key].includes(from)) {
+      notice = 'That text has changed since the suggestion was made. Change it in Write instead.';
+      return false;
+    }
+    block[key] = block[key].replace(from, to);
+    changed();
+    return true;
+  }
+
   async function showReview() {
     await leave();
     mode = 'review';
@@ -464,7 +478,7 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {script} {notes} onAdd={note} />
+    <Review {script} {notes} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
