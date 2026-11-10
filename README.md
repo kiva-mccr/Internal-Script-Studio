@@ -42,6 +42,9 @@ Status: a first working version. What it does today:
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
   back). The Review tab shows how many are open. Send for review, then Approve or Send back to writer; each step
   is noted in History, and the list shows the status.
+- **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
+  use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
+  The tab and the script list show how many files are missing. A row number goes to that row.
 - **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
   side for you to pick.

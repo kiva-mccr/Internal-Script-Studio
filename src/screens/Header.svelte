@@ -7,9 +7,9 @@
   import { editingText } from '../lib/editing';
   import { keep, recall } from '../lib/remember';
 
-  type Mode = 'write' | 'review' | 'history';
-  let { folder, title, ready, mode, openCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
-    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; editors: string[]; reviewStatus: string;
+  type Mode = 'write' | 'review' | 'history' | 'assets';
+  let { folder, title, ready, mode, openCount, missingCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
+    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx') => void;
@@ -63,6 +63,9 @@
         Review{#if openCount}<span class="count" aria-label="{openCount} open">{openCount}</span>{/if}
       </button>
       <button aria-current={mode === 'history' ? 'page' : undefined} onclick={() => onMode('history')}>History</button>
+      <button aria-current={mode === 'assets' ? 'page' : undefined} onclick={() => onMode('assets')}>
+        Assets{#if missingCount}<span class="count bad" aria-label="{missingCount} missing">{missingCount}</span>{/if}
+      </button>
     </nav>
     <div class="right">
       {#if editors.length}
@@ -124,6 +127,7 @@
   .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }
   .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 1px 6px; box-sizing: border-box; border-radius: 10px;
     background: var(--accent); color: #fff; font-size: 12px; text-align: center; }
+  .count.bad { background: var(--danger); }
   .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
   .dark:hover { background: #333; }
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { createScript, findScript, listScripts, type ScriptInfo } from '../lib/folder';
+  import { countMissing } from '../lib/assets';
+  import { createScript, findScript, listScripts, readScript, type ScriptInfo } from '../lib/folder';
+  import { parseScript } from '../lib/script';
   import { routeHash } from '../lib/route';
   import { ago } from '../lib/when';
 
@@ -13,17 +15,33 @@
   let adding = $state(false);
   let newName = $state('');
   let addError = $state('');
+  let missing = $state<Record<string, number>>({}); // files missing from each script's folder (EX-6), by path
 
   async function load() {
     try {
       scripts = await listScripts(folder);
       isOneScript = scripts.length === 0 && (await findScript(folder, [])) !== null;
       error = '';
+      countAll(scripts);
     } catch {
       error = "The folder couldn't be read. If OneDrive is still syncing, wait a moment and try again.";
     }
   }
   onMount(load);
+
+  // Counted after the list is shown, so a big folder doesn't hold it up. A script that can't be read shows nothing.
+  async function countAll(list: ScriptInfo[]) {
+    const next: Record<string, number> = {};
+    for (const info of list) {
+      try {
+        const dir = await findScript(folder, info.path);
+        if (dir) next[info.path.join('/')] = await countMissing(dir, parseScript(await readScript(dir)));
+      } catch {
+        // Mid-sync: counted next time.
+      }
+    }
+    missing = next;
+  }
 
   async function create(event: SubmitEvent) {
     event.preventDefault();
@@ -79,7 +97,7 @@
         <div class="head"><span>Script</span><span>Status</span><span>Last edited</span></div>
         {#each scripts as script (script.path.join('/'))}
           <a class="row" href={routeHash(script.path)}>
-            <span class="title">{script.title}</span>
+            <span class="title-cell"><span class="title">{script.title}</span>{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
             <span class="when">{script.who ? `${script.who} · ` : ''}{ago(script.edited)}</span>
           </a>
@@ -101,6 +119,8 @@
   .row { align-items: center; min-height: 56px; border-bottom: 1px solid #f0f0f0; color: var(--ink); text-decoration: none; }
   .row:hover { background: #fafafa; }
   .row:hover .title { color: var(--accent); }
+  .title-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .missing { flex: none; padding: 2px 8px; border-radius: 999px; background: #fdf0ef; color: var(--danger); font-size: 12px; font-weight: 500; }
   .title { font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #3d3d3d; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #b8b8b8; }

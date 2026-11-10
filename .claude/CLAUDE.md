@@ -47,8 +47,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: EX-6 asset list (EX-5 SRT is shelved by the user; EX-9 export preview later); mock-ups first. Phase 6 steps need mock-ups too.
-- Mock-ups (boards 1 to 11): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Next: Phase 4 is done but EX-5 SRT (shelved by the user) and EX-9 export preview (later); ask the user what next
+  (CC-1 captions, or Phase 6); mock-ups first. Phase 6 steps need mock-ups too.
+- Mock-ups (boards 1 to 12): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),

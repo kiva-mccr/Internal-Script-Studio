@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick, untrack } from 'svelte';
+  import { assetList, missingFiles } from '../lib/assets';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
   import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
@@ -7,6 +8,7 @@
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
+  import Assets from './Assets.svelte';
   import Conflict from './Conflict.svelte';
   import Header, { type PrintChoices } from './Header.svelte';
   import History from './History.svelte';
@@ -37,7 +39,14 @@
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
-  let mode = $state<'write' | 'review' | 'history'>('write');
+  let mode = $state<'write' | 'review' | 'history' | 'assets'>('write');
+  // The Files column's paths that aren't in the folder (EX-6): the Assets tab's count and list. Checked again when
+  // the files change, when the tab opens and with the 5 s check, since OneDrive may bring a file in at any time.
+  let lostFiles = $state<Set<string>>(new Set());
+  const fileLines = $derived(script ? JSON.stringify(script.blocks.flatMap((b) => (b.type === 'row' ? b.files : []))) : '');
+  $effect(() => {
+    if (fileLines) untrack(checkFiles);
+  });
   let prompting = $state(false); // the teleprompter is open (EX-2)
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
@@ -345,9 +354,25 @@
     }
   }
 
+  async function checkFiles() {
+    if (!dir || !script) return;
+    const lost = await missingFiles(dir, assetList(script)).catch(() => lostFiles);
+    if ([...lost].join('\n') !== [...lostFiles].join('\n')) lostFiles = lost;
+  }
+
+  // From the Assets tab: back to Write, at that row.
+  async function jump(row: number) {
+    mode = 'write';
+    await tick();
+    const field = document.querySelector<HTMLElement>(`[aria-label="Dialogue, row ${row}"]`);
+    field?.scrollIntoView({ block: 'center' });
+    field?.focus({ preventScroll: true });
+  }
+
   // Someone else saved (OneDrive brought their change): with nothing of yours waiting, show it quietly.
   async function checkOutside() {
     if (!dir || document.hidden) return;
+    checkFiles();
     editors = othersEditing(await readEditing(dir).catch(() => []), name);
     notes = await listNotes(dir).catch(() => notes);
     if (status !== 'saved') return;
@@ -420,8 +445,8 @@
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} />
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {editors} {reviewStatus} {status}
-  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : (mode = 'write'))}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {editors} {reviewStatus} {status}
+  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
   onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
 
 {#if prompting && script}
@@ -460,6 +485,8 @@
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
     <Review {script} {notes} onAdd={note} onApply={apply} />
+  {:else if script && dir && mode === 'assets'}
+    <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}

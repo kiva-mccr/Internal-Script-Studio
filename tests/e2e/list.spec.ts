@@ -12,7 +12,7 @@ test('lists each script with its title and status', async ({ page }) => {
   });
   const rows = page.locator('a.row');
   await expect(rows).toHaveCount(2);
-  await expect(page.getByRole('link', { name: /How Photosynthesis Works\s*In review/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /How Photosynthesis Works.*In review/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Trailer · Season 1\s*Draft/ })).toBeVisible();
   await page.getByRole('link', { name: /How Photosynthesis Works/ }).click();
   await expect(page).toHaveURL(/#\/Episode%2003$/);

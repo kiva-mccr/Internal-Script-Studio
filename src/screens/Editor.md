@@ -2,11 +2,11 @@
 
 One script: opens it, saves it on its own, keeps its History, shows who else is editing, and combines saves made
 at the same time (`Conflict.svelte`). The screens themselves are separate files: the bar at the top
-(`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`), the print
+(`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`), Assets (`Assets.svelte`), the print
 version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what is waiting first).
 
 - **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`, `print.spec.ts`,
-  `teleprompter.spec.ts`.
+  `teleprompter.spec.ts`, `assets.spec.ts`.
 
 ## Rules and pitfalls
 
@@ -37,3 +37,6 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   official and script.md still matches it (`officialNumber`, through `version()`); otherwise "Draft".
 - Exports (`exportAs`) use the same `version()`, turn the script into text (`lib/fountain.ts`, `lib/fdx.ts`) and download it
   with a link click; the file is named after the title (`safeName`), "script" if that is empty.
+- Missing files (`lostFiles`) are worked out here, not in `Assets.svelte`, so the tab's count shows in every tab. They
+  are checked when the Files lines change (`untrack`, or every keystroke would re-check), when the tab opens and with
+  the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.
