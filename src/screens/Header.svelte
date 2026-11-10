@@ -8,17 +8,20 @@
   import { keep, recall } from '../lib/remember';
 
   type Mode = 'write' | 'review' | 'history';
-  let { folder, title, ready, mode, openCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint }: {
+  let { folder, title, ready, mode, openCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
+    onExport: (to: 'fountain') => void;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
   let copied = $state(false);
-  // The ⋯ menu (asked by the user, to keep the bar short): Teleprompter, Print, Copy link. 'print': Print's choices.
-  let menu = $state<'' | 'open' | 'print'>('');
-  let menuEl = $state<HTMLElement>();
+  // Two menus, to keep the bar short (asked by the user): Export (Print, Fountain, and later exports) and ⋯
+  // (Teleprompter, Copy link). 'print': Print's choices, under Export.
+  let menu = $state<'' | 'more' | 'export' | 'print'>('');
+  let moreEl = $state<HTMLElement>();
+  let exportEl = $state<HTMLElement>();
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
   let printColumn = $state(!!recall('print-notes'));
   let printLines = $state(!!recall('print-lines'));
@@ -40,7 +43,8 @@
 
   // A click outside the menu or Esc closes it.
   function away(event: Event) {
-    if (menu && !menuEl?.contains(event.target as Node)) menu = '';
+    const inside = (el?: HTMLElement) => el?.contains(event.target as Node);
+    if (menu && !inside(moreEl) && !inside(exportEl)) menu = '';
   }
 </script>
 
@@ -72,13 +76,13 @@
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
-      <span class="more" bind:this={menuEl}>
-        <button class="outline dots" aria-label="More" title="More" aria-expanded={!!menu} onclick={() => (menu = menu ? '' : 'open')}>⋯</button>
-        {#if menu === 'open'}
+      <span class="more" bind:this={exportEl}>
+        <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
+          onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export</button>
+        {#if menu === 'export'}
           <div class="menu">
-            <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
             <button onclick={() => (menu = 'print')}>Print…</button>
-            <button onclick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
+            <button onclick={() => ((menu = ''), onExport('fountain'))}>Fountain (.fountain)</button>
           </div>
         {:else if menu === 'print'}
           <div class="menu print-menu">
@@ -86,6 +90,15 @@
             <label><input type="checkbox" bind:checked={printLines} /> Notes space at the end</label>
             <label class="scale">Text size <input type="range" min="60" max="140" step="5" bind:value={printScale} /> <span>{printScale}%</span></label>
             <button class="dark" onclick={print}>Print</button>
+          </div>
+        {/if}
+      </span>
+      <span class="more" bind:this={moreEl}>
+        <button class="outline dots" aria-label="More" title="More" aria-expanded={menu === 'more'} onclick={() => (menu = menu === 'more' ? '' : 'more')}>⋯</button>
+        {#if menu === 'more'}
+          <div class="menu">
+            <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
+            <button onclick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
           </div>
         {/if}
       </span>

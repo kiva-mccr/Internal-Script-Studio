@@ -34,4 +34,6 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Deleting happens in Write, but the Undo bar and its 10 s timer are here, so it stays up across the tabs.
 - `Print.svelte` is mounted here, at the top level, never inside another element (its print CSS needs that).
 - Print saves what is waiting first. Its choices come from `Header.svelte`. It shows "v3" only while the newest version is
-  official and script.md still matches it (`officialNumber`); otherwise "Draft".
+  official and script.md still matches it (`officialNumber`, through `version()`); otherwise "Draft".
+- Exports (`exportAs`) use the same `version()`, turn the script into text (`lib/fountain.ts`) and download it
+  with a link click; the file is named after the title (`safeName`), "script" if that is empty.

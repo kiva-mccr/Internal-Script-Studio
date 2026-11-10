@@ -123,13 +123,13 @@ test('images show a preview', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Open glucose-model.png' })).toHaveCount(0);
 });
 
-test('the ⋯ menu holds Teleprompter, Print and Copy link, and closes on Esc or a click elsewhere', async ({ page, context }) => {
+test('the ⋯ menu holds Teleprompter and Copy link, and closes on Esc or a click elsewhere', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openExample(page);
   const more = page.getByRole('button', { name: 'More' });
   await more.click();
   await expect(more).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Print…', 'Copy link']);
+  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
   await page.keyboard.press('Escape');
   await expect(page.locator('.menu')).toHaveCount(0);
   await more.click();
@@ -140,4 +140,29 @@ test('the ⋯ menu holds Teleprompter, Print and Copy link, and closes on Esc or
   await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('#/Episode%2003');
   await expect(page.locator('.menu')).toHaveCount(0); // closes a moment later
+});
+
+test('the Export menu holds Print and Fountain; only one menu is open at a time', async ({ page }) => {
+  await openExample(page);
+  const exportButton = page.getByRole('button', { name: 'Export' });
+  await exportButton.click();
+  await expect(exportButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)']);
+  await page.getByRole('button', { name: 'More' }).click();
+  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.menu')).toHaveCount(0);
+});
+
+test('Fountain downloads the script as a .fountain file named after it', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'Export' }).click();
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Fountain (.fountain)' }).click()]);
+  expect(file.suggestedFilename()).toBe('How Photosynthesis Works.fountain');
+  const text = readFileSync(await file.path(), 'utf8');
+  expect(text).toMatch(/^Title: How Photosynthesis Works\n/);
+  expect(text).toContain('Draft date: Draft');
+  expect(text).toContain('[[Row 1]]');
+  expect(text).toContain('\nNARRATOR\n');
+  await expect(page.locator('.menu')).toHaveCount(0);
 });

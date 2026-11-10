@@ -149,8 +149,13 @@ and suggestions, keeps every version, and exports them for production.
   the last 4 s heard about once a second, matched to the script by its last 8 words; download progress, a
   Listening dot, plain messages for a blocked microphone or a failed download. The user tried it: works on
   desktop, didn't move on a phone; asked for each word to grey out once said (done, also with Start). For phones:
-  the sound is resumed and resampled, and a Whisper that stops working says so.
-- [ ] **EX-3** Fountain (Trelby and other screenplay programs).
+  the sound is resumed and resampled, and a Whisper that stops working says so. Still didn't follow on a Pixel 8
+  in Chrome; shelved by the user as a bug (issue #24).
+- [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
+  Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
+  the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
+  dialogue, the On screen column is the action, row numbers, notes and files are `[[notes]]`; the title page has
+  the authors and "Draft date: v3 · Approved · date".
 - [ ] **EX-4** Final Draft (.fdx).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).
 - [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in

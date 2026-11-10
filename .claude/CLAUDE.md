@@ -47,8 +47,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: the rest of Phase 4 (EX-3 Fountain onward); mock-ups first. Phase 6 steps need mock-ups too.
-- Mock-ups (boards 1 to 10): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Next: the rest of Phase 4 (EX-4 Final Draft onward, under the Export button); mock-ups first. Phase 6 steps need mock-ups too.
+- Mock-ups (boards 1 to 11): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
@@ -61,4 +61,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
 - Follow my voice (EX-8) with real Whisper and a real microphone: this container can't reach Hugging Face, so
   only the worker starting and asking for the model was seen; the following itself was tested with a fake.
+  Works on the user's desktop; doesn't follow on a Pixel 8 in Chrome (issue #24, shelved).
+- Fountain files opened in a real screenplay program (Trelby, Highland): only the text was checked.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
