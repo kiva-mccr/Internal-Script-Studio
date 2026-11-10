@@ -9,6 +9,7 @@
   import Header, { type PrintChoices } from './Header.svelte';
   import History from './History.svelte';
   import Print from './Print.svelte';
+  import Teleprompter from './Teleprompter.svelte';
   import Review from './Review.svelte';
   import Write from './Write.svelte';
   import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
@@ -35,6 +36,7 @@
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
   let mode = $state<'write' | 'review' | 'history'>('write');
+  let prompting = $state(false); // the teleprompter is open (EX-2)
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
   let last: Version | null = null; // the newest history entry this page knows of
@@ -394,7 +396,11 @@
 
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {editors} {reviewStatus} {status}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : (mode = 'write'))}
-  onStatus={setStatus} onPrint={print} />
+  onStatus={setStatus} onPrint={print} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
+
+{#if prompting && script}
+  <Teleprompter {script} onClose={() => (prompting = false)} />
+{/if}
 
 {#if printing && script && dir}
   <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} onReady={() => window.print()} />

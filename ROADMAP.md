@@ -136,8 +136,15 @@ and suggestions, keeps every version, and exports them for production.
   The version shows "v3" only while the script is still that official version, else "Draft". Asked while building:
   Print's choices, remembered: a blank Notes column on each row and a lined Notes space at the end (the user picked
   both, for notes during production), and a text size slider (60 to 140%).
-- [ ] **EX-2** Teleprompter view. Refined (the user agreed): scrolls at the read time speed (AP-12), with a mirror
-  switch.
+- [x] **EX-2** Teleprompter view. Refined (the user agreed): scrolls at the read time speed (AP-12), with a mirror
+  switch. Mock-up: board 10, built as drawn ("Yes, as drawn"): a Teleprompter button opens it full screen; the
+  dialogue big, sections small, a marker a third of the way down; Start/Pause, speed in words a minute (150 to
+  start, kept for AP-12 to share), text size, Mirror, On-screen cues, time left; Space, ↑ ↓, Esc. Following your
+  voice is EX-8.
+- [ ] **EX-8** Teleprompter follows your voice (asked by the user): a "Follow my voice" switch; Whisper in the
+  browser (as CC-1, nothing uploaded) hears the microphone, matches the words to the script and keeps the line
+  being read at the marker; waits on pauses, copes with skipped or ad-libbed lines. A one-time model download
+  (about 40 to 80 MB) and about a second of lag on an ordinary laptop. Built after EX-2.
 - [ ] **EX-3** Fountain (Trelby and other screenplay programs).
 - [ ] **EX-4** Final Draft (.fdx).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).

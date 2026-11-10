@@ -2,10 +2,11 @@
 
 One script: opens it, saves it on its own, keeps its History, shows who else is editing, and combines saves made
 at the same time (`Conflict.svelte`). The screens themselves are separate files: the bar at the top
-(`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`) and the print
-version (`Print.svelte`).
+(`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`), the print
+version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what is waiting first).
 
-- **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`, `print.spec.ts`.
+- **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`, `print.spec.ts`,
+  `teleprompter.spec.ts`.
 
 ## Rules and pitfalls
 
