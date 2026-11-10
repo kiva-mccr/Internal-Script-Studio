@@ -106,7 +106,10 @@ and suggestions, keeps every version, and exports them for production.
   …" with Accept, Reject and Reply. Accepting changes the script; a decision stays in place with Undo. The old words
   are struck through in the script; the new ones show in the card, not inline. A suggestion on text that has since
   changed is not applied (a message says to change it in Write). Not on Images & files.
-- [ ] **RV-3** Status: Draft, In review, Approved; Approve and Send back to writer.
+- [x] **RV-3** Status: Draft, In review, Approved; Approve and Send back to writer.
+  Built as mock-up 4: Send for review (when not in review), and in Review, Send back to writer and Approve. The
+  status is the script's `status:` and each change is saved at once with a History entry ("Sent for review",
+  "Approved", "Sent back to writer"). Anyone can press them (roles on trust).
 
 ## Phase 4: exports
 

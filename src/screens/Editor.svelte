@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
-  import { emptyRow, frontValue, newId, parseScript, rows, withAuthor, writeScript, type Block, type Script } from '../lib/script';
+  import { emptyRow, frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { editingText, othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, listVersions, OUTSIDE, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
@@ -297,6 +297,22 @@
     return true;
   }
 
+  // Review status (RV-3): draft → in review → approved, or sent back to draft. Saved at once, with a History entry.
+  const reviewStatus = $derived(script ? frontValue(script.front, 'status') || 'draft' : 'draft');
+  async function setStatus(to: 'draft' | 'in review' | 'approved', note: string) {
+    if (!dir || !script) return;
+    await leave();
+    script.front = setFrontValue(script.front, 'status', to);
+    await save();
+    if (status !== 'saved') return; // a clash or a failed save: shown already
+    try {
+      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'review', text: onDisk, note });
+      pendingSince = 0;
+    } catch {
+      // History can't be written: the status itself is saved.
+    }
+  }
+
   async function showReview() {
     await leave();
     mode = 'review';
@@ -445,6 +461,13 @@
       {#if editors.length}
         <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
       {/if}
+      {#if reviewStatus === 'in review' && mode === 'review'}
+        <button class="outline" onclick={() => setStatus('draft', 'Sent back to writer')}>Send back to writer</button>
+        <button class="dark" onclick={() => setStatus('approved', 'Approved')}>Approve</button>
+      {:else if reviewStatus !== 'in review'}
+        <button class="outline" onclick={() => setStatus('in review', 'Sent for review')}>Send for review</button>
+      {/if}
+      {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
       <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
     </div>
@@ -532,7 +555,8 @@
   .crumbs a:hover { color: var(--accent); }
   .crumbs span[aria-hidden] { color: #9a9a9a; }
   .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
+  .right { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
+  .right > * { white-space: nowrap; }
   .editing { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #fff4e5;
     color: #7a4a00; font-size: 13px; font-weight: 500; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #e08a1e; }
@@ -541,6 +565,9 @@
   .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }
   .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 1px 6px; box-sizing: border-box; border-radius: 10px;
     background: var(--accent); color: #fff; font-size: 12px; text-align: center; }
+  .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
+  .dark:hover { background: #333; }
+  .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
   .status { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));

@@ -45,7 +45,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: RV-3 (status, Approve / Send back to writer), from mock-up 4.
+- Next: Phase 4, exports (EX-1 first); mock-ups first. Phase 6 steps need mock-ups too.
   Phase 6 steps need mock-ups first.
 - Mock-ups (boards 1 to 8): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 

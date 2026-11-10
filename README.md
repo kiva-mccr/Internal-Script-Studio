@@ -25,7 +25,8 @@ Status: a first working version. What it does today:
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
-  back). The Review tab shows how many are open.
+  back). The Review tab shows how many are open. Send for review, then Approve or Send back to writer; each step
+  is noted in History, and the list shows the status.
 - **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
   side for you to pick.

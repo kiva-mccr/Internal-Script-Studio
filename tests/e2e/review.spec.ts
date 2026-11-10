@@ -123,11 +123,31 @@ test('rejecting keeps the original; a suggestion on changed text is not applied'
   await expect(page.getByLabel('On screen, row 2')).toContainText('slide in one at a time');
   await card.getByRole('button', { name: 'Undo' }).click();
   // Meanwhile the words were changed in Write.
-  await page.getByRole('button', { name: 'Write' }).click();
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
   await page.getByLabel('On screen, row 2').fill('Icons appear.');
   await page.getByRole('button', { name: /^Review/ }).click();
   await expect(card).toContainText('On text that has since changed');
   await card.getByRole('button', { name: 'Accept' }).click();
   await expect(page.getByRole('alert')).toContainText('That text has changed since the suggestion was made.');
   await expect(card.getByRole('button', { name: 'Accept' })).toBeVisible();
+});
+
+test('approve, send for review again, and send back to the writer; each is in History', async ({ page }) => {
+  await openReview(page); // the example is "in review"
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await expect(page.getByText('Approved', { exact: true })).toBeVisible();
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('status: approved\n');
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+  await expect(page.getByText('In review', { exact: true })).toBeVisible(); // Write shows where it stands
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await page.getByRole('button', { name: 'Send back to writer' }).click();
+  await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('status: draft\n');
+  await page.getByRole('button', { name: 'History' }).click();
+  const versions = page.getByRole('navigation', { name: 'Versions' }).getByRole('button');
+  await expect(versions.nth(0)).toContainText('Sent back to writer');
+  await expect(versions.nth(1)).toContainText('Sent for review');
+  await expect(versions.nth(2)).toContainText('Approved');
 });
