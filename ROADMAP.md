@@ -165,9 +165,12 @@ and suggestions, keeps every version, and exports them for production.
   depth and will be built together with other features they have in mind.
 - [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
   one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
-  building.
-- [ ] **EX-7** Exports carry the version (suggested, the user agreed): every export is stamped with the official
+  building. Mock-up: board 12, built as drawn, as an Assets tab beside History (the user's choice) with a red
+  count; grouped missing, still to find, then the rest, or by row under the sections ("Order", remembered); each
+  asset once with its rows, which jump to Write; the script list shows "2 missing". Links aren't checked online.
+- [x] **EX-7** Exports carry the version (suggested, the user agreed): every export is stamped with the official
   version and the status ("v2 · Approved", else "Draft"), as print (EX-1) already is, so nobody records from a draft.
+  Done along the way: print, Fountain and Final Draft all use `version()` in the Editor; later exports must too.
 - [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
   Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
   Today the exports download straight from the Export menu. Mock-up first.
