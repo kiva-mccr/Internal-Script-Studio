@@ -19,19 +19,24 @@ export async function listen(hooks: Hooks): Promise<Listening> {
   const fake = (window as unknown as { studioListen?: (h: Hooks) => Promise<Listening> }).studioListen;
   if (fake) return fake(hooks);
 
+  // Made now, inside the tap or click that switched it on: Chrome on Android keeps sound made later paused, and
+  // resume() then needs another tap (found by the user on a Pixel 8). The device's own rate: some phones refuse a
+  // 16 kHz microphone, so `resample` brings it to 16 kHz below.
+  const context = new AudioContext();
+  context.resume().catch(() => {});
   let stream: MediaStream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
   } catch {
+    context.close().catch(() => {});
     throw new ListenError('microphone');
   }
   const worker = new Worker(new URL('./whisper.worker.ts', import.meta.url), { type: 'module' });
   const stop = () => {
     stream.getTracks().forEach((t) => t.stop());
     worker.terminate();
-    context?.close().catch(() => {});
+    context.close().catch(() => {});
   };
-  let context: AudioContext | undefined;
   try {
     await new Promise<void>((resolve, reject) => {
       worker.onmessage = ({ data }) => {
@@ -47,9 +52,6 @@ export async function listen(hooks: Hooks): Promise<Listening> {
     throw new ListenError('download');
   }
 
-  // The device's own rate (some phones refuse a 16 kHz microphone), brought down to 16 kHz below. A context made
-  // after the download has lost the click that allowed sound, so phones start it paused: resume it.
-  context = new AudioContext();
   await context.resume().catch(() => {});
   const step = context.sampleRate / RATE;
   let carry = 0; // where the next 16 kHz sample falls in the next piece of sound

@@ -12,8 +12,9 @@ progress), then sends the last 4 s of sound about once a second and hands back w
 - The microphone is asked for first, so a refusal doesn't cost a 75 MB download. Errors are `ListenError`
   ('microphone' or 'download') and the teleprompter shows a plain message for each.
 - The AudioContext runs at the device's rate and `resample` brings it to 16 kHz: some phones refuse a 16 kHz
-  microphone. It is resumed after it is made (made after the download, it has lost the click that allows sound,
-  and phones start it paused), and the tap is connected to the speakers (silent) so every browser runs it.
+  microphone. It is made at once, inside the click
+  that switched it on, and resumed: made after the download, it had lost that click, and Chrome on Android kept
+  it paused (a Pixel 8 didn't move), and the tap is connected to the speakers (silent) so every browser runs it.
 - Three failed hearings in a row, or the worker dying (a phone out of memory), call `onFail`: the teleprompter
   says so and goes back to Start. Before this, a phone just didn't move (found by the user).
 - A second of silence is not sent: Whisper makes up words ("Thank you.") in silence.
