@@ -16,7 +16,9 @@
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
   let copied = $state(false);
-  let printMenu = $state(false); // Print's choices, shown under the button
+  // The ⋯ menu (asked by the user, to keep the bar short): Teleprompter, Print, Copy link. 'print': Print's choices.
+  let menu = $state<'' | 'open' | 'print'>('');
+  let menuEl = $state<HTMLElement>();
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
   let printColumn = $state(!!recall('print-notes'));
   let printLines = $state(!!recall('print-lines'));
@@ -25,17 +27,24 @@
   async function copyLink() {
     await navigator.clipboard.writeText(location.href);
     copied = true;
-    setTimeout(() => (copied = false), 2000);
+    setTimeout(() => ((copied = false), (menu = '')), 1200);
   }
 
   function print() {
-    printMenu = false;
+    menu = '';
     keep('print-notes', printColumn ? '1' : '');
     keep('print-lines', printLines ? '1' : '');
     keep('print-scale', String(printScale));
     onPrint({ column: printColumn, lines: printLines, scale: printScale });
   }
+
+  // A click outside the menu or Esc closes it.
+  function away(event: Event) {
+    if (menu && !menuEl?.contains(event.target as Node)) menu = '';
+  }
 </script>
+
+<svelte:window onpointerdown={away} onkeydown={(e) => e.key === 'Escape' && (menu = '')} />
 
 <header>
   <nav class="crumbs" aria-label="Breadcrumb">
@@ -63,11 +72,16 @@
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
-      <button class="outline" onclick={onPrompt}>Teleprompter</button>
-      <span class="print">
-        <button class="outline" aria-expanded={printMenu} onclick={() => (printMenu = !printMenu)}>Print</button>
-        {#if printMenu}
-          <div class="print-menu">
+      <span class="more" bind:this={menuEl}>
+        <button class="outline dots" aria-label="More" title="More" aria-expanded={!!menu} onclick={() => (menu = menu ? '' : 'open')}>⋯</button>
+        {#if menu === 'open'}
+          <div class="menu">
+            <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
+            <button onclick={() => (menu = 'print')}>Print…</button>
+            <button onclick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
+          </div>
+        {:else if menu === 'print'}
+          <div class="menu print-menu">
             <label><input type="checkbox" bind:checked={printColumn} /> Notes column on each row</label>
             <label><input type="checkbox" bind:checked={printLines} /> Notes space at the end</label>
             <label class="scale">Text size <input type="range" min="60" max="140" step="5" bind:value={printScale} /> <span>{printScale}%</span></label>
@@ -75,7 +89,6 @@
           </div>
         {/if}
       </span>
-      <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
     </div>
   {/if}
 </header>
@@ -102,10 +115,15 @@
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
   .status { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
-  .print { position: relative; }
-  .print-menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;
-    gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
+  .more { position: relative; }
+  .dots { min-width: 44px; padding: 0 12px; font-size: 18px; line-height: 1; }
+  .menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;
+    min-width: 180px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10); font-size: 14px; }
+  .menu > button:not(.dark) { min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: none; color: var(--ink);
+    font-size: 14px; text-align: left; }
+  .menu > button:not(.dark):hover { background: #f2f2f2; }
+  .print-menu { gap: 10px; padding: 12px; }
   .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
   .scale input { flex: 1; min-width: 120px; }
   .scale span { min-width: 40px; text-align: right; color: var(--muted); }
