@@ -101,6 +101,13 @@ export function officialNumbers(versions: Version[]): Map<string, number> {
   return new Map(versions.filter((v) => v.kind === 'official').map((v, i) => [v.id, i + 1]));
 }
 
+// The number of the official version a script's text is, or 0: the newest version is official and the text has
+// not changed since (versions oldest first, `sha` the text's fingerprint). Printing shows it (EX-1).
+export function officialNumber(versions: Version[], sha: string): number {
+  const newest = versions.at(-1);
+  return newest?.kind === 'official' && newest.sha256 === sha ? (officialNumbers(versions).get(newest.id) ?? 0) : 0;
+}
+
 // What History shows as a version's title.
 export function summary(version: Version, before: Version | undefined): string {
   if (version.note) return version.note;

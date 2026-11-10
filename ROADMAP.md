@@ -113,7 +113,12 @@ and suggestions, keeps every version, and exports them for production.
 
 ## Phase 4: exports
 
-- [ ] **EX-1** PDF: the three-column print version.
+- [x] **EX-1** PDF: the three-column print version. Mock-up: board 9, built as drawn ("Yes, as drawn"): a Print
+  button opens the browser's print window, where "Save as PDF" makes the PDF (no PDF library). Portrait, image
+  previews beside file names, no comments; headings repeat on every page, rows never split, footer with page N of M.
+  The version shows "v3" only while the script is still that official version, else "Draft". Asked while building:
+  Print's choices, remembered: a blank Notes column on each row and a lined Notes space at the end (the user picked
+  both, for notes during production), and a text size slider (60 to 140%).
 - [ ] **EX-2** Teleprompter view.
 - [ ] **EX-3** Fountain (Trelby and other screenplay programs).
 - [ ] **EX-4** Final Draft (.fdx).

@@ -24,6 +24,8 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
+- **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
+  blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it

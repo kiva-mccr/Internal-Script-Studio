@@ -2,10 +2,10 @@
 
 One script: the Write screen (mock-up 3) and, through the Write · Review · History switch, `Review.svelte` and
 `History.svelte`. Write: one script as rows of three columns. Edit in place, add, move and delete rows and
-sections, add files, links and notes (`FilesCell.svelte`), Copy link. Saves on its own, shows who else is
+sections, add files, links and notes (`FilesCell.svelte`), Print (`Print.svelte`), Copy link. Saves on its own, shows who else is
 editing, and combines saves made at the same time (`Conflict.svelte`).
 
-- **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`.
+- **Used by:** `App.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `history.spec.ts`, `conflict.spec.ts`, `print.spec.ts`.
 
 ## Rules and pitfalls
 
@@ -31,4 +31,7 @@ editing, and combines saves made at the same time (`Conflict.svelte`).
   it instead of the window. A narrow window scrolls the page sideways instead.
 - Row tools are placed over the number column so they never make a row taller.
 - Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
+- Print saves what is waiting first. Its choices (notes column, notes space, text size) are remembered in
+  localStorage, wrapped in try/catch (a private window may refuse). It shows "v3" only while the newest version is
+  official and script.md still matches it (`officialNumber`); otherwise "Draft".
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

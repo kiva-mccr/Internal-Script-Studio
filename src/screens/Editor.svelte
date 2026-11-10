@@ -3,12 +3,13 @@
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { emptyRow, frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { editingText, othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, listVersions, OUTSIDE, sha256, type Version } from '../lib/history';
+  import { addVersion, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
   import Conflict from './Conflict.svelte';
   import FilesCell from './FilesCell.svelte';
   import TextField from './TextField.svelte';
   import History from './History.svelte';
+  import Print from './Print.svelte';
   import Review from './Review.svelte';
   import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
 
@@ -30,6 +31,12 @@
   let undo = $state<{ blocks: Block[]; what: string } | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
   let copied = $state(false);
+  let printing = $state<{ version: string } | null>(null); // the print version, while printing (EX-1)
+  let printMenu = $state(false); // Print's choices, shown under the button
+  // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
+  let printColumn = $state(!!remembered('print-notes'));
+  let printLines = $state(!!remembered('print-lines'));
+  let printScale = $state(Number(remembered('print-scale')) || 100); // %, the printed text size
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
@@ -431,6 +438,32 @@
     setTimeout(() => (copied = false), 2000);
   }
 
+  // Print (EX-1): saves what is waiting, then shows the print version and opens the browser's print window once its
+  // images and equations are in. The version is "v3" only while the script is still that official version.
+  async function print() {
+    if (!script || !dir || printing) return;
+    printMenu = false;
+    try {
+      localStorage.setItem('print-notes', printColumn ? '1' : '');
+      localStorage.setItem('print-lines', printLines ? '1' : '');
+      localStorage.setItem('print-scale', String(printScale));
+    } catch {
+      // Not remembered (private window): it still prints.
+    }
+    if (status === 'waiting') await save();
+    const versions = await listVersions(dir).catch(() => []);
+    const n = officialNumber(versions, await sha256(onDisk));
+    printing = { version: n ? `v${n}` : '' };
+  }
+
+  function remembered(key: string): string {
+    try {
+      return localStorage.getItem(key) ?? '';
+    } catch {
+      return '';
+    }
+  }
+
   // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
     leave();
@@ -440,7 +473,7 @@
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
 </script>
 
-<svelte:window onbeforeunload={beforeUnload} />
+<svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} />
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
 <header>
@@ -469,10 +502,25 @@
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
+      <span class="print">
+        <button class="outline" aria-expanded={printMenu} onclick={() => (printMenu = !printMenu)}>Print</button>
+        {#if printMenu}
+          <div class="print-menu">
+            <label><input type="checkbox" bind:checked={printColumn} /> Notes column on each row</label>
+            <label><input type="checkbox" bind:checked={printLines} /> Notes space at the end</label>
+            <label class="scale">Text size <input type="range" min="60" max="140" step="5" bind:value={printScale} /> <span>{printScale}%</span></label>
+            <button class="dark" onclick={print}>Print</button>
+          </div>
+        {/if}
+      </span>
       <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
     </div>
   {/if}
 </header>
+
+{#if printing && script && dir}
+  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printColumn} lines={printLines} scale={printScale / 100} onReady={() => window.print()} />
+{/if}
 
 <!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->
 <div class="toasts">
@@ -569,6 +617,13 @@
   .dark:hover { background: #333; }
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
   .status { font-size: 13px; color: var(--muted); }
+  .print { position: relative; }
+  .print-menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;
+    gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10); font-size: 14px; }
+  .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
+  .scale input { flex: 1; min-width: 120px; }
+  .scale span { min-width: 40px; text-align: right; color: var(--muted); }
   .status.bad { color: var(--danger); }
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 8px; }
