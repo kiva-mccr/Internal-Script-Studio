@@ -88,6 +88,10 @@ and suggestions, keeps every version, and exports them for production.
   board 7. Built as drawn (the user picked "Yes, as drawn", not also on Approved): a version of kind `official`
   named by the person; numbers come from publish order. History opens on the newest official version, which is
   compared with the one before it.
+- [ ] **AP-11** Formatting (asked by the user): bold, italic, underline, strikethrough, links, LaTeX equations and
+  clear formatting, from a small toolbar over selected text (and Ctrl+B, I, U, K). Kept as plain marks in
+  script.md (`**bold**`, `*italic*`, `<u>underline</u>`, `~~strike~~`, `[link](…)`, `$equation$`), shown as formatting
+  when not being typed in. Mock-up: board 8; the look and choices are agreed before building.
 
 ## Phase 3: review
 
