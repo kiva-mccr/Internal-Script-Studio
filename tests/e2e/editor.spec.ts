@@ -122,3 +122,22 @@ test('images show a preview', async ({ page }) => {
   // A file that is missing, or not a real image, shows no preview.
   await expect(page.getByRole('button', { name: 'Open glucose-model.png' })).toHaveCount(0);
 });
+
+test('the ⋯ menu holds Teleprompter, Print and Copy link, and closes on Esc or a click elsewhere', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openExample(page);
+  const more = page.getByRole('button', { name: 'More' });
+  await more.click();
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Print…', 'Copy link']);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.menu')).toHaveCount(0);
+  await more.click();
+  await page.getByLabel('Dialogue, row 1').click();
+  await expect(page.locator('.menu')).toHaveCount(0);
+  await more.click();
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('#/Episode%2003');
+  await expect(page.locator('.menu')).toHaveCount(0); // closes a moment later
+});

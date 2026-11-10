@@ -24,6 +24,7 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
+- **The ⋯ menu** at the top right of a script holds Teleprompter, Print and Copy link.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Teleprompter:** reads the dialogue full screen, scrolling at the speed you set (words a minute). Space starts

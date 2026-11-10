@@ -6,6 +6,7 @@ const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works
 
 async function openPrompter(page: Page) {
   await setUp(page, '#/Episode%2003', { 'Episode 03/script.md': example });
+  await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('button', { name: 'Teleprompter' }).click();
   const prompter = page.getByRole('dialog', { name: 'Teleprompter' });
   await expect(prompter).toBeVisible();
@@ -46,6 +47,7 @@ test('Start scrolls at the speed, Space pauses, keys change the speed, Esc leave
   await page.keyboard.press('Escape');
   await expect(prompter).toHaveCount(0);
   // The speed is remembered.
+  await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('button', { name: 'Teleprompter' }).click();
   await expect(page.getByRole('dialog', { name: 'Teleprompter' })).toContainText('400 words a minute');
 });

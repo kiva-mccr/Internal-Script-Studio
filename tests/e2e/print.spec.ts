@@ -16,7 +16,8 @@ async function openExample(page: Page) {
 }
 
 async function print(page: Page, notes = false) {
-  await page.getByRole('button', { name: 'Print', exact: true }).click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('button', { name: 'Print…' }).click();
   if (notes) {
     await page.getByLabel('Notes column on each row').check();
     await page.getByLabel('Notes space at the end').check();
@@ -60,7 +61,8 @@ test('room for notes (a column on each row, lines at the end) and the text size,
   await expect(sheet).toHaveCSS('font-size', '10.6667px'); // 8pt: 80% of 10pt
   await page.emulateMedia({ media: 'screen' });
   await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
-  await page.getByRole('button', { name: 'Print', exact: true }).click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('button', { name: 'Print…' }).click();
   await expect(page.getByLabel('Notes column on each row')).toBeChecked();
   await expect(page.getByLabel('Notes space at the end')).toBeChecked();
   await expect(page.locator('.print-menu')).toContainText('80%');
