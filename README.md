@@ -26,6 +26,9 @@ Status: a first working version. What it does today:
   saves between them folded away until you open them.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
+- **Teleprompter:** reads the dialogue full screen, scrolling at the speed you set (words a minute). Space starts
+  and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
+  the On screen column small.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it

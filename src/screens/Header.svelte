@@ -5,21 +5,22 @@
 
 <script lang="ts">
   import { editingText } from '../lib/editing';
+  import { keep, recall } from '../lib/remember';
 
   type Mode = 'write' | 'review' | 'history';
-  let { folder, title, ready, mode, openCount, editors, reviewStatus, status, onMode, onStatus, onPrint }: {
+  let { folder, title, ready, mode, openCount, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
-    onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrint: (choices: PrintChoices) => void;
+    onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
   let copied = $state(false);
   let printMenu = $state(false); // Print's choices, shown under the button
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
-  let printColumn = $state(!!remembered('print-notes'));
-  let printLines = $state(!!remembered('print-lines'));
-  let printScale = $state(Number(remembered('print-scale')) || 100); // %, the printed text size
+  let printColumn = $state(!!recall('print-notes'));
+  let printLines = $state(!!recall('print-lines'));
+  let printScale = $state(Number(recall('print-scale')) || 100); // %, the printed text size
 
   async function copyLink() {
     await navigator.clipboard.writeText(location.href);
@@ -29,22 +30,10 @@
 
   function print() {
     printMenu = false;
-    try {
-      localStorage.setItem('print-notes', printColumn ? '1' : '');
-      localStorage.setItem('print-lines', printLines ? '1' : '');
-      localStorage.setItem('print-scale', String(printScale));
-    } catch {
-      // Not remembered (private window): it still prints.
-    }
+    keep('print-notes', printColumn ? '1' : '');
+    keep('print-lines', printLines ? '1' : '');
+    keep('print-scale', String(printScale));
     onPrint({ column: printColumn, lines: printLines, scale: printScale });
-  }
-
-  function remembered(key: string): string {
-    try {
-      return localStorage.getItem(key) ?? '';
-    } catch {
-      return '';
-    }
   }
 </script>
 
@@ -74,6 +63,7 @@
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
+      <button class="outline" onclick={onPrompt}>Teleprompter</button>
       <span class="print">
         <button class="outline" aria-expanded={printMenu} onclick={() => (printMenu = !printMenu)}>Print</button>
         {#if printMenu}

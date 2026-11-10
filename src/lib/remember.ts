@@ -86,3 +86,21 @@ function done<T>(request: IDBRequest<T>): Promise<T> {
     request.onerror = () => reject(request.error);
   });
 }
+
+// A small choice kept in this browser (Print's choices, the teleprompter's speed …), or '' when there is none.
+// A private window may refuse storage: then nothing is kept and the app goes on.
+export function recall(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function keep(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Not kept: the choice still works for now.
+  }
+}
