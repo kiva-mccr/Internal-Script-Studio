@@ -3,7 +3,7 @@
 A script's history: one JSON file per version in `.studio/versions/` (docs/studio-folder.md), written once and
 never changed. Also what changed between two versions: a title ("Edited rows 3 and 4") and each changed field.
 
-- **Used by:** `lib/folder.ts`, `screens/Editor.svelte`, `screens/History.svelte`. **Tests:**
+- **Used by:** `lib/folder.ts`, `screens/Editor.svelte`, `screens/History.svelte`, `screens/Print.svelte` (through Editor). **Tests:**
   `tests/unit/history.test.ts`, `tests/e2e/history.spec.ts`.
 
 ## Rules and pitfalls
@@ -13,3 +13,4 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
 - A file that can't be read (half-synced) is skipped, never an error.
 - Rows are matched by id, so a moved row is not "edited".
 - Official versions (kind `official`) get their number from `officialNumbers`, by publish order; never stored.
+  `officialNumber` says which one the script still is (printing), or 0 once anything has changed since.

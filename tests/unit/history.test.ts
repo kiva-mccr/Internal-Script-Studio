@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { changes, describe as say, officialNumbers, summary, type Version } from '../../src/lib/history';
+import { changes, describe as say, officialNumber, officialNumbers, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -51,5 +51,18 @@ describe('officialNumbers', () => {
       version(example, { id: 'd', kind: 'official', note: 'Sent to the narrator' }),
     ];
     expect([...officialNumbers(list)]).toEqual([['b', 1], ['d', 2]]);
+  });
+});
+
+describe('officialNumber', () => {
+  it('is the newest official version, only while the text has not changed since', () => {
+    const list = [
+      version(example, { id: 'a', kind: 'official', sha256: 'x' }),
+      version(example, { id: 'b', kind: 'official', sha256: 'y' }),
+    ];
+    expect(officialNumber(list, 'y')).toBe(2);
+    expect(officialNumber(list, 'z')).toBe(0);
+    expect(officialNumber([...list, version(example, { id: 'c', sha256: 'y' })], 'y')).toBe(0);
+    expect(officialNumber([], 'y')).toBe(0);
   });
 });
