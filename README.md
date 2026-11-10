@@ -30,7 +30,8 @@ Status: a first working version. What it does today:
 - **Teleprompter:** reads the dialogue full screen, scrolling at the speed you set (words a minute). Space starts
   and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read
-  (Whisper runs in the browser; the first time it downloads about 75 MB, and no sound leaves the computer).
+  (Whisper runs in the browser; the first time it downloads about 75 MB, and no sound leaves the computer). Words
+  grey out once said.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it

@@ -62,7 +62,7 @@ test('scrolling by hand moves where it goes on from', async ({ page }) => {
 });
 
 // Follow my voice (EX-8): the microphone and Whisper are stood in for by window.studioListen (lib/listen.ts).
-type Hooks = { onText: (text: string) => void; onProgress: (loaded: number, total: number) => void };
+type Hooks = { onText: (text: string) => void; onProgress: (loaded: number, total: number) => void; onFail: () => void };
 type Fake = { hooks?: Hooks; ready?: () => void; stopped?: boolean; fail?: string };
 
 async function fakeVoice(page: Page, fail = '') {
@@ -90,6 +90,10 @@ test('Follow my voice: downloads once with progress, then the marker follows the
   const say = (text: string) => page.evaluate((t) => (window as unknown as { fake: Fake }).fake.hooks!.onText(t), text);
   await say('every leaf you have ever seen is running a tiny factory');
   await expect(prompter.locator('.past').first()).toContainText('Every leaf'); // the first line has been read
+  await expect(prompter.locator('.said')).toHaveCount(11); // each word said is greyed out
+  await say('it needs three simple');
+  await expect(prompter.locator('.said')).toHaveCount(15);
+  await expect(prompter.locator('.said').last()).toHaveText('simple');
   const after = await scrollTop(page);
   expect(after).toBeGreaterThan(50);
   await say('sorry, can we start again'); // nothing in the script: it stays where it is
@@ -110,4 +114,13 @@ test('Follow my voice: a blocked microphone or a failed download says what to do
   await page.evaluate(() => ((window as unknown as { fake: Fake }).fake.fail = 'download'));
   await box.click();
   await expect(prompter.getByRole('alert')).toHaveText(/couldn't be downloaded\. Check the internet connection/);
+  // It started, then stopped working (a phone out of memory): it says so and goes back to Start.
+  await page.evaluate(() => ((window as unknown as { fake: Fake }).fake.fail = ''));
+  await box.click();
+  await page.evaluate(() => (window as unknown as { fake: Fake }).fake.ready!());
+  await expect(prompter.getByText('Listening: it follows as you speak')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { fake: Fake }).fake.hooks!.onFail());
+  await expect(prompter.getByRole('alert')).toHaveText(/stopped working on this device\. Use Start/);
+  await expect(box).not.toBeChecked();
+  await expect(prompter.getByRole('button', { name: 'Start' })).toBeVisible();
 });

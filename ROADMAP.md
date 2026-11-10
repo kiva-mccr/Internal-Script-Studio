@@ -147,7 +147,9 @@ and suggestions, keeps every version, and exports them for production.
   (about 40 to 80 MB) and about a second of lag on an ordinary laptop. Built after EX-2. Mock-up: board 10, built
   as drawn (the user: "looks good"): whisper-base.en (about 75 MB at 8 bits) through transformers.js in a worker,
   the last 4 s heard about once a second, matched to the script by its last 8 words; download progress, a
-  Listening dot, plain messages for a blocked microphone or a failed download. Never tried with a real voice yet.
+  Listening dot, plain messages for a blocked microphone or a failed download. The user tried it: works on
+  desktop, didn't move on a phone; asked for each word to grey out once said (done, also with Start). For phones:
+  the sound is resumed and resampled, and a Whisper that stops working says so.
 - [ ] **EX-3** Fountain (Trelby and other screenplay programs).
 - [ ] **EX-4** Final Draft (.fdx).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).

@@ -21,6 +21,9 @@ voice (EX-8, `lib/listen.ts`, `lib/follow.ts`): the marker follows the words hea
 - It asks for full screen; a refusal (tests, some browsers) is ignored. In full screen the first Esc is the
   browser's (leaves full screen), the next one closes it.
 - Space would also press a focused button: the key handler prevents the default.
+- Each dialogue word is wrapped in a span (`wordSpans`, after `{@html}`), numbered like `read`, so the words
+  already said are greyed out one by one (asked by the user); only the ones that change are touched each frame.
+- `listen()` must be called straight from the click, before any await (it makes the AudioContext there).
 - Follow my voice hides Start and the speed. The marker glides to where the voice was heard (and snaps the last
   bit, or it would never quite arrive and the line would never dim). A failed start unticks the box by hand: the
   click ticked it while `voice` stayed ''.
