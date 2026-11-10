@@ -69,6 +69,42 @@
   });
   $effect(() => keep('prompter-speed', String(speed)));
 
+  // Each word gets a span, so the words already said can be greyed out one by one (asked by the user).
+  const wordEls: HTMLElement[] = [];
+  let greyed = 0; // how many words are greyed now
+  function wordSpans(el: HTMLElement, line: { start: number; words: number }) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const texts: Text[] = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) texts.push(n as Text);
+    let k = 0;
+    for (const text of texts) {
+      const parts = text.data.split(/(\s+)/);
+      const frag = document.createDocumentFragment();
+      for (const part of parts) {
+        if (!part) continue;
+        if (/^\s+$/.test(part) || k >= line.words) frag.append(part);
+        else {
+          const span = document.createElement('span');
+          span.textContent = part;
+          wordEls[line.start + k++] = span;
+          frag.append(span);
+        }
+      }
+      text.replaceWith(frag);
+    }
+    greyed = 0;
+    grey();
+  }
+  function grey() {
+    const n = Math.floor(read + 0.01);
+    for (let w = Math.min(greyed, n); w < Math.max(greyed, n); w++) wordEls[w]?.classList.toggle('said', w < n);
+    greyed = n;
+  }
+  $effect(() => {
+    void read;
+    grey();
+  });
+
   const markerY = () => scroller.clientHeight / 3;
   const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
 
@@ -144,6 +180,13 @@
       const started = await listen({
         onText: (text) => (heardAt = follow(scriptWords, text.split(/\s+/).map(normal).filter(Boolean), heardAt)),
         onProgress: (loaded, total) => (got = { loaded, total }),
+        onFail: () => {
+          listening?.stop();
+          listening = null;
+          voice = '';
+          voiceBox.checked = false;
+          voiceError = "Speech recognition stopped working on this device. Use Start and the speed instead.";
+        },
       });
       if (voice !== 'loading') return started.stop(); // switched off while it was getting ready
       listening = started;
@@ -182,7 +225,7 @@
           <p class="section">{block.title}</p>
         {:else if byBlock.has(i)}
           <p class="line" class:past={byBlock.get(i)!.start + byBlock.get(i)!.words <= read}
-            bind:this={lineEls[i]}>{@html toHtml(block.dialogue)}</p>
+            bind:this={lineEls[i]} use:wordSpans={byBlock.get(i)!}>{@html toHtml(block.dialogue)}</p>
           {#if cues && block.onScreen.trim()}<p class="cue">[ {plain(block.onScreen)} ]</p>{/if}
         {/if}
       {/each}
@@ -228,7 +271,9 @@
   .text { max-width: 900px; margin: 0 auto; padding: 33vh 32px 70vh; font-weight: 500; line-height: 1.45; }
   .mirror { transform: scaleX(-1); }
   p { margin: 0 0 0.8em; white-space: pre-wrap; }
-  .past { color: #6e6e6e; }
+  /* Words already said are greyed out (asked by the user); a line all said is too. */
+  .past, .line :global(.said) { color: #6e6e6e; }
+  .line :global(span) { transition: color 0.2s; }
   .section { margin: 32px 0 0.4em; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6e6e6e; }
   .cue { margin-top: -0.5em; font-size: 0.45em; color: #8fa8e8; }
   .marker { position: absolute; left: 0; right: 0; top: 33.33%; border-top: 2px solid var(--accent); opacity: 0.55; pointer-events: none; }
