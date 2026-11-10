@@ -161,7 +161,8 @@ and suggestions, keeps every version, and exports them for production.
   NARRATOR speaks the dialogue; the row number, note and files are a General paragraph above each row (Final
   Draft's own notes are pinned to character positions); bold, italic and underline carry over; the title page has
   the title, authors and "v3 · Approved · date".
-- [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).
+- [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them). Shelved by the user: it needs more
+  depth and will be built together with other features they have in mind.
 - [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
   one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
   building.
