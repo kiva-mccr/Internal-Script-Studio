@@ -91,7 +91,10 @@ and suggestions, keeps every version, and exports them for production.
 
 ## Phase 3: review
 
-- [ ] **RV-1** Comments on a row or a selection, reply, resolve.
+- [x] **RV-1** Comments on a row or a selection, reply, resolve.
+  Built as mock-up 4, without suggestions (RV-2) and Approve / Send back (RV-3). A Review tab, with the number of
+  open comments, shows the script to read and the comments beside it; quotes are marked in their cells. Resolved
+  comments fold under "Resolved" and can be reopened. Not yet: comments in History.
 - [ ] **RV-2** Suggestions: accept or reject.
 - [ ] **RV-3** Status: Draft, In review, Approved; Approve and Send back to writer.
 
@@ -115,6 +118,8 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **SB-1** Animatic / storyboard timeline: the rows' images laid out in order along a timeline, with timings.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
+- [ ] **AU-1** Recording audio for each line: record the dialogue of a row in the browser, kept beside the script
+  in its folder, played back from the row (a scratch read before the real voice-over).
 
 ## Decisions
 

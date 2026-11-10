@@ -8,6 +8,8 @@
   import Conflict from './Conflict.svelte';
   import FilesCell from './FilesCell.svelte';
   import History from './History.svelte';
+  import Review from './Review.svelte';
+  import { addNote, listNotes, threads, type Note } from '../lib/comments';
 
   let { folder, path, name }: { folder: FileSystemDirectoryHandle; path: string[]; name: string } = $props();
 
@@ -30,7 +32,9 @@
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
-  let mode = $state<'write' | 'history'>('write');
+  let mode = $state<'write' | 'review' | 'history'>('write');
+  let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
+  const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
   let last: Version | null = null; // the newest history entry this page knows of
   let pendingSince = 0; // when the first save not yet in History was made
   let clash = $state<{
@@ -62,6 +66,7 @@
       await startHistory(dir, text);
       await here();
       await lookForClashes(dir, text);
+      notes = await listNotes(dir).catch(() => []);
       checker = setInterval(checkOutside, CHECK_EVERY);
       heartbeat = setInterval(here, HERE_EVERY);
     } catch {
@@ -264,6 +269,24 @@
     }
   }
 
+  // A comment, reply, resolve or reopen, in this person's name. Returns false if it couldn't be written.
+  async function note(entry: Omit<Note, 'v' | 'id' | 'when' | 'who'>): Promise<boolean> {
+    if (!dir) return false;
+    try {
+      await addNote(dir, { ...entry, who: name });
+      notes = await listNotes(dir);
+      return true;
+    } catch {
+      notice = "That couldn't be saved. If OneDrive is still syncing, wait a moment and try again.";
+      return false;
+    }
+  }
+
+  async function showReview() {
+    await leave();
+    mode = 'review';
+  }
+
   function load(text: string) {
     const parsed = parseScript(text);
     // Ids are given now, not on save, so a row keeps the same id from its first save on.
@@ -320,6 +343,7 @@
   async function checkOutside() {
     if (!dir || document.hidden) return;
     editors = othersEditing(await readEditing(dir).catch(() => []), name);
+    notes = await listNotes(dir).catch(() => notes);
     if (status !== 'saved') return;
     try {
       const now = await readScript(dir);
@@ -397,6 +421,9 @@
   {#if script}
     <nav class="modes" aria-label="Mode">
       <button aria-current={mode === 'write' ? 'page' : undefined} onclick={() => (mode = 'write')}>Write</button>
+      <button aria-current={mode === 'review' ? 'page' : undefined} onclick={showReview}>
+        Review{#if openCount}<span class="count" aria-label="{openCount} open">{openCount}</span>{/if}
+      </button>
       <button aria-current={mode === 'history' ? 'page' : undefined} onclick={showHistory}>History</button>
     </nav>
     <div class="right">
@@ -435,6 +462,8 @@
   {:else if clash}
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
+  {:else if script && dir && mode === 'review'}
+    <Review {script} {notes} onAdd={note} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
@@ -495,6 +524,8 @@
   .modes { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
   .modes button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 14px; font-weight: 500; }
   .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }
+  .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 1px 6px; box-sizing: border-box; border-radius: 10px;
+    background: var(--accent); color: #fff; font-size: 12px; text-align: center; }
   .status { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
