@@ -105,6 +105,8 @@ and suggestions, keeps every version, and exports them for production.
   Alt+Up / Alt+Down to move a row, so writing never needs the mouse.
 - [ ] **AP-15** New script from a template (suggested, the user agreed): New script can start as a copy of a script
   the person picks (its sections and rows, not its history or comments). The look is agreed before building.
+- [ ] **AP-16** A better place for the save status (asked by the user: where it sits now, between Send for review
+  and Export, "feels awkward and not matching"). Mock up new designs first and agree one before building.
 
 ## Phase 3: review
 
@@ -163,7 +165,7 @@ and suggestions, keeps every version, and exports them for production.
   the title, authors and "v3 · Approved · date".
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them). Shelved by the user: it needs more
   depth and will be built together with other features they have in mind.
-- [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
+- [x] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
   one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
   building. Mock-up: board 12, built as drawn, as an Assets tab beside History (the user's choice) with a red
   count; grouped missing, still to find, then the rest, or by row under the sections ("Order", remembered); each
