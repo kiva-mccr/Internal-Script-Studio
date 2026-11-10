@@ -1,16 +1,16 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
-  import { emptyRow, frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
-  import { editingText, othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
+  import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
+  import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
+  import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
   import Conflict from './Conflict.svelte';
-  import FilesCell from './FilesCell.svelte';
-  import TextField from './TextField.svelte';
+  import Header, { type PrintChoices } from './Header.svelte';
   import History from './History.svelte';
   import Print from './Print.svelte';
   import Review from './Review.svelte';
+  import Write from './Write.svelte';
   import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
 
   let { folder, path, name }: { folder: FileSystemDirectoryHandle; path: string[]; name: string } = $props();
@@ -30,13 +30,7 @@
   // The last delete, kept a few seconds so it can be undone (no browser dialogs: the user's rule).
   let undo = $state<{ blocks: Block[]; what: string } | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
-  let copied = $state(false);
-  let printing = $state<{ version: string } | null>(null); // the print version, while printing (EX-1)
-  let printMenu = $state(false); // Print's choices, shown under the button
-  // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
-  let printColumn = $state(!!remembered('print-notes'));
-  let printLines = $state(!!remembered('print-lines'));
-  let printScale = $state(Number(remembered('print-scale')) || 100); // %, the printed text size
+  let printing = $state<(PrintChoices & { version: string }) | null>(null); // the print version, while printing (EX-1)
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
@@ -55,12 +49,6 @@
   let lastWritten = ''; // fingerprint of what this page last wrote to script.md
 
   const title = $derived(script ? frontValue(script.front, 'title') || path.at(-1) : path.at(-1));
-  const numbers = $derived.by(() => {
-    const map = new Map<Block, number>();
-    let n = 0;
-    for (const block of script?.blocks ?? []) if (block.type === 'row') map.set(block, ++n);
-    return map;
-  });
 
   onMount(async () => {
     try {
@@ -185,30 +173,6 @@
 
   function resolve(picks: Record<string, Side>) {
     if (clash) combine(clash.merged.text(picks), clash.parents, clash.note, clash.copy);
-  }
-
-  // Versions nothing was made from: normally one. Two means two saves at the same time.
-  function heads(versions: Version[]): Version[] {
-    const used = new Set(versions.flatMap((v) => v.parents));
-    return versions.filter((v) => !used.has(v.id));
-  }
-
-  // The newest version both were made from.
-  function ancestor(versions: Version[], a: Version, b: Version): Version | undefined {
-    const byId = new Map(versions.map((v) => [v.id, v]));
-    const above = (v: Version) => {
-      const seen = new Set<string>();
-      const todo = [...v.parents];
-      while (todo.length) {
-        const id = todo.shift()!;
-        if (seen.has(id)) continue;
-        seen.add(id);
-        todo.push(...(byId.get(id)?.parents ?? []));
-      }
-      return seen;
-    };
-    const fromA = above(a);
-    return versions.filter((v) => fromA.has(v.id) && above(b).has(v.id)).at(-1);
   }
 
   const person = (who: string) => (who === name ? 'you' : who);
@@ -394,27 +358,9 @@
     }
   }
 
-  function move(i: number, by: number) {
-    if (!script) return;
-    const j = i + by;
-    if (j < 0 || j >= script.blocks.length) return;
-    [script.blocks[i], script.blocks[j]] = [script.blocks[j], script.blocks[i]];
-    changed();
-  }
-
-  function insertRow(at: number) {
-    if (!script) return;
-    script.blocks.splice(at, 0, emptyRow(script));
-    changed();
-  }
-
-  function remove(i: number) {
-    if (!script) return;
-    const block = script.blocks[i];
-    const what = block.type === 'row' ? `Row ${numbers.get(block)} deleted.` : `Section "${block.title}" deleted (its rows stay).`;
-    undo = { blocks: [...script.blocks], what };
-    script.blocks.splice(i, 1);
-    changed();
+  // A row or section was deleted in Write: kept a few seconds so it can be undone.
+  function deleted(blocks: Block[], what: string) {
+    undo = { blocks, what };
     clearTimeout(undoTimer);
     undoTimer = setTimeout(() => (undo = null), 10000);
   }
@@ -426,42 +372,14 @@
     changed();
   }
 
-  function addSection() {
-    if (!script) return;
-    script.blocks.push({ type: 'section', title: 'New section', note: '' }, emptyRow(script));
-    changed();
-  }
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(location.href);
-    copied = true;
-    setTimeout(() => (copied = false), 2000);
-  }
-
   // Print (EX-1): saves what is waiting, then shows the print version and opens the browser's print window once its
   // images and equations are in. The version is "v3" only while the script is still that official version.
-  async function print() {
+  async function print(choices: PrintChoices) {
     if (!script || !dir || printing) return;
-    printMenu = false;
-    try {
-      localStorage.setItem('print-notes', printColumn ? '1' : '');
-      localStorage.setItem('print-lines', printLines ? '1' : '');
-      localStorage.setItem('print-scale', String(printScale));
-    } catch {
-      // Not remembered (private window): it still prints.
-    }
     if (status === 'waiting') await save();
     const versions = await listVersions(dir).catch(() => []);
     const n = officialNumber(versions, await sha256(onDisk));
-    printing = { version: n ? `v${n}` : '' };
-  }
-
-  function remembered(key: string): string {
-    try {
-      return localStorage.getItem(key) ?? '';
-    } catch {
-      return '';
-    }
+    printing = { ...choices, version: n ? `v${n}` : '' };
   }
 
   // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
@@ -469,57 +387,17 @@
     leave();
     if (status === 'failed') event.preventDefault();
   }
-
-  const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
 </script>
 
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} />
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
-<header>
-  <nav class="crumbs" aria-label="Breadcrumb">
-    <a href="#/">{folder.name}</a>
-    <span aria-hidden="true">/</span>
-    <span class="title">{title}</span>
-  </nav>
-  {#if script}
-    <nav class="modes" aria-label="Mode">
-      <button aria-current={mode === 'write' ? 'page' : undefined} onclick={() => (mode = 'write')}>Write</button>
-      <button aria-current={mode === 'review' ? 'page' : undefined} onclick={showReview}>
-        Review{#if openCount}<span class="count" aria-label="{openCount} open">{openCount}</span>{/if}
-      </button>
-      <button aria-current={mode === 'history' ? 'page' : undefined} onclick={showHistory}>History</button>
-    </nav>
-    <div class="right">
-      {#if editors.length}
-        <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
-      {/if}
-      {#if reviewStatus === 'in review' && mode === 'review'}
-        <button class="outline" onclick={() => setStatus('draft', 'Sent back to writer')}>Send back to writer</button>
-        <button class="dark" onclick={() => setStatus('approved', 'Approved')}>Approve</button>
-      {:else if reviewStatus !== 'in review'}
-        <button class="outline" onclick={() => setStatus('in review', 'Sent for review')}>Send for review</button>
-      {/if}
-      {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
-      <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
-      <span class="print">
-        <button class="outline" aria-expanded={printMenu} onclick={() => (printMenu = !printMenu)}>Print</button>
-        {#if printMenu}
-          <div class="print-menu">
-            <label><input type="checkbox" bind:checked={printColumn} /> Notes column on each row</label>
-            <label><input type="checkbox" bind:checked={printLines} /> Notes space at the end</label>
-            <label class="scale">Text size <input type="range" min="60" max="140" step="5" bind:value={printScale} /> <span>{printScale}%</span></label>
-            <button class="dark" onclick={print}>Print</button>
-          </div>
-        {/if}
-      </span>
-      <button class="outline" onclick={copyLink}>{copied ? 'Copied' : 'Copy link'}</button>
-    </div>
-  {/if}
-</header>
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {editors} {reviewStatus} {status}
+  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : (mode = 'write'))}
+  onStatus={setStatus} onPrint={print} />
 
 {#if printing && script && dir}
-  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printColumn} lines={printLines} scale={printScale / 100} onReady={() => window.print()} />
+  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} onReady={() => window.print()} />
 {/if}
 
 <!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->
@@ -553,78 +431,10 @@
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    {#if script.intro}<p class="note">{script.intro}</p>{/if}
-    <div class="table">
-      <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
-      {#each script.blocks as block, i (block)}
-        {#if block.type === 'section'}
-          <div class="section">
-            <input class="section-title" bind:value={block.title} oninput={changed} aria-label="Section title" />
-            <span class="tools">
-              <button aria-label="Move section up" title="Move up" onclick={() => move(i, -1)}>↑</button>
-              <button aria-label="Move section down" title="Move down" onclick={() => move(i, 1)}>↓</button>
-              <button aria-label="Delete section" title="Delete" onclick={() => remove(i)}>×</button>
-            </span>
-          </div>
-        {:else}
-          {@const n = numbers.get(block)}
-          <div class="row grid">
-            <div class="num">
-              <span>{n}</span>
-              <span class="tools">
-                <button aria-label="Move row {n} up" title="Move up" onclick={() => move(i, -1)}>↑</button>
-                <button aria-label="Move row {n} down" title="Move down" onclick={() => move(i, 1)}>↓</button>
-                <button aria-label="Add a row below row {n}" title="Add a row below" onclick={() => insertRow(i + 1)}>+</button>
-                <button aria-label="Delete row {n}" title="Delete" onclick={() => remove(i)}>×</button>
-              </span>
-            </div>
-            <div>
-              {#if block.note}<p class="note">{block.note}</p>{/if}
-              <div class="dialogue"><TextField bind:value={block.dialogue} oninput={changed} label="Dialogue, row {n}" placeholder="What is said" /></div>
-            </div>
-            <div class="screen"><TextField bind:value={block.onScreen} oninput={changed} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
-            <FilesCell files={block.files} {dir} onNotice={(m) => (notice = m)}
-              onChange={(files) => { block.files = files; changed(); }} />
-          </div>
-        {/if}
-      {/each}
-      <div class="adds">
-        <button class="link" onclick={() => insertRow(script!.blocks.length)}>+ Add row</button>
-        <button class="link" onclick={addSection}>+ Add section</button>
-      </div>
-    </div>
+    <Write bind:script {dir} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
-
 <style>
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }
-  .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 320px; min-width: 0; }
-  .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--muted); text-decoration: none; }
-  .crumbs a:hover { color: var(--accent); }
-  .crumbs span[aria-hidden] { color: #9a9a9a; }
-  .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .right { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
-  .right > * { white-space: nowrap; }
-  .editing { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #fff4e5;
-    color: #7a4a00; font-size: 13px; font-weight: 500; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #e08a1e; }
-  .modes { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
-  .modes button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 14px; font-weight: 500; }
-  .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }
-  .count { display: inline-block; min-width: 20px; margin-left: 6px; padding: 1px 6px; box-sizing: border-box; border-radius: 10px;
-    background: var(--accent); color: #fff; font-size: 12px; text-align: center; }
-  .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
-  .dark:hover { background: #333; }
-  .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
-  .status { font-size: 13px; color: var(--muted); }
-  .print { position: relative; }
-  .print-menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;
-    gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10); font-size: 14px; }
-  .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
-  .scale input { flex: 1; min-width: 120px; }
-  .scale span { min-width: 40px; text-align: right; color: var(--muted); }
-  .status.bad { color: var(--danger); }
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 8px; }
   .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; border-radius: 10px;
@@ -632,26 +442,6 @@
   .banner.quiet { background: var(--ground); border-color: var(--line); }
   .banner p { margin: 0; flex: 1 1 300px; font-size: 14px; }
   main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
-  .table { min-width: 860px; }
-  .grid { display: grid; grid-template-columns: 56px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.8fr); gap: 24px; padding-left: 12px; padding-right: 12px; }
-  /* Stays at the top while scrolling. No scrolling box around the table, or it would stick to that instead. */
-  .head { position: sticky; top: 0; z-index: 2; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .row { align-items: start; min-height: 64px; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-  .num { position: relative; font-size: 13px; color: var(--muted); padding-top: 3px; }
-  /* Row tools sit over the gutter below the number, so they never make a row taller. */
-  .num .tools { position: absolute; top: 24px; left: -6px; display: grid; grid-template-columns: 28px 28px; }
-  .tools { display: flex; flex-wrap: wrap; gap: 2px; opacity: 0; }
-  .row:hover .tools, .row:focus-within .tools, .section:hover .tools, .section:focus-within .tools { opacity: 1; }
-  .tools button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; }
-  .tools button:hover { background: #f0f0f0; color: var(--ink); }
-  .dialogue { font-size: 17px; }
-  .screen { font-size: 15px; color: #3d3d3d; }
-  .section { display: flex; align-items: center; gap: 12px; padding: 28px 12px 8px; border-bottom: 1px solid var(--line); }
-  .section-title { flex: 1; border: 0; padding: 4px 0; font: inherit; font-size: 18px; font-weight: 600; background: none; }
-  .section-title:focus { outline: none; background: #f7f9ff; }
-  .section .tools { flex-wrap: nowrap; }
-  .note { margin: 0 0 8px; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
-  .adds { display: flex; gap: 8px; margin-top: 12px; }
   .empty { text-align: center; padding-top: 10vh; }
   .empty h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
   .empty p { margin: 0 auto 12px; max-width: 460px; color: var(--muted); line-height: 1.5; }

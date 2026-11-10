@@ -82,7 +82,9 @@ and suggestions, keeps every version, and exports them for production.
   carry them (print, the video description). The format change (SF-1) and the look are agreed before building.
 - [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
   fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
-  a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building.
+  a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building. Refined (the user
+  agreed): built together with AP-8, with a "needs a source" flag that clears itself when a citation is attached,
+  so fact-checking is a list to step through.
 - [x] **AP-10** Official versions (asked by the user): publish a named, numbered version (v1, v2 …) from History;
   History shows official versions and folds the small saves between them into one line until opened. Mock-up:
   board 7. Built as drawn (the user picked "Yes, as drawn", not also on Approved): a version of kind `official`
@@ -94,6 +96,15 @@ and suggestions, keeps every version, and exports them for production.
   when not being typed in. Mock-up: board 8. Built as drawn (the user: "perf"), before RV-2: the toolbar appears
   over selected text; Review and History show formatting too. Equations use KaTeX, loaded only when a script has
   one. Comment quotes are marked with the browser's highlights, so a quote can cross formatting.
+- [ ] **AP-12** Read time (suggested, the user agreed): the word count as minutes, for each section and the whole
+  script, at a speaking speed the person sets. Later feeds the teleprompter (EX-2), SRT (EX-5) and storyboard
+  timings (SB-1). The look is agreed before building.
+- [ ] **AP-13** Paste a draft (suggested, the user agreed): pasting several paragraphs into Dialogue makes one row
+  for each paragraph (drafts written in Word).
+- [ ] **AP-14** Keyboard flow (suggested, the user agreed): Tab between cells, Ctrl+Enter for a new row below,
+  Alt+Up / Alt+Down to move a row, so writing never needs the mouse.
+- [ ] **AP-15** New script from a template (suggested, the user agreed): New script can start as a copy of a script
+  the person picks (its sections and rows, not its history or comments). The look is agreed before building.
 
 ## Phase 3: review
 
@@ -110,6 +121,12 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 4: Send for review (when not in review), and in Review, Send back to writer and Approve. The
   status is the script's `status:` and each change is saved at once with a History entry ("Sent for review",
   "Approved", "Sent back to writer"). Anyone can press them (roles on trust).
+- [ ] **RV-4** Changed since last review (suggested, the user agreed): Review marks the rows edited since the
+  script was last sent for review or approved, so a reviewer rereads only those. The look is agreed before building.
+- [ ] **RV-5** A check before Approve (suggested, the user agreed): Approve shows what is still open (comments,
+  suggestions, and once built, flags and rows without a source) as a warning in the page, never a block.
+- [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
+  made on it, so it is clear why a line changed.
 
 ## Phase 4: exports
 
@@ -119,10 +136,16 @@ and suggestions, keeps every version, and exports them for production.
   The version shows "v3" only while the script is still that official version, else "Draft". Asked while building:
   Print's choices, remembered: a blank Notes column on each row and a lined Notes space at the end (the user picked
   both, for notes during production), and a text size slider (60 to 140%).
-- [ ] **EX-2** Teleprompter view.
+- [ ] **EX-2** Teleprompter view. Refined (the user agreed): scrolls at the read time speed (AP-12), with a mirror
+  switch.
 - [ ] **EX-3** Fountain (Trelby and other screenplay programs).
 - [ ] **EX-4** Final Draft (.fdx).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).
+- [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
+  one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
+  building.
+- [ ] **EX-7** Exports carry the version (suggested, the user agreed): every export is stamped with the official
+  version and the status ("v2 · Approved", else "Draft"), as print (EX-1) already is, so nobody records from a draft.
 
 ## Phase 5: captions for YouTube
 

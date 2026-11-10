@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { changes, describe as say, officialNumber, officialNumbers, summary, type Version } from '../../src/lib/history';
+import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -64,5 +64,24 @@ describe('officialNumber', () => {
     expect(officialNumber(list, 'z')).toBe(0);
     expect(officialNumber([...list, version(example, { id: 'c', sha256: 'y' })], 'y')).toBe(0);
     expect(officialNumber([], 'y')).toBe(0);
+  });
+});
+
+describe('heads and ancestor', () => {
+  // a ── b ── c
+  //       └── d        c and d were both made from b: two saves at the same time.
+  const [a, b] = [version(example, { id: 'a' }), version(example, { id: 'b', parents: ['a'] })];
+  const [c, d] = [version(example, { id: 'c', parents: ['b'] }), version(example, { id: 'd', parents: ['b'] })];
+  it('finds the versions nothing was made from', () => {
+    expect(heads([a, b]).map((v) => v.id)).toEqual(['b']);
+    expect(heads([a, b, c, d]).map((v) => v.id)).toEqual(['c', 'd']);
+  });
+  it('is one again after a merge with both as parents', () => {
+    const merged = version(example, { id: 'e', parents: ['c', 'd'], kind: 'merge' });
+    expect(heads([a, b, c, d, merged]).map((v) => v.id)).toEqual(['e']);
+  });
+  it('finds the newest version both were made from', () => {
+    expect(ancestor([a, b, c, d], c, d)?.id).toBe('b');
+    expect(ancestor([a, d], a, d)).toBeUndefined();
   });
 });

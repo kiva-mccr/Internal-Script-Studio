@@ -5,7 +5,7 @@ equations, files by name with image previews, links, "To find:" notes). Room for
 asked: a blank Notes column on each row and a lined Notes space at the end. A text size (`scale`). It is only seen
 when printing; the browser's print window makes the PDF ("Save as PDF").
 
-- **Used by:** `screens/Editor.svelte` (the Print button and its choices). **Tests:** `tests/e2e/print.spec.ts`.
+- **Used by:** `screens/Editor.svelte` (the Print button and its choices are in `Header.svelte`). **Tests:** `tests/e2e/print.spec.ts`.
 
 ## Rules and pitfalls
 
