@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { changes, listVersions, officialNumbers, summary, type Version } from '../lib/history';
+  import { renderMath, toHtml } from '../lib/format';
   import { at } from '../lib/when';
 
   let {
@@ -93,6 +94,11 @@
     await load();
   }
 
+  function math(node: HTMLElement, _text: string) {
+    renderMath(node);
+    return { update: () => renderMath(node) };
+  }
+
   const selected = $derived(versions?.[picked]);
   const selectedChanges = $derived(versions && selected ? changes(before(picked)?.text, selected.text) : []);
   const selectedNumber = $derived(selected ? numbers.get(selected.id) : undefined);
@@ -166,8 +172,8 @@
         <div class="change">
           <div class="where">{change.where}</div>
           <div class="body">
-            {#if change.old}<p class="old"><span class="sign" aria-label="Removed">−</span><span class="struck">{change.old}</span></p>{/if}
-            {#if change.new}<p class="new"><span class="sign" aria-label="Added">+</span>{change.new}</p>{/if}
+            {#if change.old}<p class="old"><span class="sign" aria-label="Removed">−</span><span class="struck" use:math={change.old}>{@html toHtml(change.old)}</span></p>{/if}
+            {#if change.new}<p class="new"><span class="sign" aria-label="Added">+</span><span use:math={change.new}>{@html toHtml(change.new)}</span></p>{/if}
           </div>
         </div>
       {:else}

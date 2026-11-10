@@ -63,26 +63,6 @@ export function threads(notes: Note[]): Thread[] {
   return list.reverse();
 }
 
-// A field's text cut into pieces, each quote marked where it is first found. Quotes no longer in the text, or
-// overlapping one already marked, are left out.
-export function highlight(text: string, marks: { id: string; quote: string }[]): { text: string; id?: string }[] {
-  const found = marks
-    .filter((m) => m.quote)
-    .map((m) => ({ ...m, at: text.indexOf(m.quote) }))
-    .filter((m) => m.at >= 0)
-    .sort((a, b) => a.at - b.at);
-  const parts: { text: string; id?: string }[] = [];
-  let i = 0;
-  for (const m of found) {
-    if (m.at < i) continue;
-    if (m.at > i) parts.push({ text: text.slice(i, m.at) });
-    parts.push({ text: m.quote, id: m.id });
-    i = m.at + m.quote.length;
-  }
-  if (i < text.length || !parts.length) parts.push({ text: text.slice(i) });
-  return parts;
-}
-
 async function commentsFolder(dir: FileSystemDirectoryHandle, create: boolean): Promise<FileSystemDirectoryHandle | null> {
   try {
     return await (await dir.getDirectoryHandle('.studio', { create })).getDirectoryHandle('comments', { create });

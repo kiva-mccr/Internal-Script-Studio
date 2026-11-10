@@ -45,8 +45,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: RV-2 (suggestions), from mock-up 4. Phase 6 steps need mock-ups first.
-- Mock-ups (boards 1 to 7): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Next: RV-2 (suggestions), from mock-up 4; a suggestion's quote is of the formatted text (see Review.md).
+  Phase 6 steps need mock-ups first.
+- Mock-ups (boards 1 to 8): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),

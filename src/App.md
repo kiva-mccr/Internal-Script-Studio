@@ -9,4 +9,6 @@ then the screen the link names (`lib/route.ts`): the list for `#/`, a script for
 
 - Colours come from the variables in `app.css`, never copied into a component.
 - The link's `#/…` is never touched by the first-time screen, so a link still opens its script after set-up.
+- A small GitHub link sits in the bottom right corner of every screen (asked by the user), clear of the messages
+  at the bottom centre.
 - The editor is keyed by the script's path, so following a link to another script starts it fresh.

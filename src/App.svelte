@@ -49,3 +49,12 @@
     {/key}
   {/if}
 {/if}
+
+<!-- The code, in the bottom corner of every screen (asked by the user). -->
+<a class="repo" href="https://github.com/kiva-mccr/Internal-Script-Studio" target="_blank" rel="noopener">GitHub</a>
+
+<style>
+  .repo { position: fixed; right: 12px; bottom: 6px; z-index: 5; padding: 4px 8px; border-radius: 6px; background: var(--ground);
+    font-size: 12px; color: var(--muted); text-decoration: none; }
+  .repo:hover { color: var(--accent); }
+</style>
