@@ -8,6 +8,7 @@ official version (mock-up 7): a named version, v1, v2 …; with any, the small s
 
 ## Rules and pitfalls
 
+- Old and new text show formatting, as Write does.
 - The newest version is the current one: no Restore button on it.
 - An official version is compared with the official one before it (v1 with the version it was made from).
 - With official versions, History opens on the newest official one, not the newest save.

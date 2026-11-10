@@ -13,3 +13,8 @@ test('a link opens the script it names, after set-up', async ({ page }) => {
   await setUp(page, '#/Episode%2003', { 'Episode 03/script.md': example });
   await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('Every leaf you have ever seen is running a tiny factory.');
 });
+
+test('a small link to the code sits in the corner', async ({ page }) => {
+  await setUp(page);
+  await expect(page.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/kiva-mccr/Internal-Script-Studio');
+});

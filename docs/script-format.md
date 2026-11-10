@@ -76,7 +76,9 @@ Each row has three fields, each starting with its label at the start of a line:
 | `Files:` | Images and files | the row's assets, one per line |
 
 - A field's text may start on the label's line or on the lines below, and runs until the next label or heading.
-  It may hold several paragraphs and ordinary Markdown (**bold**, *italic*, links).
+  It may hold several paragraphs and ordinary Markdown. The app shows these marks as formatting (AP-11):
+  `**bold**`, `*italic*`, `<u>underline</u>` (Markdown has none), `~~strikethrough~~`, `[words](https://…)` and
+  `$equation$` (LaTeX, one line).
 - A missing or empty field is an empty column. The app always writes all three, in this order, with a blank line
   between them.
 - **Files** are a list (`- `), one per line:

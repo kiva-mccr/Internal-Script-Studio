@@ -13,6 +13,10 @@ async function openReview(page: Page, files: Record<string, string> = {}) {
 }
 
 // Selects `text` inside a cell, as a person dragging over it would.
+// The quotes marked in the script (CSS highlights).
+const marked = (page: Page) =>
+  page.evaluate(() => [...(CSS.highlights.get('comment') ?? []), ...(CSS.highlights.get('comment-on') ?? [])].map((r) => (r as Range).toString()));
+
 async function selectText(page: Page, cell: string, text: string) {
   await page.getByLabel(cell).evaluate((el, text) => {
     const node = [...el.childNodes].find((n) => n.textContent?.includes(text))!;
@@ -39,7 +43,7 @@ test('select text to comment on it; the comment is saved as its own file', async
   const card = page.getByRole('article', { name: 'Comment by Sam' });
   await expect(card).toContainText('Sam commented · row 1');
   await expect(card).toContainText('Could we shoot a real leaf?');
-  await expect(page.getByLabel('On screen, row 1').locator('mark')).toHaveText('sunlit leaf');
+  await expect.poll(() => marked(page)).toEqual(['sunlit leaf']);
   await expect(page.getByRole('heading', { name: 'Open · 1' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
   const [file] = await listFiles(page, COMMENTS);
@@ -77,5 +81,5 @@ test('someone else’s comment appears, and one on changed text says so', async 
   await writeFile(page, `${COMMENTS}/20261109T100100Z_lee00000.json`,
     JSON.stringify({ ...ana, id: 'lee00000', who: 'Lee', quote: 'sunlit', row: rowId, text: 'Morning light?' }));
   await expect(page.getByRole('article', { name: 'Comment by Lee' })).toBeVisible({ timeout: 10000 });
-  await expect(page.getByLabel('On screen, row 1').locator('mark')).toHaveText('sunlit');
+  await expect.poll(() => marked(page)).toEqual(['sunlit']);
 });

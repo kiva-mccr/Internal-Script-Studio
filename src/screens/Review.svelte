@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { highlight, threads, type Field, type Note, type Thread } from '../lib/comments';
+  import { tick } from 'svelte';
+  import { threads, type Field, type Note, type Thread } from '../lib/comments';
+  import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { readFileRef, type Row, type Script } from '../lib/script';
   import { ago } from '../lib/when';
 
@@ -37,8 +39,32 @@
   // What a cell shows; files by their names, as in Write (a quote in Images & files is of what is shown).
   const text = (row: Row, field: Field) =>
     field === 'files' ? row.files.map((f) => readFileRef(f).label).join('\n') : field === 'on_screen' ? row.onScreen : row.dialogue;
-  const marks = (row: Row, field: Field) =>
-    open.filter((t) => t.comment.row === row.id && t.comment.field === field).map((t) => ({ id: t.comment.id, quote: t.comment.quote ?? '' }));
+  let table = $state<HTMLElement>();
+
+  // Each open comment's quote is marked in its cell with the browser's highlights (CSS.highlights), which can
+  // cross bold, links and so on without changing the page.
+  $effect(() => {
+    const list = open;
+    const on = active;
+    void script;
+    tick().then(async () => {
+      if (!table) return;
+      await renderMath(table);
+      const all: Range[] = [];
+      const picked: Range[] = [];
+      for (const t of list) {
+        const cell = table.querySelector<HTMLElement>(`[data-row="${t.comment.row}"][data-field="${t.comment.field}"]`);
+        const range = cell && t.comment.quote ? rangeOf(cell, t.comment.quote) : null;
+        if (range) (t.comment.id === on ? picked : all).push(range);
+      }
+      CSS.highlights.set('comment', new Highlight(...all));
+      CSS.highlights.set('comment-on', new Highlight(...picked));
+    });
+    return () => {
+      CSS.highlights.delete('comment');
+      CSS.highlights.delete('comment-on');
+    };
+  });
 
   function where(t: Thread): string {
     const n = numbers.get(t.comment.row ?? '');
@@ -48,7 +74,7 @@
   // The quote is no longer in its row: the comment is on text that has since changed.
   function changed(t: Thread): boolean {
     const row = script.blocks.find((b): b is Row => b.type === 'row' && b.id === t.comment.row);
-    return !!t.comment.quote && (!row || !text(row, t.comment.field ?? 'dialogue').includes(t.comment.quote));
+    return !!t.comment.quote && (!row || !plain(text(row, t.comment.field ?? 'dialogue')).includes(t.comment.quote));
   }
 
   function select(row: Row, field: Field, el: HTMLElement) {
@@ -80,7 +106,7 @@
 </script>
 
 <div class="review">
-  <div class="script">
+  <div class="script" bind:this={table}>
     <p class="hint">Select any text to comment on it, or use Comment on a row.</p>
     <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
     {#each script.blocks as block, i (i)}
@@ -96,11 +122,8 @@
           </div>
           {#each FIELDS as [field, name] (field)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <p class="cell {field}" aria-label="{name}, row {n}" onmouseup={(e) => select(block, field, e.currentTarget)}>
-              {#each highlight(text(block, field), marks(block, field)) as part, j (j)}
-                {#if part.id}<mark class:on={part.id === active}>{part.text}</mark>{:else}{part.text}{/if}
-              {/each}
-            </p>
+            <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
+              onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
           {/each}
         </div>
       {/if}
@@ -187,8 +210,10 @@
   .dialogue { font-size: 17px; }
   .on_screen { font-size: 15px; color: #3d3d3d; }
   .files { font-size: 13px; color: #3d3d3d; }
-  mark { background: #fff1c2; border-bottom: 2px solid #e0b100; color: inherit; }
-  mark.on { background: #ffe38a; }
+  :global(::highlight(comment)) { background: #fff1c2; text-decoration: underline 2px #e0b100; }
+  :global(::highlight(comment-on)) { background: #ffe38a; text-decoration: underline 2px #e0b100; }
+  .cell :global(a) { color: var(--accent); }
+  .cell :global(s) { color: #8a8a8a; }
   h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
   .card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
   .card.active { border-color: #b9c7ee; }

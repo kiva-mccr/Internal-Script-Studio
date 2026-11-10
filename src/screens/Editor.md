@@ -27,4 +27,5 @@ editing, and combines saves made at the same time (`Conflict.svelte`).
 - The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to
   it instead of the window. A narrow window scrolls the page sideways instead.
 - Row tools are placed over the number column so they never make a row taller.
+- Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

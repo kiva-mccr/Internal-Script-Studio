@@ -7,6 +7,7 @@
   import { merge, type Merged, type Side } from '../lib/merge';
   import Conflict from './Conflict.svelte';
   import FilesCell from './FilesCell.svelte';
+  import TextField from './TextField.svelte';
   import History from './History.svelte';
   import Review from './Review.svelte';
   import { addNote, listNotes, threads, type Note } from '../lib/comments';
@@ -494,9 +495,9 @@
             </div>
             <div>
               {#if block.note}<p class="note">{block.note}</p>{/if}
-              <textarea class="dialogue" bind:value={block.dialogue} oninput={changed} aria-label="Dialogue, row {n}" placeholder="What is said"></textarea>
+              <div class="dialogue"><TextField bind:value={block.dialogue} oninput={changed} label="Dialogue, row {n}" placeholder="What is said" /></div>
             </div>
-            <textarea class="screen" bind:value={block.onScreen} oninput={changed} aria-label="On screen, row {n}" placeholder="What the viewer sees"></textarea>
+            <div class="screen"><TextField bind:value={block.onScreen} oninput={changed} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
             <FilesCell files={block.files} {dir} onNotice={(m) => (notice = m)}
               onChange={(files) => { block.files = files; changed(); }} />
           </div>
@@ -547,9 +548,6 @@
   .row:hover .tools, .row:focus-within .tools, .section:hover .tools, .section:focus-within .tools { opacity: 1; }
   .tools button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; }
   .tools button:hover { background: #f0f0f0; color: var(--ink); }
-  textarea { width: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 0; resize: none; field-sizing: content; min-height: 1.55em;
-    font: inherit; line-height: 1.55; color: inherit; background: none; }
-  textarea:focus { outline: none; background: #f7f9ff; box-shadow: 0 0 0 6px #f7f9ff; border-radius: 2px; }
   .dialogue { font-size: 17px; }
   .screen { font-size: 15px; color: #3d3d3d; }
   .section { display: flex; align-items: center; gap: 12px; padding: 28px 12px 8px; border-bottom: 1px solid var(--line); }

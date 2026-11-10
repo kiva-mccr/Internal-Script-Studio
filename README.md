@@ -15,7 +15,8 @@ Status: a first working version. What it does today:
 - **The list:** every script in the folder, its status, and who last edited it and when. New script starts one.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
   add or delete it. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
-  Images show a small preview; click it to see it full size.
+  Images show a small preview; click it to see it full size. Select text for bold, italic, underline,
+  strikethrough, a link, an equation (LaTeX) or Clear; Ctrl+B, I, U and K work too.
   It saves on its own a moment after you stop typing.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
@@ -28,7 +29,7 @@ Status: a first working version. What it does today:
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
   side for you to pick.
 
-Needs Chrome or Edge on a desktop computer.
+Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom corner).
 
 ## For developers
 
