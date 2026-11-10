@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { findScript, readScript, writeScriptFile } from '../lib/folder';
+  import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
+  import { toFountain } from '../lib/fountain';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
@@ -378,10 +379,34 @@
   // images and equations are in. The version is "v3" only while the script is still that official version.
   async function print(choices: PrintChoices) {
     if (!script || !dir || printing) return;
+    printing = { ...choices, version: await version() };
+  }
+
+  // Saves what is waiting, then names the version the script is: "v3" while it is still that official version, ''
+  // for a draft. Print and the exports carry it (EX-7).
+  async function version(): Promise<string> {
     if (status === 'waiting') await save();
-    const versions = await listVersions(dir).catch(() => []);
+    const versions = dir ? await listVersions(dir).catch(() => []) : [];
     const n = officialNumber(versions, await sha256(onDisk));
-    printing = { ...choices, version: n ? `v${n}` : '' };
+    return n ? `v${n}` : '';
+  }
+
+  // Export (EX-3): the script as a Fountain file, downloaded.
+  async function exportAs(to: 'fountain') {
+    if (!script) return;
+    const v = await version();
+    const state = reviewStatus === 'draft' ? '' : reviewStatus[0].toUpperCase() + reviewStatus.slice(1);
+    const stand = [v || 'Draft', state].filter(Boolean).join(' · ');
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const text = toFountain(script, title ?? '', stand, date);
+    download(`${safeName(title ?? '') || 'script'}.${to}`, text);
+  }
+
+  function download(name: string, text: string) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
   // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
@@ -396,7 +421,7 @@
 
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {editors} {reviewStatus} {status}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : (mode = 'write'))}
-  onStatus={setStatus} onPrint={print} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
+  onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />
