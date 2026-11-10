@@ -24,12 +24,14 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
-- **Export** at the top right of a script holds Print and Fountain; **the ⋯ menu** holds Teleprompter and Copy link.
+- **Export** at the top right of a script holds Print, Fountain and Final Draft; **the ⋯ menu** holds Teleprompter and Copy link.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Fountain:** downloads the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
   Sections become scene headings, the dialogue is spoken by NARRATOR, the On screen column is the action, and row
   numbers, notes and files are kept as Fountain notes. The title page carries the version and status.
+- **Final Draft:** downloads the script as an `.fdx` file for Final Draft, Fade In and WriterDuet, laid out the same
+  way; the row number, its note and its files are a plain line above each row.
 - **Teleprompter:** reads the dialogue full screen, scrolling at the speed you set (words a minute). Space starts
   and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read

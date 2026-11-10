@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
+  import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
@@ -391,14 +392,14 @@
     return n ? `v${n}` : '';
   }
 
-  // Export (EX-3): the script as a Fountain file, downloaded.
-  async function exportAs(to: 'fountain') {
+  // Export: the script as a Fountain (EX-3) or Final Draft (EX-4) file, downloaded.
+  async function exportAs(to: 'fountain' | 'fdx') {
     if (!script) return;
     const v = await version();
     const state = reviewStatus === 'draft' ? '' : reviewStatus[0].toUpperCase() + reviewStatus.slice(1);
     const stand = [v || 'Draft', state].filter(Boolean).join(' · ');
     const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const text = toFountain(script, title ?? '', stand, date);
+    const text = (to === 'fdx' ? toFdx : toFountain)(script, title ?? '', stand, date);
     download(`${safeName(title ?? '') || 'script'}.${to}`, text);
   }
 

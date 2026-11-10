@@ -142,12 +142,12 @@ test('the ⋯ menu holds Teleprompter and Copy link, and closes on Esc or a clic
   await expect(page.locator('.menu')).toHaveCount(0); // closes a moment later
 });
 
-test('the Export menu holds Print and Fountain; only one menu is open at a time', async ({ page }) => {
+test('the Export menu holds Print, Fountain and Final Draft; only one menu is open at a time', async ({ page }) => {
   await openExample(page);
   const exportButton = page.getByRole('button', { name: 'Export' });
   await exportButton.click();
   await expect(exportButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)']);
+  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)', 'Final Draft (.fdx)']);
   await page.getByRole('button', { name: 'More' }).click();
   await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
   await page.keyboard.press('Escape');
@@ -165,4 +165,19 @@ test('Fountain downloads the script as a .fountain file named after it', async (
   expect(text).toContain('[[Row 1]]');
   expect(text).toContain('\nNARRATOR\n');
   await expect(page.locator('.menu')).toHaveCount(0);
+});
+
+test('Final Draft downloads the script as an .fdx file that is well-formed XML', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'Export' }).click();
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Final Draft (.fdx)' }).click()]);
+  expect(file.suggestedFilename()).toBe('How Photosynthesis Works.fdx');
+  const text = readFileSync(await file.path(), 'utf8');
+  const parsed = await page.evaluate((xml) => {
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    return { error: !!doc.querySelector('parsererror'), types: [...doc.querySelectorAll('Content > Paragraph')].map((p) => p.getAttribute('Type')) };
+  }, text);
+  expect(parsed.error).toBe(false);
+  expect(parsed.types.slice(0, 5)).toEqual(['Scene Heading', 'General', 'Action', 'Character', 'Dialogue']);
+  expect(text).toContain('<Text>Draft · In review · ');
 });
