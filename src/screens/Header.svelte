@@ -12,12 +12,12 @@
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
-    onExport: (to: 'fountain') => void;
+    onExport: (to: 'fountain' | 'fdx') => void;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
   let copied = $state(false);
-  // Two menus, to keep the bar short (asked by the user): Export (Print, Fountain, and later exports) and ⋯
+  // Two menus, to keep the bar short (asked by the user): Export (Print, Fountain, Final Draft, and later exports) and ⋯
   // (Teleprompter, Copy link). 'print': Print's choices, under Export.
   let menu = $state<'' | 'more' | 'export' | 'print'>('');
   let moreEl = $state<HTMLElement>();
@@ -83,6 +83,7 @@
           <div class="menu">
             <button onclick={() => (menu = 'print')}>Print…</button>
             <button onclick={() => ((menu = ''), onExport('fountain'))}>Fountain (.fountain)</button>
+            <button onclick={() => ((menu = ''), onExport('fdx'))}>Final Draft (.fdx)</button>
           </div>
         {:else if menu === 'print'}
           <div class="menu print-menu">

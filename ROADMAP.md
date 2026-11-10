@@ -156,13 +156,20 @@ and suggestions, keeps every version, and exports them for production.
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
   dialogue, the On screen column is the action, row numbers, notes and files are `[[notes]]`; the title page has
   the authors and "Draft date: v3 · Approved · date".
-- [ ] **EX-4** Final Draft (.fdx).
+- [x] **EX-4** Final Draft (.fdx). Built without a mock-up (the user: "for now just get the functionality in
+  place"), in the Export menu, laid out as EX-3: sections are scene headings, the On screen column is action,
+  NARRATOR speaks the dialogue; the row number, note and files are a General paragraph above each row (Final
+  Draft's own notes are pinned to character positions); bold, italic and underline carry over; the title page has
+  the title, authors and "v3 · Approved · date".
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them).
 - [ ] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
   one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
   building.
 - [ ] **EX-7** Exports carry the version (suggested, the user agreed): every export is stamped with the official
   version and the status ("v2 · Approved", else "Draft"), as print (EX-1) already is, so nobody records from a draft.
+- [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
+  Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
+  Today the exports download straight from the Export menu. Mock-up first.
 
 ## Phase 5: captions for YouTube
 
