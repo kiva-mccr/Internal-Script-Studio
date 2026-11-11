@@ -109,8 +109,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-16** A better place for the save status (asked by the user: where it sits now, between Send for review
   and Export, "feels awkward and not matching"). Mock up new designs first and agree one before building. The
   voice-over total (AU-1) sits there too and makes the bar wrap at 1280 px wide: place both together.
-- [ ] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
-  dialogue can take more of the screen. Mock-up first.
+- [x] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
+  dialogue can take more of the screen.
+  Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded
+  column shows a grey dot on rows with something in it. Any column can fold but the last one open. Remembered in
+  this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
 - [ ] **AP-18** The GitHub side renamed to p2p-script-studio (asked by the user): README, docs, notes and the repo's
   description and links use the app's name and address, not "Internal Script Studio".
 - [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
@@ -121,6 +124,14 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-21** Set-up help for other ways of syncing (asked by the user, later): the "Before you start"
   instructions for OneDrive, Google Drive, Dropbox, a network drive …, with screenshots so they are easy to follow.
   Mock-up first.
+- [ ] **AP-22** Adding sections, smoother (asked by the user): a new section starts empty with "New section" as
+  grey stand-in text, like the empty cells, not as real text; an emptied section is removed only once the cursor
+  leaves its box, never while still typing in it; and the section button adds the section right after the box the
+  cursor is in, or at the end when no box is in use.
+- [ ] **AP-23** Named links with a preview (asked by the user): a pasted link can be given a name, shown instead of
+  the address, and shows a preview of the page. Mock-up first; goes with AP-19.
+- [ ] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
+  labelled "Planning", for notes, outlining and the script's learning goals. Kept with the script. Mock-up first.
 
 ## Phase 3: review
 
@@ -201,9 +212,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
   Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
   Today the exports download straight from the Export menu. Mock-up first.
-- [ ] **EX-10** Export becomes Export / Share (asked by the user): besides the exports, copy a link, and copy an
-  embed with more information (title, status, version …) to paste into Microsoft Teams. Copy link moves in from
-  the ⋯ menu. Mock-up first.
+- [x] **EX-10** Export becomes Export / Share (asked by the user; board 15, agreed as drawn): Share on top (Copy link,
+  moved in from the ⋯ menu, and Copy for Teams), the exports below. Copy for Teams puts a formatted message on the
+  clipboard (plain text too): the title as a link, status, version when official, rows, read-aloud time, who edited
+  last and when, open comments, voice-over progress, and an Open in Script Studio link. A snapshot; a live Teams
+  preview card would need a server.
 - [x] **EX-11** Voice-over as one file (asked by the user, needed for their work): Export > Voice-over (.wav) joins
   every row's take in row order into one WAV (the user's choice over a file per row), 48 kHz mono, with no gap
   between takes. Rows with no take are left out, and the page says how many. Built without a mock-up. Open question
@@ -226,8 +239,12 @@ and suggestions, keeps every version, and exports them for production.
   blue with one; words a minute instead of "on time"), then "Looks good". One take per row, replaced by recording
   again; ▶ length, progress, wpm, who and when, ×; "Outdated" once the line changes (asked by the user); the top
   bar adds them up. Kept as voice/row-<id>.webm and .json in the script's folder.
-- [ ] **AU-2** Play the script (asked by the user): goes line by line and plays each row's recorded take in time.
-  Mock-up first.
+- [x] **AU-2** Play the script (asked by the user): goes line by line and plays each row's recorded take in time.
+  Built as agreed on board 14: it plays in Write (the row being spoken is tinted and the page follows it), with one
+  Play button in the top bar that becomes the time ("❚❚ 0:06 / 0:18") and ■ to stop. A row with no take waits in
+  silence for its read time (the teleprompter's speed); a row with no take and no dialogue is skipped; an outdated
+  take still plays; no gap between rows. A row's number plays from that row; Space pauses and Esc stops when not
+  typing. Offered once a row has a take.
 - [ ] **AU-3** Pick the microphone (asked by the user): choose which microphone to record with, in the app, and
   remember it in this browser.
 

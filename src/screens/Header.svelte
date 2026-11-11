@@ -6,19 +6,23 @@
 <script lang="ts">
   import { editingText } from '../lib/editing';
   import { keep, recall } from '../lib/remember';
+  import type { Shared } from '../lib/share';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, missingCount, voiceText, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
+  let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
+    // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
+    play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
-    onExport: (to: 'fountain' | 'fdx' | 'voice') => void;
+    onExport: (to: 'fountain' | 'fdx' | 'voice') => void; onShare: () => Promise<Shared>;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
-  let copied = $state(false);
-  // Two menus, to keep the bar short (asked by the user): Export (Print, Fountain, Final Draft, and later exports) and ⋯
-  // (Teleprompter, Copy link). 'print': Print's choices, under Export.
+  // What was just copied, said in the menu for a moment before it closes.
+  let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
+  // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
+  // Fountain, Final Draft and later exports) and ⋯ (Teleprompter). 'print': Print's choices, under Export.
   let menu = $state<'' | 'more' | 'export' | 'print'>('');
   let moreEl = $state<HTMLElement>();
   let exportEl = $state<HTMLElement>();
@@ -28,9 +32,25 @@
   let printScale = $state(Number(recall('print-scale')) || 100); // %, the printed text size
 
   async function copyLink() {
-    await navigator.clipboard.writeText(location.href);
-    copied = true;
-    setTimeout(() => ((copied = false), (menu = '')), 1200);
+    await copy('link', () => navigator.clipboard.writeText(location.href));
+  }
+
+  // Copy for Teams (EX-10): the message as formatted text, and as plain text for apps that don't take formatting.
+  // The clipboard is given promises, so the click still counts while the Editor saves and reads History.
+  async function copyTeams() {
+    const shared = onShare();
+    const as = (type: string) => shared.then((s) => new Blob([type === 'text/html' ? s.html : s.text], { type }));
+    await copy('teams', () => navigator.clipboard.write([new ClipboardItem({ 'text/html': as('text/html'), 'text/plain': as('text/plain') })]));
+  }
+
+  async function copy(what: 'link' | 'teams', write: () => Promise<void>) {
+    try {
+      await write();
+      copied = what;
+    } catch {
+      copied = 'failed';
+    }
+    setTimeout(() => ((copied = ''), (menu = '')), copied === 'failed' ? 2500 : 1200);
   }
 
   function print() {
@@ -50,7 +70,7 @@
 
 <svelte:window onpointerdown={away} onkeydown={(e) => e.key === 'Escape' && (menu = '')} />
 
-<header>
+<header class:pinned={play?.time}>
   <nav class="crumbs" aria-label="Breadcrumb">
     <a href="#/">{folder}</a>
     <span aria-hidden="true">/</span>
@@ -78,13 +98,25 @@
         <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
+      {#if play}
+        <button class="outline play" class:started={play.time} onclick={onPlay}
+          aria-label={!play.time ? 'Play the script' : play.on ? 'Pause the script' : 'Carry on playing the script'}>
+          {play.on ? '❚❚' : '▶'} {play.time || 'Play'}
+        </button>
+        {#if play.time}<button class="outline stop" aria-label="Stop playing" title="Stop" onclick={onStop}>■</button>{/if}
+      {/if}
       {#if voiceText}<span class="voice">{voiceText}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
       <span class="more" bind:this={exportEl}>
         <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
-          onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export</button>
+          onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export / Share</button>
         {#if menu === 'export'}
           <div class="menu">
+            <span class="group">Share</span>
+            <button onclick={copyLink}>{copied === 'link' ? 'Link copied' : 'Copy link'}</button>
+            <button onclick={copyTeams}>{copied === 'teams' ? 'Copied, paste it in Teams' : 'Copy for Teams'}</button>
+            {#if copied === 'failed'}<span class="failed" role="alert">Couldn't copy. Try again.</span>{/if}
+            <span class="group rule">Export</span>
             <button onclick={() => (menu = 'print')}>Print…</button>
             <button onclick={() => ((menu = ''), onExport('fountain'))}>Fountain (.fountain)</button>
             <button onclick={() => ((menu = ''), onExport('fdx'))}>Final Draft (.fdx)</button>
@@ -104,7 +136,6 @@
         {#if menu === 'more'}
           <div class="menu">
             <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
-            <button onclick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
           </div>
         {/if}
       </span>
@@ -114,6 +145,8 @@
 
 <style>
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }
+  /* While the script plays (AU-2) the bar stays in view, so Pause and ■ are there as the page follows the rows. */
+  .pinned { position: sticky; top: 0; z-index: 5; background: var(--ground); }
   .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 320px; min-width: 0; }
   .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--muted); text-decoration: none; }
   .crumbs a:hover { color: var(--accent); }
@@ -135,14 +168,20 @@
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
   .status, .voice { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
+  .play { font-variant-numeric: tabular-nums; }
+  .play.started { border-color: var(--accent); background: #eef2fb; color: var(--accent); }
+  .stop { min-width: 44px; padding: 0; font-size: 12px; }
   .more { position: relative; }
   .dots { min-width: 44px; padding: 0 12px; font-size: 18px; line-height: 1; }
   .menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;
-    min-width: 180px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
+    min-width: 220px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10); font-size: 14px; }
   .menu > button:not(.dark) { min-height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: none; color: var(--ink);
     font-size: 14px; text-align: left; }
   .menu > button:not(.dark):hover { background: #f2f2f2; }
+  .group { margin: 4px 12px 2px; font-size: 12px; color: var(--muted); }
+  .group.rule { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .failed { padding: 4px 12px; font-size: 13px; color: var(--danger); }
   .print-menu { gap: 10px; padding: 12px; }
   .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
   .scale input { flex: 1; min-width: 120px; }

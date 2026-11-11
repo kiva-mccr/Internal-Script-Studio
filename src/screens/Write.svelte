@@ -1,6 +1,8 @@
 <script lang="ts">
   import { clock } from '../lib/readtime';
   import { emptyRow, type Block, type Script } from '../lib/script';
+  import type { Player } from '../lib/play.svelte';
+  import { keep, recall } from '../lib/remember';
   import { outdated, wpm, type VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
   import TextField from './TextField.svelte';
@@ -8,8 +10,10 @@
   // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, with the blocks as
   // they were before, so the Editor can offer Undo. onNotice: a message for the person.
   // voice: the rows' voice-over takes (AU-1), kept by the Editor; `name` signs a new take.
-  let { script = $bindable(), dir, voice, name, onChange, onDeleted, onNotice }: {
-    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; name: string; onChange: () => void;
+  // player: Play the script (AU-2), kept by the Editor; canPlay: a row's number plays from that row (onPlayFrom).
+  let { script = $bindable(), dir, voice, player, canPlay, name, onChange, onDeleted, onNotice, onPlayFrom }: {
+    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
+    onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
 
@@ -19,6 +23,26 @@
     for (const block of script.blocks) if (block.type === 'row') map.set(block, ++n);
     return map;
   });
+
+  // Columns folded away to a thin strip (AP-17), remembered in this browser for every script, never in the script.
+  type Column = 'dialogue' | 'screen' | 'files';
+  const COLUMNS: { key: Column; name: string; fr: number }[] = [
+    { key: 'dialogue', name: 'Dialogue', fr: 1.25 },
+    { key: 'screen', name: 'On screen', fr: 1 },
+    { key: 'files', name: 'Images & files', fr: 0.8 },
+  ];
+  const stored = new Set(recall('write-folded').split(',').filter((c) => COLUMNS.some((col) => col.key === c)));
+  // Never all three: the last one open has no fold button, and a stored "all folded" opens Dialogue again.
+  if (stored.size === COLUMNS.length) stored.delete('dialogue');
+  let folded = $state(stored);
+  const columns = $derived(`40px 28px ${COLUMNS.map((c) => (folded.has(c.key) ? '28px' : `minmax(0, ${c.fr}fr)`)).join(' ')}`);
+
+  function fold(key: Column) {
+    const next = new Set(folded);
+    if (!next.delete(key)) next.add(key);
+    folded = next;
+    keep('write-folded', [...next].join(','));
+  }
 
   // The running clock while recording.
   let now = $state(Date.now());
@@ -50,7 +74,19 @@
     }
   }
 
+  // The page follows the row being played.
+  let table = $state<HTMLElement>();
+  $effect(() => {
+    const row = player.row && table?.querySelector(`[data-row="${player.row}"]`);
+    if (!row) return;
+    const { top, bottom } = row.getBoundingClientRect();
+    // Only when it isn't all in view (under the top bar, which stays up while playing).
+    if (top < 140 || bottom > innerHeight) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+
+  // A row's own ▶: while the script is playing that row, it pauses and carries on.
   async function play(id: string) {
+    if (player.row === id) return player.toggle();
     await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, OneDrive may still be syncing."));
   }
 
@@ -84,8 +120,21 @@
 </script>
 
 {#if script.intro}<p class="note">{script.intro}</p>{/if}
-<div class="table">
-  <div class="head grid"><span>#</span><span></span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
+<div class="table" bind:this={table}>
+  <div class="head grid" style:grid-template-columns={columns}>
+    <span>#</span><span></span>
+    {#each COLUMNS as col (col.key)}
+      {#if folded.has(col.key)}
+        <span><button class="unfold" aria-label="Show {col.name}" title="Show {col.name}" onclick={() => fold(col.key)}>›</button></span>
+      {:else}
+        <span class="heading">{col.name}
+          {#if folded.size < COLUMNS.length - 1}
+            <button class="fold" aria-label="Fold {col.name} away" title="Fold away" onclick={() => fold(col.key)}>‹</button>
+          {/if}
+        </span>
+      {/if}
+    {/each}
+  </div>
   {#each script.blocks as block, i (block)}
     {#if block.type === 'section'}
       <div class="section">
@@ -100,9 +149,15 @@
       {@const n = numbers.get(block)}
       {@const take = voice.takes[block.id]}
       {@const recording = voice.recording === block.id}
-      <div class="row grid">
+      {@const here = player.row === block.id}
+      {@const sounding = voice.playing === block.id || (here && player.on)}
+      <div class="row grid" style:grid-template-columns={columns} class:here data-row={block.id}>
         <div class="num">
-          <span>{n}</span>
+          {#if canPlay}
+            <button class="from" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}>{n}</button>
+          {:else}
+            <span>{n}</span>
+          {/if}
           <span class="tools">
             <button aria-label="Move row {n} up" title="Move up" onclick={() => move(i, -1)}>↑</button>
             <button aria-label="Move row {n} down" title="Move down" onclick={() => move(i, 1)}>↓</button>
@@ -117,6 +172,7 @@
             {#if recording}■{:else}{@render micIcon()}{/if}
           </button>
         </div>
+        {#if folded.has('dialogue')}{@render dot(block.dialogue !== '', 'Dialogue')}{:else}
         <div>
           {#if block.note}<p class="note">{block.note}</p>{/if}
           <div class="dialogue"><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said" /></div>
@@ -125,20 +181,30 @@
           {:else if take}
             {@const rate = wpm(block.dialogue, take.seconds)}
             <div class="take">
-              <button class="play" aria-label="{voice.playing === block.id ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}>
-                {voice.playing === block.id ? '❚❚' : '▶'} {clock(take.seconds)}
+              <button class="play" aria-label="{sounding ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}>
+                {sounding ? '❚❚' : '▶'} {clock(take.seconds)}
               </button>
-              <span class="bar"><span style:width="{(voice.playing === block.id ? voice.at : 0) * 100}%"></span></span>
+              <span class="bar"><span style:width="{(here ? player.at : voice.playing === block.id ? voice.at : 0) * 100}%"></span></span>
               {#if outdated(take, block.dialogue)}<span class="old" title="The line has changed since this take">Outdated</span>{/if}
               <span class="about">{rate ? `${rate} wpm` : ''}{rate && take.by ? ' · ' : ''}{take.by ? `${take.by}, ${day(take.at)}` : ''}</span>
               <button class="drop" aria-label="Delete the take of row {n}" title="Delete the take"
                 onclick={() => voice.remove(dir, block.id).catch(() => onNotice("The take couldn't be deleted."))}>×</button>
             </div>
+          {:else if here}
+            <p class="take" role="status">
+              <span class="bar wait"><span style:width="{player.at * 100}%"></span></span>
+              No take yet · waiting its read time, {clock(player.steps[player.i].seconds)}
+            </p>
           {/if}
         </div>
-        <div class="screen"><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
-        <FilesCell files={block.files} {dir} {onNotice}
-          onChange={(files) => { block.files = files; onChange(); }} />
+        {/if}
+        {#if folded.has('screen')}{@render dot(block.onScreen !== '', 'On screen')}{:else}
+          <div class="screen"><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
+        {/if}
+        {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
+          <FilesCell files={block.files} {dir} {onNotice}
+            onChange={(files) => { block.files = files; onChange(); }} />
+        {/if}
       </div>
     {/if}
   {/each}
@@ -147,6 +213,11 @@
     <button class="link" onclick={addSection}>+ Add section</button>
   </div>
 </div>
+
+<!-- A folded column's cell: a grey dot when the row has something in that column, so nothing is hidden silently. -->
+{#snippet dot(has: boolean, name: string)}
+  <span class="dot">{#if has}<span title="{name} has something here">•</span>{/if}</span>
+{/snippet}
 
 {#snippet micIcon()}
   <!-- The user's mic, drawn as a shape so it takes the text's colour: a capsule in a cradle on a stand. -->
@@ -159,10 +230,15 @@
 
 <style>
   .table { min-width: 860px; }
-  .grid { display: grid; grid-template-columns: 40px 28px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.8fr); gap: 0 24px; padding-left: 12px; padding-right: 12px; }
+  /* Its columns are set on the element (`columns`), as a folded column is a thin strip. */
+  .grid { display: grid; gap: 0 24px; padding-left: 12px; padding-right: 12px; }
   /* Stays at the top while scrolling. No scrolling box around the table, or it would stick to that instead. */
   .head { position: sticky; top: 0; z-index: 2; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
   .row { align-items: start; min-height: 64px; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+  /* The row being played (AU-2). */
+  .row.here { border-radius: 8px; background: #eef2fb; }
+  .from { margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; }
+  .from:hover { background: #f0f0f0; color: var(--accent); }
   .num { position: relative; font-size: 13px; color: var(--muted); padding-top: 3px; }
   /* Row tools sit over the gutter below the number, so they never make a row taller. */
   .num .tools { position: absolute; top: 24px; left: -6px; display: grid; grid-template-columns: 28px 28px; }
@@ -171,6 +247,12 @@
   .tools button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; }
   .tools button:hover { background: #f0f0f0; color: var(--ink); }
   .dialogue { font-size: 17px; }
+  .heading { display: flex; align-items: center; gap: 4px; }
+  .fold, .unfold { width: 28px; height: 28px; margin: -6px 0; padding: 0; border: 0; border-radius: 6px; background: none;
+    color: #8a8a8a; font-size: 16px; }
+  .fold:hover, .unfold:hover { background: #f0f0f0; color: var(--ink); }
+  .unfold { background: #f2f2f2; color: var(--muted); }
+  .dot { text-align: center; color: #b8b8b8; }
   /* The mic sits between the number and the dialogue: grey with no take, blue with one, red while recording. */
   /* Pulled into the gap, so it reads as part of the line it records. */
   .mic-cell { justify-self: end; transform: translateX(16px); margin-top: -3px; }
@@ -186,6 +268,8 @@
     border-radius: 999px; background: #eef2fb; color: var(--accent); font-size: 13px; font-weight: 500; }
   .bar { flex: 0 1 72px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
   .bar span { display: block; height: 100%; background: var(--accent); }
+  .bar.wait { flex-basis: 72px; }
+  .bar.wait span { background: #8a8a8a; }
   .drop { min-height: 28px; padding: 0 6px; border: 0; background: none; color: #8a8a8a; font-size: 15px; opacity: 0; }
   .row:hover .drop, .drop:focus-visible { opacity: 1; }
   .drop:hover { color: var(--danger); }

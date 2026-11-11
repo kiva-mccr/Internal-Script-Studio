@@ -50,9 +50,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: AU-2, AP-17, EX-10 and AP-16 are in their own threads; the user prioritizes the rest after that round. "Last" in ROADMAP.md
+- Next: AP-16 is in its own thread (AU-2, AP-17 and EX-10 are done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
-- Mock-ups (boards 1 to 13): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Mock-ups (boards 1 to 16): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
@@ -69,4 +69,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
 - Voice-over takes (AU-1) and the joined WAV (EX-11) with a real microphone and real OneDrive: tests fake the
   recording (a WAV); decoding Chrome's real webm takes was never seen here.
+- Play the script (AU-2) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
+  shown time keeps up with real webm takes is unseen.
+- Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

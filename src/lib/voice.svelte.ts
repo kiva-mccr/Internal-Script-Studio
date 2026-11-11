@@ -41,6 +41,11 @@ export function wpm(dialogue: string, seconds: number): number {
   return words && seconds > 0 ? Math.round((words / seconds) * 60) : 0;
 }
 
+// The sound of a row's take. Throws when there is none (or it hasn't synced yet).
+export async function takeFile(dir: FileSystemDirectoryHandle, id: string): Promise<File> {
+  return (await (await dir.getDirectoryHandle(FOLDER)).getFileHandle(`row-${id}.webm`)).getFile();
+}
+
 // The takes in a script's folder, by row id. Kept as state: the Editor makes one, Write and the top bar read it.
 export class VoiceOver {
   takes = $state<Record<string, Take>>({});
@@ -96,8 +101,7 @@ export class VoiceOver {
   async play(dir: FileSystemDirectoryHandle, id: string) {
     if (this.playing === id) return this.stopPlaying();
     this.stopPlaying();
-    const file = await (await (await dir.getDirectoryHandle(FOLDER)).getFileHandle(`row-${id}.webm`)).getFile();
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(await takeFile(dir, id));
     const audio = (this.#audio = new Audio(url));
     const seconds = this.takes[id]?.seconds || 1;
     audio.ontimeupdate = () => (this.at = Math.min(1, audio.currentTime / seconds));

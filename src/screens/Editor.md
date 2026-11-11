@@ -35,6 +35,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - `Print.svelte` is mounted here, at the top level, never inside another element (its print CSS needs that).
 - Print saves what is waiting first. Its choices come from `Header.svelte`. It shows "v3" only while the newest version is
   official and script.md still matches it (`officialNumber`, through `version()`); otherwise "Draft".
+- Copy for Teams (`shareNow`, EX-10) saves what is waiting, then gives `lib/share.ts` the version, the newest History
+  entry's person and time (none for "Outside the app"), open comments and rows with a take.
 - Exports (`exportAs`) use the same `version()`, turn the script into text (`lib/fountain.ts`, `lib/fdx.ts`) or its takes into one WAV (`lib/voiceexport.ts`) and download it
   with a link click; the file is named after the title (`safeName`), "script" if that is empty.
 - Missing files (`lostFiles`) are worked out here, not in `Assets.svelte`, so the tab's count shows in every tab. They
@@ -42,3 +44,7 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.
 - `voice` (a `VoiceOver`) holds the voice-over takes for Write and the top bar's total; it is read at open and with
   the 5 s check (not while recording), so someone else's take appears.
+- `player` (a `Player`, `lib/play.svelte.ts`) plays the script (AU-2): the top bar's Play, and a row's number in
+  Write plays from that row. It is offered only in Write with at least one take (`canPlay`), and stops when that
+  ends, when a recording or a single take starts, and when the teleprompter opens. Space pauses and Esc stops, but
+  not from a text field (and Space on a button stays that button's, or Play would toggle twice).
