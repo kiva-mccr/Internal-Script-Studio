@@ -1,4 +1,4 @@
-# Internal Script Studio roadmap
+# P2P Script Studio roadmap
 
 Every step, what was asked, what was built and what was picked, and the decisions. `[x]` built, `[ ]` planned,
 `[-]` on hold, `[?]` a tentative idea, not planned. IDs are stable: tick `[x]` as steps land and never renumber.
@@ -116,8 +116,11 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded
   column shows a grey dot on rows with something in it. Any column can fold but the last one open. Remembered in
   this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
-- [ ] **AP-18** The GitHub side renamed to p2p-script-studio (asked by the user): README, docs, notes and the repo's
+- [x] **AP-18** The GitHub side renamed to p2p-script-studio (asked by the user): README, docs, notes and the repo's
   description and links use the app's name and address, not "Internal Script Studio".
+  Built: README, roadmap and notes are titled P2P Script Studio and the package is p2p-script-studio. Renaming the
+  repository and its description are buttons in GitHub's settings that the user presses; the app's GitHub link
+  keeps the old address, which GitHub redirects after the rename.
 - [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
   audio, .pdf, .docx, .txt, .md, and other useful kinds, shown as a picture, a player or the first lines of text,
   where the browser can draw them. Mock-up first.
