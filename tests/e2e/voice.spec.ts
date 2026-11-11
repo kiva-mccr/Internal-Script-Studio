@@ -40,16 +40,18 @@ test('record a take for a row, see its length and words a minute, and play it ba
   await expect(page.getByRole('button', { name: 'Play row 1' })).toBeVisible({ timeout: 5000 }); // played to the end
 });
 
-test('a take says Outdated once its line is changed', async ({ page }) => {
+test('a take says Outdated once its line is changed, and keeps its words a minute', async ({ page }) => {
   await openExample(page);
   await page.getByRole('button', { name: 'Record row 1', exact: true }).click();
   await page.getByRole('button', { name: 'Stop recording row 1' }).click();
   await expect(page.locator('.take')).toBeVisible();
   await expect(page.locator('.old')).toHaveCount(0);
+  const rate = await page.locator('.take .about').textContent();
   await page.getByLabel('Dialogue, row 1').click();
   await page.keyboard.press('End');
-  await page.keyboard.type(' Really.');
+  await page.keyboard.type(' Really, really, truly it does.');
   await expect(page.locator('.old')).toHaveText('Outdated');
+  await expect(page.locator('.take .about')).toHaveText(rate!); // the words a minute of what was recorded
 });
 
 test('deleting a take takes it out of the folder; someone else’s take appears', async ({ page }) => {
