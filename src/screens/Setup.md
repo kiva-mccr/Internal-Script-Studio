@@ -12,3 +12,4 @@ note for other browsers.
   button's handler, before anything else is awaited.
 - A missing name is said in the page (`novalidate`), not by the browser's bubble.
 - Closing the picker is not an error (no message).
+- The first line doesn't name OneDrive (AP-20): a team may sync another way. Only "Before you start" is about OneDrive.
