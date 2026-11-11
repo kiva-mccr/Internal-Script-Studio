@@ -15,6 +15,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - History: on opening, a script.md that doesn't match the newest version gets an "outside" entry (no versions:
   "History starts here"). While editing, an entry at most every 5 minutes; also on leaving and on opening History.
   Leaving by closing the tab is best effort (the browser may not wait for the write).
+  `record` waits for History to start (`started`): an edit saved before `last` was set got no entry (seen as a
+  flaky "versions made in the same second" test on CI, where the version file was there before `last`).
 - Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
 - A failed save tries again every 6 s, unless the browser took back its OK to edit the folder (`hasAccess` false):
   retrying can't fix that (the browser asks only from a click), so the status is `locked` and the top bar's Allow

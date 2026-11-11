@@ -58,6 +58,7 @@
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
   let last: Version | null = null; // the newest history entry this page knows of
+  let started: Promise<void> = Promise.resolve(); // History found or started on opening (sets `last`)
   let pendingSince = 0; // when the first save not yet in History was made
   let clash = $state<{
     merged: Merged; heading: string; mineLabel: string; theirsLabel: string; combined: string;
@@ -114,7 +115,8 @@
       }
       const text = await readScript(dir);
       load(text);
-      await startHistory(dir, text);
+      started = startHistory(dir, text);
+      await started;
       await here();
       await lookForClashes(dir, text);
       notes = await listNotes(dir).catch(() => []);
@@ -246,6 +248,7 @@
 
   // A history entry for what was saved: at most every 5 minutes of editing, or now when `now` is set.
   async function record(text: string, now: boolean) {
+    await started; // an edit made just after opening waits for History to start, or it gets no entry
     if (!dir || !last) return;
     if ((await sha256(text)) === last.sha256) return;
     pendingSince ||= Date.now();
