@@ -24,6 +24,7 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
+- **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export** at the top right of a script holds Print, Fountain, Final Draft and Voice-over; **the ⋯ menu** holds Teleprompter and Copy link.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
@@ -45,6 +46,7 @@ Status: a first working version. What it does today:
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
+  The top bar shows how many rows have a take and their total length ("3 of 4 · 0:14").
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence

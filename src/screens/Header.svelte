@@ -57,6 +57,8 @@
     <a href="#/">{folder}</a>
     <span aria-hidden="true">/</span>
     <span class="title">{title}</span>
+    <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
+    {#if ready}<span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>{/if}
   </nav>
   {#if ready}
     <nav class="modes" aria-label="Mode">
@@ -87,8 +89,7 @@
         </button>
         {#if play.time}<button class="outline stop" aria-label="Stop playing" title="Stop" onclick={onStop}>■</button>{/if}
       {/if}
-      {#if voiceText}<span class="voice">{voiceText}</span>{/if}
-      <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
+      {#if voiceText}<span class="voice" title="Voice-over: rows recorded, and their length">{voiceText}</span>{/if}
       <span class="more" bind:this={exportEl}>
         <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
           onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export</button>
@@ -125,12 +126,12 @@
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }
   /* While the script plays (AU-2) the bar stays in view, so Pause and ■ are there as the page follows the rows. */
   .pinned { position: sticky; top: 0; z-index: 5; background: var(--ground); }
-  .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 320px; min-width: 0; }
-  .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--muted); text-decoration: none; }
+  .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 200px; min-width: 0; }
+  .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; white-space: nowrap; color: var(--muted); text-decoration: none; }
   .crumbs a:hover { color: var(--accent); }
   .crumbs span[aria-hidden] { color: #9a9a9a; }
   .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .right { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 240px; }
+  .right { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 auto; }
   .right > * { white-space: nowrap; }
   .editing { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #fff4e5;
     color: #7a4a00; font-size: 13px; font-weight: 500; }
@@ -144,7 +145,8 @@
   .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
   .dark:hover { background: #333; }
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
-  .status, .voice { font-size: 13px; color: var(--muted); }
+  .status, .voice { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .status { margin-left: 6px; }
   .status.bad { color: var(--danger); }
   .play { font-variant-numeric: tabular-nums; }
   .play.started { border-color: var(--accent); background: #eef2fb; color: var(--accent); }

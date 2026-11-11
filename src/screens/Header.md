@@ -1,8 +1,8 @@
 # `src/screens/Header.svelte`
 
-The bar at the top of a script: the folder name (back to the list) and the title, the Write · Review · History · Assets
+The bar at the top of a script: the folder name (back to the list), the title and the save status beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
-Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the voice-over total, the save status, and two menus (asked by the user, to keep the bar short): Export, with Print… (its choices),
+Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the voice-over total (short: "3 of 4 · 0:14"), and two menus (asked by the user, to keep the bar short): Export, with Print… (its choices),
 Fountain, Final Draft, Voice-over and later exports, and ⋯ with Teleprompter and Copy link.
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
@@ -20,3 +20,6 @@ Fountain, Final Draft, Voice-over and later exports, and ⋯ with Teleprompter a
 - Print's choices (notes column, notes space, text size) are remembered with `recall`/`keep` (`lib/remember.ts`).
 - While the script plays, the bar is `position: sticky` (`.pinned`) so Pause and ■ stay in view as the page follows
   the rows; it then covers Write's sticky column headings, which is fine for that while.
+- The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. The bar must
+  stay on one line at 1280 px with a voice-over total: the title shortens with "…" first (`.crumbs` shrinks, the
+  status never does). A new thing in `.right` has to keep that true (`editor.spec.ts` measures it).

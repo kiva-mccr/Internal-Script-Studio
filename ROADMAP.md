@@ -105,9 +105,11 @@ and suggestions, keeps every version, and exports them for production.
   Alt+Up / Alt+Down to move a row, so writing never needs the mouse.
 - [ ] **AP-15** New script from a template (suggested, the user agreed): New script can start as a copy of a script
   the person picks (its sections and rows, not its history or comments). The look is agreed before building.
-- [ ] **AP-16** A better place for the save status (asked by the user: where it sits now, between Send for review
-  and Export, "feels awkward and not matching"). Mock up new designs first and agree one before building. The
-  voice-over total (AU-1) sits there too and makes the bar wrap at 1280 px wide: place both together.
+- [x] **AP-16** A better place for the save status (asked by the user: where it sat, between Send for review and
+  Export, "felt awkward and not matching"). Three places mocked up (board 17); the user picked A: the status sits
+  right after the script's name, like Word and Google Docs. The voice-over total shortens to "3 of 4 · 0:14" and stays
+  with the buttons, and the name shortens with "…" first, so the bar keeps to one line at 1280 px even with
+  "… is editing" and Send for review (it wraps cleanly below about 1100 px).
 - [ ] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
   dialogue can take more of the screen. Mock-up first.
 
