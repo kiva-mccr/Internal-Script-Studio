@@ -73,3 +73,4 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   shown time keeps up with real webm takes is unseen.
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
+- Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.

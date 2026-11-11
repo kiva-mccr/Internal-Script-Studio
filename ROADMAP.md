@@ -132,6 +132,11 @@ and suggestions, keeps every version, and exports them for production.
   cursor is in, or at the end when no box is in use.
 - [ ] **AP-23** Named links with a preview (asked by the user): a pasted link can be given a name, shown instead of
   the address, and shows a preview of the page. Mock-up first; goes with AP-19.
+- [x] **AP-25** Saving when the browser takes back access (a bug the user hit: "Couldn't save, trying again").
+  Chrome and Edge take back the OK to edit the folder after the tab has been in the background a while, and only a
+  click can ask again, so the retries never worked. Mock-up 18, option A: the status says "Not saved: the browser
+  needs your OK to edit the folder" with an Allow editing button; once allowed, what was typed meanwhile is saved.
+  Also shown by the 5 s check and on coming back to the tab. Other failed saves still retry.
 - [ ] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
   labelled "Planning", for notes, outlining and the script's learning goals. Kept with the script. Mock-up first.
 

@@ -9,16 +9,17 @@
   import type { Shared } from '../lib/share';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
+  let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
-    status: keyof typeof statusText; onMode: (to: Mode) => void;
+    status: keyof typeof statusText; onAllow: () => void; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx' | 'voice') => void; onShare: () => Promise<Shared>;
   } = $props();
 
-  const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
+  const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
+    locked: 'Not saved: the browser needs your OK to edit the folder' };
   // What was just copied, said in the menu for a moment before it closes.
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
@@ -71,12 +72,14 @@
 <svelte:window onpointerdown={away} onkeydown={(e) => e.key === 'Escape' && (menu = '')} />
 
 <header class:pinned={play?.time}>
-  <nav class="crumbs" aria-label="Breadcrumb">
+  <nav class="crumbs" class:locked={ready && status === 'locked'} aria-label="Breadcrumb">
     <a href="#/">{folder}</a>
     <span aria-hidden="true">/</span>
     <span class="title">{title}</span>
     <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
-    {#if ready}<span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>{/if}
+    {#if ready}<span class="status" class:bad={status === 'failed' || status === 'conflict' || status === 'locked'} role="status">{statusText[status]}</span>{/if}
+    <!-- The browser took back its OK to edit the folder: only a click can ask again (mock-up 18, option A). -->
+    {#if ready && status === 'locked'}<button class="allow" onclick={onAllow}>Allow editing</button>{/if}
   </nav>
   {#if ready}
     <nav class="modes" aria-label="Mode">
@@ -149,6 +152,8 @@
   /* While the script plays (AU-2) the bar stays in view, so Pause and ■ are there as the page follows the rows. */
   .pinned { position: sticky; top: 0; z-index: 5; background: var(--ground); }
   .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 280px; min-width: 0; } /* below that the bar wraps */
+  /* The long "Not saved" and Allow editing don't fit beside the tabs: the bar wraps instead of hiding them. */
+  .crumbs.locked { flex: 1 0 auto; max-width: 100%; }
   .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; white-space: nowrap; color: var(--muted); text-decoration: none; }
   .crumbs a:hover { color: var(--accent); }
   .crumbs span[aria-hidden] { color: #9a9a9a; }
@@ -170,6 +175,7 @@
   .status, .voice { font-size: 13px; color: var(--muted); white-space: nowrap; }
   .status { margin-left: 6px; }
   .status.bad { color: var(--danger); }
+  .allow { flex: none; min-height: 36px; margin-left: 4px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; }
   .play { font-variant-numeric: tabular-nums; }
   .play.started { border-color: var(--accent); background: #eef2fb; color: var(--accent); }
   .stop { min-width: 44px; padding: 0; font-size: 12px; }
