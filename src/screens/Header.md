@@ -23,6 +23,8 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
 - Print's choices (notes column, notes space, text size) are remembered with `recall`/`keep` (`lib/remember.ts`).
 - While the script plays, the bar is `position: sticky` (`.pinned`) so Pause and ■ stay in view as the page follows
   the rows; it then covers Write's sticky column headings, which is fine for that while.
+  It also covers the top of `main`, so a test must not click there to leave a text field while playing (`play.spec.ts`
+  blurs instead).
 - The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. The bar must
   stay on one line at 1280 px with a voice-over total: the title shortens with "…" first (`.crumbs` shrinks, the
   status never does). A new thing in `.right` has to keep that true (`editor.spec.ts` measures it).

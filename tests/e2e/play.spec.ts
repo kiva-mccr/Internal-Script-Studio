@@ -68,7 +68,8 @@ test('Space pauses and Esc stops, but not while typing', async ({ page }) => {
   await page.getByLabel('Dialogue, row 4').click();
   await page.keyboard.type(' ');
   await expect(page.getByRole('button', { name: 'Pause the script' })).toBeVisible(); // typed, not paused
-  await page.locator('main').click({ position: { x: 2, y: 2 } });
+  // Leave the text field (not by clicking main's corner: the sticky bar covers it while the page follows the rows).
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur());
   await page.keyboard.press(' ');
   await expect(page.getByRole('button', { name: 'Carry on playing the script' })).toBeVisible();
   await page.keyboard.press('Escape');
