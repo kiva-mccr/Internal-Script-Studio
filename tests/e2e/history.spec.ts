@@ -81,6 +81,7 @@ test('a new script starts its History, and the list says who edited last', async
 
 test('versions made in the same second stay in order', async ({ page }) => {
   await openExample(page);
+  await expect.poll(() => listFiles(page, VERSIONS)).toHaveLength(1); // History has started: an edit before that gets no entry of its own
   await page.getByLabel('Dialogue, row 3').fill('First change.');
   await page.getByRole('button', { name: 'History' }).click();
   await page.getByRole('button', { name: 'Write' }).click();
