@@ -98,7 +98,8 @@ and suggestions, keeps every version, and exports them for production.
   one. Comment quotes are marked with the browser's highlights, so a quote can cross formatting.
 - [ ] **AP-12** Read time (suggested, the user agreed): the word count as minutes, for each section and the whole
   script, at a speaking speed the person sets. Later feeds the teleprompter (EX-2), SRT (EX-5) and storyboard
-  timings (SB-1). The look is agreed before building.
+  timings (SB-1). The look is agreed before building. Also asked by the user: the script list shows each script's
+  length, the read time or, where every row has a take, the recorded voice-over's length.
 - [ ] **AP-13** Paste a draft (suggested, the user agreed): pasting several paragraphs into Dialogue makes one row
   for each paragraph (drafts written in Word).
 - [ ] **AP-14** Keyboard flow (suggested, the user agreed): Tab between cells, Ctrl+Enter for a new row below,
@@ -113,6 +114,24 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded
   column shows a grey dot on rows with something in it. Any column can fold but the last one open. Remembered in
   this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
+- [ ] **AP-18** The GitHub side renamed to p2p-script-studio (asked by the user): README, docs, notes and the repo's
+  description and links use the app's name and address, not "Internal Script Studio".
+- [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
+  audio, .pdf, .docx, .txt, .md, and other useful kinds, shown as a picture, a player or the first lines of text,
+  where the browser can draw them. Mock-up first.
+- [ ] **AP-20** First-time screen without OneDrive in its wording (asked by the user): "Pick the shared folder your
+  team keeps scripts in", since a team may sync another way.
+- [ ] **AP-21** Set-up help for other ways of syncing (asked by the user, later): the "Before you start"
+  instructions for OneDrive, Google Drive, Dropbox, a network drive …, with screenshots so they are easy to follow.
+  Mock-up first.
+- [ ] **AP-22** Adding sections, smoother (asked by the user): a new section starts empty with "New section" as
+  grey stand-in text, like the empty cells, not as real text; an emptied section is removed only once the cursor
+  leaves its box, never while still typing in it; and the section button adds the section right after the box the
+  cursor is in, or at the end when no box is in use.
+- [ ] **AP-23** Named links with a preview (asked by the user): a pasted link can be given a name, shown instead of
+  the address, and shows a preview of the page. Mock-up first; goes with AP-19.
+- [ ] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
+  labelled "Planning", for notes, outlining and the script's learning goals. Kept with the script. Mock-up first.
 
 ## Phase 3: review
 
@@ -137,6 +156,14 @@ and suggestions, keeps every version, and exports them for production.
   made on it, so it is clear why a line changed.
 - [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
   an edit is a new note that replaces the old one. Mock-up first.
+- [ ] **RV-8** A note with Send for review (asked by the user): a box to tell the reviewers what to look for; shown
+  to them in Review and kept in History with the status change. Mock-up first.
+- [ ] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
+  next official version (AP-10), or keeps the current version when nothing has changed since it. Mock-up first.
+- [ ] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
+  Review tab by default (Copy link, and the Teams embed of EX-10).
+- [ ] **RV-11** Files on comments (asked by the user): a reviewer can attach files to a comment, kept in the script's
+  folder. Mock-up first.
 
 ## Phase 4: exports
 
@@ -161,6 +188,9 @@ and suggestions, keeps every version, and exports them for production.
   desktop, didn't move on a phone; asked for each word to grey out once said (done, also with Start). For phones:
   the sound is resumed and resampled, and a Whisper that stops working says so. Still didn't follow on a Pixel 8
   in Chrome; shelved by the user as a bug (issue #24).
+- [ ] **EX-12** Follow my voice feels slow (asked by the user; to talk through before building): is it Whisper itself,
+  or how the sound is cut up and sent to it (the last 4 s, about once a second)? Measure where the delay comes from,
+  then agree a fix. Goes with issue #24.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
@@ -189,13 +219,18 @@ and suggestions, keeps every version, and exports them for production.
   preview card would need a server.
 - [x] **EX-11** Voice-over as one file (asked by the user, needed for their work): Export > Voice-over (.wav) joins
   every row's take in row order into one WAV (the user's choice over a file per row), 48 kHz mono, with no gap
-  between takes. Rows with no take are left out, and the page says how many. Built without a mock-up.
+  between takes. Rows with no take are left out, and the page says how many. Built without a mock-up. Open question
+  from the user, to talk through: .wav or .mp3? (WAV is what editors take without loss; MP3 is about a tenth of
+  the size but needs an encoder in the app.)
 
 ## Phase 5: later (asked by the user; mock-ups agreed before any of these is built)
 
 - [ ] **HI-2** A graph view of the changes: versions as a timeline or tree, showing who changed what and where two
   saves were combined.
 - [ ] **SB-1** Animatic / storyboard timeline: the rows' images laid out in order along a timeline, with timings.
+  More from the user: a timeline view on the Write page, at the very bottom of the script while editing or
+  reviewing, and locked to the bottom of the screen while the script plays (AU-2). Later it holds the photos of a
+  storyboard column, collaged and in sequence, and can be output as an .mp4 or another video format. Mock-up first.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
 - [x] **AU-1** Recording audio for each line: record the dialogue of a row in the browser, kept beside the script
@@ -210,6 +245,8 @@ and suggestions, keeps every version, and exports them for production.
   silence for its read time (the teleprompter's speed); a row with no take and no dialogue is skipped; an outdated
   take still plays; no gap between rows. A row's number plays from that row; Space pauses and Esc stops when not
   typing. Offered once a row has a take.
+- [ ] **AU-3** Pick the microphone (asked by the user): choose which microphone to record with, in the app, and
+  remember it in this browser.
 
 ## Last (the user's order: these wait until everything above is done)
 

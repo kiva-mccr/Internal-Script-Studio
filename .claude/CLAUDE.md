@@ -34,6 +34,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## How the user likes to work
 - Go step by step through the roadmap; do not build unapproved steps.
+- One thread per feature (the user's way of working): mock-ups for a round of features are done up front, then the
+  features are built one after another, each finished and merged before the next, so nothing is left half built
+  when tokens run out.
 - Show mock-ups of a design and agree the look and the open choices before building it.
 - Finish a step with: tests passing, roadmap ticked, README updated, a short summary that says plainly what was
   verified and what was only simulated.
@@ -47,7 +50,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: the user is picking from the open steps (roadmap review asked for); mock-ups first. "Last" in ROADMAP.md
+- Next: AP-16 is in its own thread (AU-2, AP-17 and EX-10 are done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
 - Mock-ups (boards 1 to 16): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
