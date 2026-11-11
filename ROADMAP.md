@@ -108,8 +108,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-16** A better place for the save status (asked by the user: where it sits now, between Send for review
   and Export, "feels awkward and not matching"). Mock up new designs first and agree one before building. The
   voice-over total (AU-1) sits there too and makes the bar wrap at 1280 px wide: place both together.
-- [ ] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
-  dialogue can take more of the screen. Mock-up first.
+- [x] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
+  dialogue can take more of the screen.
+  Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded
+  column shows a grey dot on rows with something in it. Any column can fold but the last one open. Remembered in
+  this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
 
 ## Phase 3: review
 
