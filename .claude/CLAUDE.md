@@ -52,7 +52,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: AP-16 is in its own thread (AU-2, AP-17 and EX-10 are done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
-- Mock-ups (boards 1 to 16): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),

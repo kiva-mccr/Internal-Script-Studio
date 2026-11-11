@@ -1,8 +1,8 @@
 # `src/screens/Header.svelte`
 
-The bar at the top of a script: the folder name (back to the list) and the title, the Write · Review · History · Assets
+The bar at the top of a script: the folder name (back to the list), the title and the save status beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
-Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the voice-over total, the save status, and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
+Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the voice-over total (short: "3 of 4 · 0:14"), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
 Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final Draft, Voice-over and later exports), and ⋯ with Teleprompter.
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
@@ -23,3 +23,9 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
 - Print's choices (notes column, notes space, text size) are remembered with `recall`/`keep` (`lib/remember.ts`).
 - While the script plays, the bar is `position: sticky` (`.pinned`) so Pause and ■ stay in view as the page follows
   the rows; it then covers Write's sticky column headings, which is fine for that while.
+  It also covers the top of `main`, so a test must not click there to leave a text field while playing (`play.spec.ts`
+  blurs instead).
+- The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. At 1280 px
+  the bar stays on one line with Send for review, Play, the total and Export / Share: the title shortens with "…"
+  (`.crumbs` shrinks, down to its 280 px basis, and then the bar wraps rather than squash the name to a stub). With
+  "… is editing" too it wraps. `editor.spec.ts` measures this; CI installs Inter so it measures the app's own font.

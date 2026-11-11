@@ -71,7 +71,7 @@
     const taken = rowsNow.filter((b) => voice.takes[b.id]);
     if (!taken.length) return '';
     const seconds = taken.reduce((sum, b) => sum + voice.takes[b.id].seconds, 0);
-    return `Voice-over ${taken.length} of ${rowsNow.length} rows · ${clock(seconds)}`;
+    return `${taken.length} of ${rowsNow.length} · ${clock(seconds)}`; // short, so the bar stays on one line (AP-16)
   });
   // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
   const player = new Player();
