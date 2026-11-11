@@ -74,3 +74,27 @@ test('a blocked microphone says what to do, in the page', async ({ page }) => {
   await page.getByRole('button', { name: 'Record row 1', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('The microphone is blocked or missing');
 });
+
+test('Export > Voice-over joins the takes in row order into one WAV, and says which rows have none', async ({ page }) => {
+  await openExample(page);
+  for (const row of [3, 1]) {
+    await page.getByRole('button', { name: `Record row ${row}`, exact: true }).click();
+    await page.getByRole('button', { name: `Stop recording row ${row}` }).click();
+    await expect(page.getByRole('button', { name: `Record row ${row} again` })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Export' }).click();
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Voice-over (.wav)' }).click()]);
+  expect(file.suggestedFilename()).toBe('How Photosynthesis Works voice-over.wav');
+  const bytes = readFileSync(await file.path());
+  expect(bytes.subarray(0, 4).toString()).toBe('RIFF');
+  expect(bytes.readUInt32LE(24)).toBe(48000);
+  expect(bytes.length).toBe(44 + 2 * 24000 * 2); // two takes of half a second, mono, 16 bits
+  await expect(page.getByRole('alert')).toContainText('The file has 2 of 5 rows. 3 rows have no take yet.');
+});
+
+test('Export > Voice-over with no takes says so and downloads nothing', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'Export' }).click();
+  await page.getByRole('button', { name: 'Voice-over (.wav)' }).click();
+  await expect(page.getByRole('alert')).toContainText('No voice-over has been recorded yet');
+});

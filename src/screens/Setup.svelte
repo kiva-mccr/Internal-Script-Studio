@@ -66,7 +66,7 @@
       <button class="link" onclick={() => (reopening = false)}>Choose a different folder</button>
     {:else}
       <h1>Open your scripts folder</h1>
-      <p class="lead">Pick the shared OneDrive folder your team keeps scripts in. You only do this once.</p>
+      <p class="lead">Pick the shared OneDrive folder your team keeps scripts in. This browser remembers it; you can change it later.</p>
       <form onsubmit={choose} novalidate>
         <label>
           Your name

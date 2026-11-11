@@ -24,7 +24,7 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
-- **Export** at the top right of a script holds Print, Fountain and Final Draft; **the ⋯ menu** holds Teleprompter and Copy link.
+- **Export** at the top right of a script holds Print, Fountain, Final Draft and Voice-over; **the ⋯ menu** holds Teleprompter and Copy link.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Fountain:** downloads the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
@@ -45,6 +45,7 @@ Status: a first working version. What it does today:
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
+  Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.

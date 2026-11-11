@@ -12,7 +12,7 @@
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
-    onExport: (to: 'fountain' | 'fdx') => void;
+    onExport: (to: 'fountain' | 'fdx' | 'voice') => void;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved' };
@@ -88,6 +88,7 @@
             <button onclick={() => (menu = 'print')}>Print…</button>
             <button onclick={() => ((menu = ''), onExport('fountain'))}>Fountain (.fountain)</button>
             <button onclick={() => ((menu = ''), onExport('fdx'))}>Final Draft (.fdx)</button>
+            <button onclick={() => ((menu = ''), onExport('voice'))}>Voice-over (.wav)</button>
           </div>
         {:else if menu === 'print'}
           <div class="menu print-menu">
