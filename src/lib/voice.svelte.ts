@@ -35,10 +35,11 @@ export function outdated(take: Take, dialogue: string): boolean {
   return take.text.trim() !== dialogue.trim();
 }
 
-// Words a minute for a take of `seconds` reading `dialogue`; 0 when there is nothing to measure.
-export function wpm(dialogue: string, seconds: number): number {
-  const words = countWords(dialogue);
-  return words && seconds > 0 ? Math.round((words / seconds) * 60) : 0;
+// Words a minute of a take: the words it read (its `text`), not the row as it reads now, so editing the line
+// doesn't change the figure. `dialogue` only stands in for a take saved without its text. 0 when nothing to measure.
+export function wpm(take: Take, dialogue: string): number {
+  const words = countWords(take.text.trim() ? take.text : dialogue);
+  return words && take.seconds > 0 ? Math.round((words / take.seconds) * 60) : 0;
 }
 
 // The sound of a row's take. Throws when there is none (or it hasn't synced yet).

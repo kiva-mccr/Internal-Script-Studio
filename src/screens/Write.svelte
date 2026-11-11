@@ -179,7 +179,7 @@
           {#if recording}
             <p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>
           {:else if take}
-            {@const rate = wpm(block.dialogue, take.seconds)}
+            {@const rate = wpm(take, block.dialogue)}
             <div class="take">
               <button class="play" aria-label="{sounding ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}>
                 {sounding ? '❚❚' : '▶'} {clock(take.seconds)}
