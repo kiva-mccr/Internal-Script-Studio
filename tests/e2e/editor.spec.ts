@@ -181,3 +181,23 @@ test('Final Draft downloads the script as an .fdx file that is well-formed XML',
   expect(parsed.types.slice(0, 5)).toEqual(['Scene Heading', 'General', 'Action', 'Character', 'Dialogue']);
   expect(text).toContain('<Text>Draft · In review · ');
 });
+
+test('columns fold away and come back, remembered in this browser', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'Fold On screen away' }).click();
+  await page.getByRole('button', { name: 'Fold Images & files away' }).click();
+  await expect(page.getByLabel('On screen, row 1')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'leaf-closeup.jpg', exact: true })).toHaveCount(0);
+  // A row with something in a folded column shows a dot; the dialogue takes the width.
+  await expect(page.getByTitle('On screen has something here').first()).toBeVisible();
+  const wide = (await page.getByLabel('Dialogue, row 1').boundingBox())!.width;
+  expect(wide).toBeGreaterThan(700);
+  // The last column open can't fold.
+  await expect(page.getByRole('button', { name: 'Fold Dialogue away' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  await expect(page.getByLabel('On screen, row 1')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Show On screen' }).click();
+  await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
+  await expect(page.getByRole('button', { name: 'Fold Dialogue away' })).toBeVisible();
+});

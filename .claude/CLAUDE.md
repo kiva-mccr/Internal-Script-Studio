@@ -49,7 +49,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: the user is picking from the open steps (roadmap review asked for); mock-ups first. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
-- Mock-ups (boards 1 to 14): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Mock-ups (boards 1 to 16): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
