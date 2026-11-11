@@ -1,4 +1,4 @@
-# Internal Script Studio
+# P2P Script Studio
 
 A free, minimalist web app for writing, reviewing and producing educational video scripts.
 

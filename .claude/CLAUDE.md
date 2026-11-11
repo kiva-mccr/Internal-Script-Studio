@@ -1,4 +1,4 @@
-# Internal Script Studio: project notes for Claude Code
+# P2P Script Studio: project notes for Claude Code
 
 A free, minimalist web app for writing, reviewing and producing educational video scripts. Scripts are
 three-column Markdown (dialogue, on screen, images and files) kept in a shared OneDrive folder that is synced to
@@ -50,7 +50,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: the round of 8 quick wins, one thread each, built in order (AP-20 done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
+- Next: the round of 8 quick wins, one thread each, built in order (AP-20 and AP-18 done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
