@@ -164,7 +164,8 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
   an edit is a new note that replaces the old one. Mock-up first.
 - [ ] **RV-8** A note with Send for review (asked by the user): a box to tell the reviewers what to look for; shown
-  to them in Review and kept in History with the status change. Mock-up first.
+  to them in Review and kept in History with the status change. The user's design note: the same style as the
+  check before Approve (RV-5, board 20), a small panel that opens under the button, with the note box in it. Mock-up first.
 - [ ] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
   next official version (AP-10), or keeps the current version when nothing has changed since it. Mock-up first.
 - [ ] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
