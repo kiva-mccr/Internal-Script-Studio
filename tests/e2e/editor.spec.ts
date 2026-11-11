@@ -147,7 +147,7 @@ test('the Export menu holds Print, Fountain and Final Draft; only one menu is op
   const exportButton = page.getByRole('button', { name: 'Export' });
   await exportButton.click();
   await expect(exportButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)', 'Final Draft (.fdx)']);
+  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)', 'Final Draft (.fdx)', 'Voice-over (.wav)']);
   await page.getByRole('button', { name: 'More' }).click();
   await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
   await page.keyboard.press('Escape');

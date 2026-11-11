@@ -3,6 +3,7 @@
   import { assetList, missingFiles } from '../lib/assets';
   import { clock } from '../lib/readtime';
   import { VoiceOver } from '../lib/voice.svelte';
+  import { join, readClips, wav } from '../lib/voiceexport';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
   import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
@@ -432,9 +433,10 @@
     return n ? `v${n}` : '';
   }
 
-  // Export: the script as a Fountain (EX-3) or Final Draft (EX-4) file, downloaded.
-  async function exportAs(to: 'fountain' | 'fdx') {
+  // Export: the script as a Fountain (EX-3) or Final Draft (EX-4) file, or its voice-over as one WAV, downloaded.
+  async function exportAs(to: 'fountain' | 'fdx' | 'voice') {
     if (!script) return;
+    if (to === 'voice') return exportVoice();
     const v = await version();
     const state = reviewStatus === 'draft' ? '' : reviewStatus[0].toUpperCase() + reviewStatus.slice(1);
     const stand = [v || 'Draft', state].filter(Boolean).join(' · ');
@@ -443,8 +445,27 @@
     download(`${safeName(title ?? '') || 'script'}.${to}`, text);
   }
 
-  function download(name: string, text: string) {
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  // Every row's take in row order, joined in one file (asked by the user). Rows with no take are left out, and said.
+  const VOICE_RATE = 48000;
+  async function exportVoice() {
+    if (!script || !dir) return;
+    try {
+      const clips = await readClips(dir, script, VOICE_RATE);
+      if (!clips.length) {
+        notice = 'No voice-over has been recorded yet. Record a take with the mic beside a row first.';
+        return;
+      }
+      download(`${safeName(title ?? '') || 'script'} voice-over.wav`, new Blob([wav(join(clips, VOICE_RATE, 0), VOICE_RATE)], { type: 'audio/wav' }));
+      const rowCount = script.blocks.filter((b) => b.type === 'row').length;
+      const left = rowCount - clips.length;
+      if (left) notice = `The file has ${clips.length} of ${rowCount} rows. ${left === 1 ? '1 row has' : `${left} rows have`} no take yet.`;
+    } catch {
+      notice = "The voice-over couldn't be put together. If OneDrive is still syncing the takes, wait a moment and try again.";
+    }
+  }
+
+  function download(name: string, data: string | Blob) {
+    const url = URL.createObjectURL(typeof data === 'string' ? new Blob([data], { type: 'text/plain;charset=utf-8' }) : data);
     const a = Object.assign(document.createElement('a'), { href: url, download: name });
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);

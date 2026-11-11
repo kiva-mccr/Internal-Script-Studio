@@ -3,7 +3,7 @@
 The bar at the top of a script: the folder name (back to the list) and the title, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
 Approve), the voice-over total, the save status, and two menus (asked by the user, to keep the bar short): Export, with Print… (its choices),
-Fountain, Final Draft and later exports, and ⋯ with Teleprompter and Copy link.
+Fountain, Final Draft, Voice-over and later exports, and ⋯ with Teleprompter and Copy link.
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
   `conflict.spec.ts`.

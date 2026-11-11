@@ -108,6 +108,8 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-16** A better place for the save status (asked by the user: where it sits now, between Send for review
   and Export, "feels awkward and not matching"). Mock up new designs first and agree one before building. The
   voice-over total (AU-1) sits there too and makes the bar wrap at 1280 px wide: place both together.
+- [ ] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
+  dialogue can take more of the screen. Mock-up first.
 
 ## Phase 3: review
 
@@ -130,6 +132,8 @@ and suggestions, keeps every version, and exports them for production.
   suggestions, and once built, flags and rows without a source) as a warning in the page, never a block.
 - [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
   made on it, so it is clear why a line changed.
+- [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
+  an edit is a new note that replaces the old one. Mock-up first.
 
 ## Phase 4: exports
 
@@ -164,8 +168,6 @@ and suggestions, keeps every version, and exports them for production.
   NARRATOR speaks the dialogue; the row number, note and files are a General paragraph above each row (Final
   Draft's own notes are pinned to character positions); bold, italic and underline carry over; the title page has
   the title, authors and "v3 · Approved · date".
-- [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them). Shelved by the user: it needs more
-  depth and will be built together with other features they have in mind.
 - [x] **EX-6** Asset list (suggested, the user agreed): every file, link and "still to find" note across the rows in
   one list, with missing files marked, and a count of what is missing in the script list. The look is agreed before
   building. Mock-up: board 12, built as drawn, as an Assets tab beside History (the user's choice) with a red
@@ -177,13 +179,14 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
   Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
   Today the exports download straight from the Export menu. Mock-up first.
+- [ ] **EX-10** Export becomes Export / Share (asked by the user): besides the exports, copy a link, and copy an
+  embed with more information (title, status, version …) to paste into Microsoft Teams. Copy link moves in from
+  the ⋯ menu. Mock-up first.
+- [x] **EX-11** Voice-over as one file (asked by the user, needed for their work): Export > Voice-over (.wav) joins
+  every row's take in row order into one WAV (the user's choice over a file per row), 48 kHz mono, with no gap
+  between takes. Rows with no take are left out, and the page says how many. Built without a mock-up.
 
-## Phase 5: captions for YouTube
-
-- [ ] **CC-1** Drop in the final video; Whisper (open source, in the browser) hears it; the script's own words are
-  lined up with the audio; nudge timings; download SRT or VTT for YouTube. Takes the video file, not a YouTube link.
-
-## Phase 6: later (asked by the user; mock-ups agreed before any of these is built)
+## Phase 5: later (asked by the user; mock-ups agreed before any of these is built)
 
 - [ ] **HI-2** A graph view of the changes: versions as a timeline or tree, showing who changed what and where two
   saves were combined.
@@ -196,6 +199,17 @@ and suggestions, keeps every version, and exports them for production.
   blue with one; words a minute instead of "on time"), then "Looks good". One take per row, replaced by recording
   again; ▶ length, progress, wpm, who and when, ×; "Outdated" once the line changes (asked by the user); the top
   bar adds them up. Kept as voice/row-<id>.webm and .json in the script's folder.
+- [ ] **AU-2** Play the script (asked by the user): goes line by line and plays each row's recorded take in time.
+  Mock-up first.
+
+## Last (the user's order: these wait until everything above is done)
+
+- [ ] **AS-1** A shared asset browser between scripts (asked by the user): browse and reuse the files of every
+  script in the folder. Mock-up first.
+- [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them). Shelved by the user: it needs more
+  depth and will be built together with other features they have in mind. Moved to the very end by the user ("subtitle syncing").
+- [ ] **CC-1** Drop in the final video; Whisper (open source, in the browser) hears it; the script's own words are
+  lined up with the audio; nudge timings; download SRT or VTT for YouTube. Takes the video file, not a YouTube link. Moved to the very end by the user, with EX-5.
 
 ## Decisions
 

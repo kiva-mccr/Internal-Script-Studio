@@ -47,8 +47,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: Phase 4 is done but EX-5 SRT (shelved by the user) and EX-9 export preview (later); ask the user what next
-  (CC-1 captions, or Phase 6); mock-ups first. Phase 6 steps need mock-ups too.
+- Next: the user is picking from the open steps (roadmap review asked for); mock-ups first. "Last" in ROADMAP.md
+  (AS-1, EX-5, CC-1) waits until everything else is done.
 - Mock-ups (boards 1 to 13): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -64,5 +64,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   only the worker starting and asking for the model was seen; the following itself was tested with a fake.
   Works on the user's desktop; doesn't follow on a Pixel 8 in Chrome (issue #24, shelved).
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
-- Voice-over takes (AU-1) with a real microphone and real OneDrive: tests fake the recording.
+- Voice-over takes (AU-1) and the joined WAV (EX-11) with a real microphone and real OneDrive: tests fake the
+  recording (a WAV); decoding Chrome's real webm takes was never seen here.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
