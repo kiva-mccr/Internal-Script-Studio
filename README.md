@@ -46,6 +46,10 @@ Status: a first working version. What it does today:
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
+- **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
+  each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
+  for its read time. Click a row's number to play from there; pause with the same button or Space, stop with ■ or
+  Esc.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.
