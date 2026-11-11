@@ -19,7 +19,8 @@ Status: a first working version. What it does today:
   add or delete it. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
   Images show a small preview; click it to see it full size. Select text for bold, italic, underline,
   strikethrough, a link, an equation (LaTeX) or Clear; Ctrl+B, I, U and K work too.
-  It saves on its own a moment after you stop typing.
+  It saves on its own a moment after you stop typing. The ‹ beside a column heading folds that column away (say,
+  to give the dialogue the whole width early on); › brings it back. The browser remembers which are folded.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small

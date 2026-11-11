@@ -110,8 +110,11 @@ and suggestions, keeps every version, and exports them for production.
   right after the script's name, like Word and Google Docs. The voice-over total shortens to "3 of 4 · 0:14" and stays
   with the buttons, and the name shortens with "…" first, so the bar keeps to one line at 1280 px even with
   "… is editing" and Send for review (it wraps cleanly below about 1100 px).
-- [ ] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
-  dialogue can take more of the screen. Mock-up first.
+- [x] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
+  dialogue can take more of the screen.
+  Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded
+  column shows a grey dot on rows with something in it. Any column can fold but the last one open. Remembered in
+  this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
 
 ## Phase 3: review
 
