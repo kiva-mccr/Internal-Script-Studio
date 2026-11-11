@@ -9,6 +9,7 @@
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
   import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
+  import { share } from '../lib/share';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
@@ -473,6 +474,17 @@
     download(`${safeName(title ?? '') || 'script'}.${to}`, text);
   }
 
+  // Copy for Teams (EX-10): saves what is waiting, then the script's facts as a short message (lib/share.ts).
+  async function shareNow() {
+    if (!script) throw new Error('No script');
+    const v = await version();
+    const newest = dir ? (await listVersions(dir).catch(() => [])).at(-1) : undefined;
+    const who = newest && newest.who !== OUTSIDE ? newest.who : '';
+    const voiced = script.blocks.filter((b) => b.type === 'row' && voice.takes[b.id]).length;
+    return share({ title: title ?? '', link: location.href, status: reviewStatus, version: v, who, when: newest ? Date.parse(newest.when) : 0,
+      open: openCount, voice: voiced }, script);
+  }
+
   // Every row's take in row order, joined in one file (asked by the user). Rows with no take are left out, and said.
   const VOICE_RATE = 48000;
   async function exportVoice() {
@@ -512,7 +524,7 @@
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
+  onStatus={setStatus} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />
