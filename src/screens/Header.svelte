@@ -148,7 +148,7 @@
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }
   /* While the script plays (AU-2) the bar stays in view, so Pause and ■ are there as the page follows the rows. */
   .pinned { position: sticky; top: 0; z-index: 5; background: var(--ground); }
-  .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 200px; min-width: 0; }
+  .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 280px; min-width: 0; } /* below that the bar wraps */
   .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; white-space: nowrap; color: var(--muted); text-decoration: none; }
   .crumbs a:hover { color: var(--accent); }
   .crumbs span[aria-hidden] { color: #9a9a9a; }

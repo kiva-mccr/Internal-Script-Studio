@@ -25,6 +25,7 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
   the rows; it then covers Write's sticky column headings, which is fine for that while.
   It also covers the top of `main`, so a test must not click there to leave a text field while playing (`play.spec.ts`
   blurs instead).
-- The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. The bar must
-  stay on one line at 1280 px with a voice-over total: the title shortens with "…" first (`.crumbs` shrinks, the
-  status never does). A new thing in `.right` has to keep that true (`editor.spec.ts` measures it).
+- The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. At 1280 px
+  the bar stays on one line with Send for review, Play, the total and Export / Share: the title shortens with "…"
+  (`.crumbs` shrinks, down to its 280 px basis, and then the bar wraps rather than squash the name to a stub). With
+  "… is editing" too it wraps. `editor.spec.ts` measures this; CI installs Inter so it measures the app's own font.

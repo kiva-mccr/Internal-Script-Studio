@@ -108,8 +108,8 @@ and suggestions, keeps every version, and exports them for production.
 - [x] **AP-16** A better place for the save status (asked by the user: where it sat, between Send for review and
   Export, "felt awkward and not matching"). Three places mocked up (board 17); the user picked A: the status sits
   right after the script's name, like Word and Google Docs. The voice-over total shortens to "3 of 4 · 0:14" and stays
-  with the buttons, and the name shortens with "…" first, so the bar keeps to one line at 1280 px even with
-  "… is editing" and Send for review (it wraps cleanly below about 1100 px).
+  with the buttons. At 1280 px the bar keeps to one line with Send for review, Play, the total and Export / Share,
+  the name shortening with "…"; with "… is editing" as well it wraps to two clean lines rather than squash the name.
 - [x] **AP-17** Columns that fold away sideways (asked by the user): each column can be collapsed, so early on the
   dialogue can take more of the screen.
   Built as mock-up 16: a ‹ beside each heading folds that column to a thin strip, whose › brings it back. A folded

@@ -91,21 +91,21 @@ test('a link to a script that is not there says so', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'No script called "Episode 99"' })).toBeVisible();
 });
 
-test('the save status sits beside the title, and the bar stays on one line at 1280 px at its fullest (AP-16)', async ({ page }) => {
+test('the save status sits beside the title, and the bar stays on one line at 1280 px with Play and a draft (AP-16)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  const now = new Date().toISOString();
   await setUp(page, '#/Episode%2003', {
     'Episode 03/script.md': example.replace('status: in review', 'status: draft'), // shows Send for review, the widest
     'Episode 03/voice/row-k3f9a.json': JSON.stringify({ by: 'Alex', at: 1, seconds: 14, text: 'x' }),
-    'Episode 03/.studio/editing/ana.json': JSON.stringify({ v: 1, who: 'Ana', since: now, seen: now, last_written: '' }),
   });
-  await expect(page.getByText('Ana is editing')).toBeVisible({ timeout: 10000 });
   await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
   await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:14');
   await expect(page.locator('header .crumbs').getByRole('status')).toHaveText('Saved');
   const middles = await page.locator('header > *, header .right > *').evaluateAll((els) =>
     els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
   expect(Math.max(...middles) - Math.min(...middles)).toBeLessThan(2); // everything shares one line
+  // The name stays readable: the bar wraps before the title shrinks to a stub.
+  expect((await page.locator('header .title').boundingBox())!.width).toBeGreaterThan(100);
 });
 
 test('the column headings stay in view while scrolling', async ({ page }) => {
