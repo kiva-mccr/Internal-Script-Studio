@@ -1,9 +1,9 @@
 # `src/screens/Write.svelte`
 
 The Write screen (mock-up 3): one script as rows of three columns. Edit in place, add, move and delete rows and
-sections, add files, links and notes (`FilesCell.svelte`), and record a voice-over take for a row (AU-1).
+sections, add files, links and notes (`FilesCell.svelte`), record a voice-over take for a row (AU-1), and follow the script as it plays (AU-2).
 
-- **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `format.spec.ts`, `voice.spec.ts`.
+- **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `format.spec.ts`, `voice.spec.ts`, `play.spec.ts`.
 
 ## Rules and pitfalls
 
@@ -18,3 +18,7 @@ sections, add files, links and notes (`FilesCell.svelte`), and record a voice-ov
 - The mic is its own grid column between the number and the dialogue, pulled into the gap (`translateX`), so a row
   with no take is no taller. It is drawn as an SVG in the shape the user picked, so it takes the text colour.
 - The takes live in the Editor's `VoiceOver` (`lib/voice.svelte.ts`); a row with no id yet can't record.
+- Play the script (AU-2): the Editor's `Player` says which row is playing; that row is tinted (`.here`), scrolled
+  to, and its take's bar fills (a row with no take shows a grey bar and "No take yet"). A row's number is a button
+  ("Play from row n") only while there is something to play (`canPlay`). A row's own ▶ pauses the script when it
+  is the row being played, so its name is "Pause row n" then: tests tell it from the top bar's "Pause the script".

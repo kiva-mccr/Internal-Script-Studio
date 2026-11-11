@@ -49,7 +49,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: the user is picking from the open steps (roadmap review asked for); mock-ups first. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
-- Mock-ups (boards 1 to 13): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
+- Mock-ups (boards 1 to 14): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
@@ -66,4 +66,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
 - Voice-over takes (AU-1) and the joined WAV (EX-11) with a real microphone and real OneDrive: tests fake the
   recording (a WAV); decoding Chrome's real webm takes was never seen here.
+- Play the script (AU-2) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
+  shown time keeps up with real webm takes is unseen.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

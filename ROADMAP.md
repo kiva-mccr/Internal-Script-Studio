@@ -199,8 +199,12 @@ and suggestions, keeps every version, and exports them for production.
   blue with one; words a minute instead of "on time"), then "Looks good". One take per row, replaced by recording
   again; ▶ length, progress, wpm, who and when, ×; "Outdated" once the line changes (asked by the user); the top
   bar adds them up. Kept as voice/row-<id>.webm and .json in the script's folder.
-- [ ] **AU-2** Play the script (asked by the user): goes line by line and plays each row's recorded take in time.
-  Mock-up first.
+- [x] **AU-2** Play the script (asked by the user): goes line by line and plays each row's recorded take in time.
+  Built as agreed on board 14: it plays in Write (the row being spoken is tinted and the page follows it), with one
+  Play button in the top bar that becomes the time ("❚❚ 0:06 / 0:18") and ■ to stop. A row with no take waits in
+  silence for its read time (the teleprompter's speed); a row with no take and no dialogue is skipped; an outdated
+  take still plays; no gap between rows. A row's number plays from that row; Space pauses and Esc stops when not
+  typing. Offered once a row has a take.
 
 ## Last (the user's order: these wait until everything above is done)
 

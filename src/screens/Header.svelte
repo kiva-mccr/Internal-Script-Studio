@@ -8,8 +8,10 @@
   import { keep, recall } from '../lib/remember';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, missingCount, voiceText, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport }: {
+  let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onMode, onStatus, onPrompt, onPrint, onExport, onPlay, onStop }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
+    // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
+    play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx' | 'voice') => void;
@@ -50,7 +52,7 @@
 
 <svelte:window onpointerdown={away} onkeydown={(e) => e.key === 'Escape' && (menu = '')} />
 
-<header>
+<header class:pinned={play?.time}>
   <nav class="crumbs" aria-label="Breadcrumb">
     <a href="#/">{folder}</a>
     <span aria-hidden="true">/</span>
@@ -78,6 +80,13 @@
         <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
+      {#if play}
+        <button class="outline play" class:started={play.time} onclick={onPlay}
+          aria-label={!play.time ? 'Play the script' : play.on ? 'Pause the script' : 'Carry on playing the script'}>
+          {play.on ? '❚❚' : '▶'} {play.time || 'Play'}
+        </button>
+        {#if play.time}<button class="outline stop" aria-label="Stop playing" title="Stop" onclick={onStop}>■</button>{/if}
+      {/if}
       {#if voiceText}<span class="voice">{voiceText}</span>{/if}
       <span class="status" class:bad={status === 'failed' || status === 'conflict'} role="status">{statusText[status]}</span>
       <span class="more" bind:this={exportEl}>
@@ -114,6 +123,8 @@
 
 <style>
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }
+  /* While the script plays (AU-2) the bar stays in view, so Pause and ■ are there as the page follows the rows. */
+  .pinned { position: sticky; top: 0; z-index: 5; background: var(--ground); }
   .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 320px; min-width: 0; }
   .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--muted); text-decoration: none; }
   .crumbs a:hover { color: var(--accent); }
@@ -135,6 +146,9 @@
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
   .status, .voice { font-size: 13px; color: var(--muted); }
   .status.bad { color: var(--danger); }
+  .play { font-variant-numeric: tabular-nums; }
+  .play.started { border-color: var(--accent); background: #eef2fb; color: var(--accent); }
+  .stop { min-width: 44px; padding: 0; font-size: 12px; }
   .more { position: relative; }
   .dots { min-width: 44px; padding: 0 12px; font-size: 18px; line-height: 1; }
   .menu { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; align-items: stretch;

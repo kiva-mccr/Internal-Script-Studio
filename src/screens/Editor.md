@@ -42,3 +42,7 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.
 - `voice` (a `VoiceOver`) holds the voice-over takes for Write and the top bar's total; it is read at open and with
   the 5 s check (not while recording), so someone else's take appears.
+- `player` (a `Player`, `lib/play.svelte.ts`) plays the script (AU-2): the top bar's Play, and a row's number in
+  Write plays from that row. It is offered only in Write with at least one take (`canPlay`), and stops when that
+  ends, when a recording or a single take starts, and when the teleprompter opens. Space pauses and Esc stops, but
+  not from a text field (and Space on a button stays that button's, or Play would toggle twice).

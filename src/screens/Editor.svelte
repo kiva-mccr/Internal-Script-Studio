@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { assetList, missingFiles } from '../lib/assets';
-  import { clock } from '../lib/readtime';
+  import { Player, plan } from '../lib/play.svelte';
+  import { clock, SPEED } from '../lib/readtime';
+  import { recall } from '../lib/remember';
   import { VoiceOver } from '../lib/voice.svelte';
   import { join, readClips, wav } from '../lib/voiceexport';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
@@ -70,6 +72,31 @@
     const seconds = taken.reduce((sum, b) => sum + voice.takes[b.id].seconds, 0);
     return `Voice-over ${taken.length} of ${rowsNow.length} rows · ${clock(seconds)}`;
   });
+  // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
+  const player = new Player();
+  const canPlay = $derived(mode === 'write' && !clash && !!voiceText);
+  $effect(() => {
+    if (!canPlay || voice.recording || voice.playing) untrack(() => player.stop());
+  });
+  // From the top, from a row (its number in Write), or pause and carry on. Rows with no take last their read time
+  // at the teleprompter's speed.
+  function play(from?: string) {
+    if (!script || !dir) return;
+    if (from === undefined && player.started) return player.toggle();
+    voice.stopPlaying();
+    const steps = plan(script, voice.takes, Number(recall('prompter-speed')) || SPEED);
+    player.start(dir, steps, from === undefined ? 0 : Math.max(0, steps.findIndex((s) => s.id === from)));
+  }
+  // Space pauses and Esc stops, unless you are typing (Space on a button is that button's).
+  function playKeys(event: KeyboardEvent) {
+    const el = event.target as HTMLElement;
+    if (!player.started || el.closest?.('input, textarea, select')) return;
+    if (event.key === 'Escape') player.stop();
+    else if (event.key === ' ' && !el.closest?.('button, a')) {
+      event.preventDefault();
+      player.toggle();
+    }
+  }
   let heartbeat: ReturnType<typeof setInterval> | undefined;
   const since = new Date().toISOString();
   let lastWritten = ''; // fingerprint of what this page last wrote to script.md
@@ -99,6 +126,7 @@
 
   onDestroy(() => {
     voice.stopPlaying();
+    player.stop();
     clearInterval(checker);
     clearInterval(heartbeat);
     const d = dir;
@@ -478,12 +506,13 @@
   }
 </script>
 
-<svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} />
+<svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
+  play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), (prompting = true))} />
+  onStatus={setStatus} onPrint={print} onExport={exportAs} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />
@@ -526,7 +555,7 @@
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    <Write bind:script {dir} {voice} {name} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
+    <Write bind:script {dir} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
 <style>
