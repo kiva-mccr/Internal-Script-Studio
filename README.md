@@ -25,7 +25,8 @@ Status: a first working version. What it does today:
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
   saves between them folded away until you open them.
-- **Export** at the top right of a script holds Print, Fountain, Final Draft and Voice-over; **the ⋯ menu** holds Teleprompter and Copy link.
+- **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
+  Voice-over; **the ⋯ menu** holds Teleprompter.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Fountain:** downloads the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
@@ -38,7 +39,9 @@ Status: a first working version. What it does today:
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read
   (Whisper runs in the browser; the first time it downloads about 75 MB, and no sound leaves the computer). Words
   grey out once said.
-- **Links:** Copy link gives a link straight to the script, for anyone with the same folder.
+- **Links:** Copy link gives a link straight to the script, for anyone with the same folder. Copy for Teams copies a
+  short message to paste into a Teams chat: the title as a link, status, version, rows, read-aloud time, who edited
+  last, open comments and voice-over progress. It is a snapshot of when you copied it, and doesn't update.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
   back). The Review tab shows how many are open. Send for review, then Approve or Send back to writer; each step
