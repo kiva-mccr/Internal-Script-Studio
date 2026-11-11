@@ -118,9 +118,8 @@ and suggestions, keeps every version, and exports them for production.
   this browser for every script, not in the script; Write only (Review, History, print and exports show all three).
 - [x] **AP-18** The GitHub side renamed to p2p-script-studio (asked by the user): README, docs, notes and the repo's
   description and links use the app's name and address, not "Internal Script Studio".
-  Built: README, roadmap and notes are titled P2P Script Studio and the package is p2p-script-studio. Renaming the
-  repository and its description are buttons in GitHub's settings that the user presses; the app's GitHub link
-  keeps the old address, which GitHub redirects after the rename.
+  Built: README, roadmap and notes are titled P2P Script Studio, the package is p2p-script-studio, and the app's
+  GitHub link points at github.com/kiva-mccr/p2p-script-studio. The user renamed the repository in its settings.
 - [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
   audio, .pdf, .docx, .txt, .md, and other useful kinds, shown as a picture, a player or the first lines of text,
   where the browser can draw them. Mock-up first.
