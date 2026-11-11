@@ -121,7 +121,7 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
   audio, .pdf, .docx, .txt, .md, and other useful kinds, shown as a picture, a player or the first lines of text,
   where the browser can draw them. Mock-up first.
-- [ ] **AP-20** First-time screen without OneDrive in its wording (asked by the user): "Pick the shared folder your
+- [x] **AP-20** First-time screen without OneDrive in its wording (asked by the user): "Pick the shared folder your
   team keeps scripts in", since a team may sync another way.
 - [ ] **AP-21** Set-up help for other ways of syncing (asked by the user, later): the "Before you start"
   instructions for OneDrive, Google Drive, Dropbox, a network drive …, with screenshots so they are easy to follow.

@@ -18,6 +18,11 @@ test('needs a name before choosing the folder', async ({ page }) => {
   await expect(page.getByLabel('Your name')).toBeFocused();
 });
 
+test('the first line does not name OneDrive', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.lead')).toHaveText(/^Pick the shared folder your team keeps scripts in\./);
+});
+
 test('shows the OneDrive steps', async ({ page }) => {
   await page.goto('./');
   await page.getByText('Before you start').click();
