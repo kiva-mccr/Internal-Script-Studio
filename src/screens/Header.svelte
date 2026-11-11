@@ -7,6 +7,7 @@
   import { editingText } from '../lib/editing';
   import { keep, recall } from '../lib/remember';
   import type { Shared } from '../lib/share';
+  import { shareLink } from '../lib/route';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
   let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
@@ -33,7 +34,7 @@
   let printScale = $state(Number(recall('print-scale')) || 100); // %, the printed text size
 
   async function copyLink() {
-    await copy('link', () => navigator.clipboard.writeText(location.href));
+    await copy('link', () => navigator.clipboard.writeText(shareLink(location.href)));
   }
 
   // Copy for Teams (EX-10): the message as formatted text, and as plain text for apps that don't take formatting.

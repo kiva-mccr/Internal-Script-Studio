@@ -10,6 +10,7 @@
   import { toFdx } from '../lib/fdx';
   import { toFountain } from '../lib/fountain';
   import { share } from '../lib/share';
+  import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
   import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sha256, type Version } from '../lib/history';
@@ -24,7 +25,9 @@
   import Write from './Write.svelte';
   import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
 
-  let { folder, path, name }: { folder: FileSystemDirectoryHandle; path: string[]; name: string } = $props();
+  // review: opened from a shared link, so it starts on the Review tab (RV-10).
+  let { folder, path, name, review = false }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean } =
+    $props();
 
   const SAVE_AFTER = 1500; // ms after the last change
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
@@ -46,7 +49,7 @@
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
-  let mode = $state<'write' | 'review' | 'history' | 'assets'>('write');
+  let mode = $state<'write' | 'review' | 'history' | 'assets'>(untrack(() => review) ? 'review' : 'write');
   // The Files column's paths that aren't in the folder (EX-6): the Assets tab's count and list. Checked again when
   // the files change, when the tab opens and with the 5 s check, since OneDrive may bring a file in at any time.
   let lostFiles = $state<Set<string>>(new Set());
@@ -504,7 +507,7 @@
     const newest = dir ? (await listVersions(dir).catch(() => [])).at(-1) : undefined;
     const who = newest && newest.who !== OUTSIDE ? newest.who : '';
     const voiced = script.blocks.filter((b) => b.type === 'row' && voice.takes[b.id]).length;
-    return share({ title: title ?? '', link: location.href, status: reviewStatus, version: v, who, when: newest ? Date.parse(newest.when) : 0,
+    return share({ title: title ?? '', link: shareLink(location.href), status: reviewStatus, version: v, who, when: newest ? Date.parse(newest.when) : 0,
       open: openCount, voice: voiced }, script);
   }
 

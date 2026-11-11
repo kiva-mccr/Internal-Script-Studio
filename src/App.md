@@ -12,3 +12,5 @@ then the screen the link names (`lib/route.ts`): the list for `#/`, a script for
 - A small GitHub link sits in the bottom right corner of every screen (asked by the user), clear of the messages
   at the bottom centre.
 - The editor is keyed by the script's path, so following a link to another script starts it fresh.
+- A link ending in `?review` (a shared link, RV-10) opens the script on Review. The mark is taken out of the address
+  with `history.replaceState` (no hashchange), so a reload after moving to Write stays in Write.

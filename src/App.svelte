@@ -1,13 +1,20 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { parseRoute } from './lib/route';
+  import { opensReview, parseRoute, routeHash } from './lib/route';
   import { hasAccess, loadFolder, loadName, saveFolder, saveName } from './lib/remember';
   import Editor from './screens/Editor.svelte';
   import List from './screens/List.svelte';
   import Setup from './screens/Setup.svelte';
 
-  let route = $state(parseRoute(location.hash));
-  const onHash = () => (route = parseRoute(location.hash));
+  let route = $state<string[]>([]);
+  let review = $state(false); // a shared link: the script opens on Review (RV-10)
+  function onHash() {
+    route = parseRoute(location.hash);
+    review = opensReview(location.hash);
+    // The mark is dropped from the address once read, so a reload after moving to Write stays there.
+    if (review) history.replaceState(null, '', location.pathname + location.search + routeHash(route));
+  }
+  onHash();
 
   // checking: looking for a remembered folder. setup: the first-time screen. open: a folder is open.
   let screen = $state<'checking' | 'setup' | 'open'>('checking');
@@ -45,7 +52,7 @@
     <List {folder} {name} onChangeFolder={() => (screen = 'setup')} />
   {:else}
     {#key route.join('/')}
-      <Editor {folder} path={route} {name} />
+      <Editor {folder} path={route} {name} {review} />
     {/key}
   {/if}
 {/if}

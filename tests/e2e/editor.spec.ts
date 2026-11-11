@@ -157,8 +157,16 @@ test('Export / Share holds Copy link above the exports; menus close on Esc or a 
   await exportButton.click();
   await page.getByRole('button', { name: 'Copy link' }).click();
   await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('#/Episode%2003');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/#\/Episode%2003\?review$/);
   await expect(page.locator('.menu')).toHaveCount(0); // closes a moment later
+});
+
+test('a shared link opens the script on Review; the mark leaves the address, and a plain link opens Write', async ({ page }) => {
+  await setUp(page, '#/Episode%2003?review', { 'Episode 03/script.md': example });
+  await expect(page.getByRole('button', { name: /^Review/ })).toHaveAttribute('aria-current', 'page');
+  expect(new URL(page.url()).hash).toBe('#/Episode%2003');
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Write' })).toHaveAttribute('aria-current', 'page');
 });
 
 test('the ⋯ menu holds the Teleprompter; only one menu is open at a time', async ({ page }) => {
@@ -180,13 +188,13 @@ test('Copy for Teams puts the title, status and facts on the clipboard, formatte
     const [item] = await navigator.clipboard.read();
     return Promise.all(['text/html', 'text/plain'].map(async (type) => (await item.getType(type)).text()));
   });
-  expect(html).toMatch(/<a href="[^"]*#\/Episode%2003"><b>How Photosynthesis Works<\/b><\/a>/);
+  expect(html).toMatch(/<a href="[^"]*#\/Episode%2003\?review"><b>How Photosynthesis Works<\/b><\/a>/);
   expect(html).toContain('<b>In review</b>');
   expect(html).toContain('Open in Script Studio</a>');
   const lines = text.split('\n');
   expect(lines[0]).toBe('How Photosynthesis Works');
   expect(lines[1]).toMatch(/^In review · \d+ rows · \d+:\d\d read aloud$/);
-  expect(lines.at(-1)).toContain('#/Episode%2003');
+  expect(lines.at(-1)).toMatch(/#\/Episode%2003\?review$/);
   await expect(page.locator('.menu')).toHaveCount(0);
 });
 

@@ -170,8 +170,9 @@ and suggestions, keeps every version, and exports them for production.
   check before Approve (RV-5, board 20), a small panel that opens under the button, with the note box in it. Mock-up first.
 - [ ] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
   next official version (AP-10), or keeps the current version when nothing has changed since it. Mock-up first.
-- [ ] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
-  Review tab by default (Copy link, and the Teams embed of EX-10).
+- [x] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
+  Review tab by default (Copy link, and the Teams embed of EX-10). Built: shared links end in `?review`; the app opens
+  Review and drops the mark from the address, so a reload after moving to Write stays in Write.
 - [ ] **RV-11** Files on comments (asked by the user): a reviewer can attach files to a comment, kept in the script's
   folder. Mock-up first.
 
