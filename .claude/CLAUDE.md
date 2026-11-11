@@ -68,4 +68,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   recording (a WAV); decoding Chrome's real webm takes was never seen here.
 - Play the script (AU-2) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
   shown time keeps up with real webm takes is unseen.
+- Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

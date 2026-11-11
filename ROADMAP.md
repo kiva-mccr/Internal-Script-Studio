@@ -184,9 +184,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
   Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
   Today the exports download straight from the Export menu. Mock-up first.
-- [ ] **EX-10** Export becomes Export / Share (asked by the user): besides the exports, copy a link, and copy an
-  embed with more information (title, status, version …) to paste into Microsoft Teams. Copy link moves in from
-  the ⋯ menu. Mock-up first.
+- [x] **EX-10** Export becomes Export / Share (asked by the user; board 15, agreed as drawn): Share on top (Copy link,
+  moved in from the ⋯ menu, and Copy for Teams), the exports below. Copy for Teams puts a formatted message on the
+  clipboard (plain text too): the title as a link, status, version when official, rows, read-aloud time, who edited
+  last and when, open comments, voice-over progress, and an Open in Script Studio link. A snapshot; a live Teams
+  preview card would need a server.
 - [x] **EX-11** Voice-over as one file (asked by the user, needed for their work): Export > Voice-over (.wav) joins
   every row's take in row order into one WAV (the user's choice over a file per row), 48 kHz mono, with no gap
   between takes. Rows with no take are left out, and the page says how many. Built without a mock-up.

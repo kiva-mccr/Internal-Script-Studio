@@ -140,34 +140,53 @@ test('images show a preview', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Open glucose-model.png' })).toHaveCount(0);
 });
 
-test('the ⋯ menu holds Teleprompter and Copy link, and closes on Esc or a click elsewhere', async ({ page, context }) => {
+test('Export / Share holds Copy link above the exports; menus close on Esc or a click elsewhere', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openExample(page);
-  const more = page.getByRole('button', { name: 'More' });
-  await more.click();
-  await expect(more).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
+  const exportButton = page.getByRole('button', { name: 'Export / Share' });
+  await exportButton.click();
+  await expect(exportButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.menu > button')).toHaveText(
+    ['Copy link', 'Copy for Teams', 'Print…', 'Fountain (.fountain)', 'Final Draft (.fdx)', 'Voice-over (.wav)']);
+  await expect(page.locator('.menu .group')).toHaveText(['Share', 'Export']);
   await page.keyboard.press('Escape');
   await expect(page.locator('.menu')).toHaveCount(0);
-  await more.click();
+  await exportButton.click();
   await page.getByLabel('Dialogue, row 1').click();
   await expect(page.locator('.menu')).toHaveCount(0);
-  await more.click();
+  await exportButton.click();
   await page.getByRole('button', { name: 'Copy link' }).click();
   await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('#/Episode%2003');
   await expect(page.locator('.menu')).toHaveCount(0); // closes a moment later
 });
 
-test('the Export menu holds Print, Fountain and Final Draft; only one menu is open at a time', async ({ page }) => {
+test('the ⋯ menu holds the Teleprompter; only one menu is open at a time', async ({ page }) => {
   await openExample(page);
-  const exportButton = page.getByRole('button', { name: 'Export' });
-  await exportButton.click();
-  await expect(exportButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.menu > button')).toHaveText(['Print…', 'Fountain (.fountain)', 'Final Draft (.fdx)', 'Voice-over (.wav)']);
+  await page.getByRole('button', { name: 'Export / Share' }).click();
   await page.getByRole('button', { name: 'More' }).click();
-  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Copy link']);
+  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter']);
   await page.keyboard.press('Escape');
+  await expect(page.locator('.menu')).toHaveCount(0);
+});
+
+test('Copy for Teams puts the title, status and facts on the clipboard, formatted and as plain text', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openExample(page);
+  await page.getByRole('button', { name: 'Export / Share' }).click();
+  await page.getByRole('button', { name: 'Copy for Teams' }).click();
+  await expect(page.getByRole('button', { name: 'Copied, paste it in Teams' })).toBeVisible();
+  const [html, text] = await page.evaluate(async () => {
+    const [item] = await navigator.clipboard.read();
+    return Promise.all(['text/html', 'text/plain'].map(async (type) => (await item.getType(type)).text()));
+  });
+  expect(html).toMatch(/<a href="[^"]*#\/Episode%2003"><b>How Photosynthesis Works<\/b><\/a>/);
+  expect(html).toContain('<b>In review</b>');
+  expect(html).toContain('Open in Script Studio</a>');
+  const lines = text.split('\n');
+  expect(lines[0]).toBe('How Photosynthesis Works');
+  expect(lines[1]).toMatch(/^In review · \d+ rows · \d+:\d\d read aloud$/);
+  expect(lines.at(-1)).toContain('#/Episode%2003');
   await expect(page.locator('.menu')).toHaveCount(0);
 });
 
