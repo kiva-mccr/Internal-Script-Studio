@@ -237,3 +237,67 @@ test('columns fold away and come back, remembered in this browser', async ({ pag
   await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
   await expect(page.getByRole('button', { name: 'Fold Dialogue away' })).toBeVisible();
 });
+
+// Chrome and Edge take back the OK to edit the folder after a while in the background. The test's folder stands in:
+// `lose()` makes the browser say "prompt" and refuse writes until Allow editing asks again.
+async function fakeAccess(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { noAccess: boolean; asked: number };
+    w.noAccess = false;
+    w.asked = 0;
+    const proto = FileSystemHandle.prototype as unknown as Record<string, (o: unknown) => Promise<string>>;
+    proto.queryPermission = async () => (w.noAccess ? 'prompt' : 'granted');
+    proto.requestPermission = async () => (w.asked++, (w.noAccess = false), 'granted');
+    const write = FileSystemFileHandle.prototype.createWritable;
+    FileSystemFileHandle.prototype.createWritable = function (...args) {
+      if (w.noAccess) return Promise.reject(new DOMException('No access', 'NotAllowedError'));
+      return write.apply(this, args);
+    };
+  });
+}
+const lose = (page: Page) => page.evaluate(() => ((window as unknown as { noAccess: boolean }).noAccess = true));
+
+test('when the browser takes back access, a save waits for Allow editing and then saves what was typed', async ({ page }) => {
+  await fakeAccess(page);
+  await openExample(page);
+  await lose(page);
+  await page.getByLabel('Dialogue, row 1').fill('Typed after access ran out.');
+  const status = page.getByRole('status');
+  await expect(status).toHaveText('Not saved: the browser needs your OK to edit the folder', { timeout: 10000 });
+  // More typing is kept in the page, and no retries pile up.
+  await page.getByLabel('Dialogue, row 2').fill('And more.');
+  await expect(status).toHaveText('Not saved: the browser needs your OK to edit the folder');
+  expect(await readFile(page, SCRIPT)).toBe(example);
+  await page.getByRole('button', { name: 'Allow editing' }).click();
+  await saved(page);
+  await expect(page.getByRole('button', { name: 'Allow editing' })).toHaveCount(0);
+  const text = await readFile(page, SCRIPT);
+  expect(text).toContain('Dialogue:\nTyped after access ran out.\n');
+  expect(text).toContain('Dialogue:\nAnd more.\n');
+});
+
+test('lost access shows before a save fails, with the 5 s check', async ({ page }) => {
+  await fakeAccess(page);
+  await openExample(page);
+  await lose(page);
+  await expect(page.getByRole('button', { name: 'Allow editing' })).toBeVisible({ timeout: 10000 });
+  await page.getByRole('button', { name: 'Allow editing' }).click();
+  await saved(page);
+  expect(await page.evaluate(() => (window as unknown as { asked: number }).asked)).toBe(1);
+});
+
+test("a save that fails with access still there says Couldn't save and tries again", async ({ page }) => {
+  await openExample(page);
+  await page.evaluate(() => {
+    const write = FileSystemFileHandle.prototype.createWritable;
+    let fails = 1;
+    FileSystemFileHandle.prototype.createWritable = function (...args) {
+      if (this.name === 'script.md' && fails-- > 0) return Promise.reject(new DOMException('Busy', 'NoModificationAllowedError'));
+      return write.apply(this, args);
+    };
+  });
+  await page.getByLabel('Dialogue, row 1').fill('Saved on the second try.');
+  await expect(page.getByRole('status')).toHaveText("Couldn't save, trying again", { timeout: 10000 });
+  await saved(page);
+  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the second try.\n');
+});

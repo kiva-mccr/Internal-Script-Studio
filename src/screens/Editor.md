@@ -16,6 +16,11 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   "History starts here"). While editing, an entry at most every 5 minutes; also on leaving and on opening History.
   Leaving by closing the tab is best effort (the browser may not wait for the write).
 - Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
+- A failed save tries again every 6 s, unless the browser took back its OK to edit the folder (`hasAccess` false):
+  retrying can't fix that (the browser asks only from a click), so the status is `locked` and the top bar's Allow
+  editing calls `allow()`. Changes go on in the page meanwhile and are saved once allowed. The 5 s check and coming
+  back to the tab look for this too (`checkAccess`), so it shows before a save fails. Tests fake the lost OK
+  (`fakeAccess` in `editor.spec.ts`).
 - Before writing, `script.md` is read again: if it is not what this page last read or wrote, someone else saved,
   and the two are combined row by row (`lib/merge.ts`); only a field both changed shows `Conflict.svelte`.
 - On opening, two newest versions (heads) or a OneDrive copy (`script-*.md`) are combined the same way, and the

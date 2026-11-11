@@ -3,7 +3,7 @@
   import { assetList, missingFiles } from '../lib/assets';
   import { Player, plan } from '../lib/play.svelte';
   import { clock, SPEED } from '../lib/readtime';
-  import { recall } from '../lib/remember';
+  import { askAccess, hasAccess, recall } from '../lib/remember';
   import { VoiceOver } from '../lib/voice.svelte';
   import { join, readClips, wav } from '../lib/voiceexport';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
@@ -34,9 +34,10 @@
   let dir = $state<FileSystemDirectoryHandle | null>(null);
   let script = $state<Script | null>(null);
   let missing = $state(false);
-  // saved: all written. waiting: changes not written yet. saving. failed: the last write failed.
+  // saved: all written. waiting: changes not written yet. saving. failed: the last write failed (tried again).
   // conflict: two saves made at the same time, waiting for the person to pick (`clash`).
-  let status = $state<'saved' | 'waiting' | 'saving' | 'failed' | 'conflict'>('saved');
+  // locked: the browser took back its OK to edit the folder; only a click (Allow editing) can ask again.
+  let status = $state<'saved' | 'waiting' | 'saving' | 'failed' | 'conflict' | 'locked'>('saved');
   let notice = $state('');
   // The last delete, kept a few seconds so it can be undone (no browser dialogs: the user's rule).
   let undo = $state<{ blocks: Block[]; what: string } | null>(null);
@@ -357,7 +358,7 @@
   }
 
   function changed() {
-    if (status === 'conflict') return;
+    if (status === 'conflict' || status === 'locked') return; // kept in the page, saved once that is settled
     status = 'waiting';
     clearTimeout(timer);
     timer = setTimeout(save, SAVE_AFTER);
@@ -393,9 +394,28 @@
       // Edits typed while saving start another save.
       if (status === 'saving') status = 'saved';
     } catch {
+      // Retrying can't bring back a lost OK (the browser asks only from a click), so that waits for Allow editing.
+      if (!(await hasAccess(folder).catch(() => true))) return void (status = 'locked');
       status = 'failed';
       timer = setTimeout(save, SAVE_AFTER * 4);
     }
+  }
+
+  // Chrome and Edge take back the OK to edit the folder after the tab has been in the background a while. Checked
+  // with the 5 s check and on coming back to the tab, so it shows before a save fails.
+  async function checkAccess(): Promise<boolean> {
+    if (status === 'locked') return false;
+    if (await hasAccess(folder).catch(() => true)) return true;
+    clearTimeout(timer);
+    status = 'locked';
+    return false;
+  }
+
+  // Allow editing (from a click): the browser asks, then what is in the page is saved.
+  async function allow() {
+    if (!(await askAccess(folder).catch(() => false))) return;
+    status = 'waiting';
+    await save();
   }
 
   async function checkFiles() {
@@ -415,7 +435,7 @@
 
   // Someone else saved (OneDrive brought their change): with nothing of yours waiting, show it quietly.
   async function checkOutside() {
-    if (!dir || document.hidden) return;
+    if (!dir || document.hidden || !(await checkAccess())) return;
     checkFiles();
     if (!voice.recording) voice.load(dir);
     editors = othersEditing(await readEditing(dir).catch(() => []), name);
@@ -511,20 +531,20 @@
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
-  // Leaving saves what is waiting. Only a failed save, which would lose work, asks the browser to hold the page.
+  // Leaving saves what is waiting. Only a failed save or a lost OK, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
     leave();
-    if (status === 'failed') event.preventDefault();
+    if (status === 'failed' || status === 'locked') event.preventDefault();
   }
 </script>
 
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
-<svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
+<svelte:document onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
 
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onStatus={setStatus} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
+  onAllow={allow} onStatus={setStatus} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />

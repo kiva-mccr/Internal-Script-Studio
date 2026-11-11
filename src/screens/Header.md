@@ -25,6 +25,10 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
   the rows; it then covers Write's sticky column headings, which is fine for that while.
   It also covers the top of `main`, so a test must not click there to leave a text field while playing (`play.spec.ts`
   blurs instead).
+- While the browser's OK to edit the folder is lost (`status` 'locked', mock-up 18 option A), the status reads "Not
+  saved: the browser needs your OK to edit the folder" with an Allow editing button (`onAllow`). That is too long
+  for one line beside the tabs, so the breadcrumb stops shrinking (`.crumbs.locked`) and the bar wraps (a click on
+  the button was being caught by the tabs when it overlapped them).
 - The save status sits beside the title (AP-16, the user's pick from mock-up 17), not among the buttons. At 1280 px
   the bar stays on one line with Send for review, Play, the total and Export / Share: the title shortens with "…"
   (`.crumbs` shrinks, down to its 280 px basis, and then the bar wraps rather than squash the name to a stub). With
