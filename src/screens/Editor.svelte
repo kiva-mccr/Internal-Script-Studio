@@ -19,6 +19,7 @@
   import Conflict from './Conflict.svelte';
   import Header, { type Loose, type PrintChoices } from './Header.svelte';
   import History from './History.svelte';
+  import Planning from './Planning.svelte';
   import Print from './Print.svelte';
   import Teleprompter from './Teleprompter.svelte';
   import Review from './Review.svelte';
@@ -615,6 +616,7 @@
   {/if}
 </div>
 
+<div class="page">
 <main>
   {#if missing}
     <div class="empty">
@@ -635,6 +637,10 @@
     <Write bind:script {dir} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
+{#if script && dir && !clash && (mode === 'write' || mode === 'review')}
+  <Planning {dir} />
+{/if}
+</div>
 <style>
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 8px; }
@@ -642,7 +648,8 @@
     background: #fff7ed; border: 1px solid #f5d9b5; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
   .banner.quiet { background: var(--ground); border-color: var(--line); }
   .banner p { margin: 0; flex: 1 1 300px; font-size: 14px; }
-  main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+  .page { display: flex; }
+  main { flex: 1; max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
   .empty { text-align: center; padding-top: 10vh; }
   .empty h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
   .empty p { margin: 0 auto 12px; max-width: 460px; color: var(--muted); line-height: 1.5; }

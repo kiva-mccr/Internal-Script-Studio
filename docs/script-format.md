@@ -9,6 +9,7 @@ Markdown, so it can be read in any text editor, and the app shows it as three co
 Video Scripts/                       the shared folder each person picks once
   Episode 03 - How Photosynthesis Works/
     script.md                        the script
+    plan.md                          the planning panel's notes (AP-24): plain Markdown, not part of the script
     assets/                          images and small files the script uses
     voice/                           voice-over takes, one per row: row-<id>.webm and row-<id>.json
     .studio/                         history, comments, "is editing": see studio-folder.md

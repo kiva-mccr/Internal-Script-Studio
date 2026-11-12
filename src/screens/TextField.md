@@ -4,7 +4,10 @@ A Write cell (Dialogue, On screen) with formatting (mock-up 8): while typing you
 show as formatting. Selecting text shows a toolbar: Bold, Italic, Underline, Strikethrough, Link, Equation, Clear.
 Ctrl+B, I, U and K work too.
 
-- **Used by:** `Write.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`.
+With `lists` (the planning panel, AP-24) it also shows Bulleted list, Numbered list and Tick box buttons above the
+box at all times, and Enter carries a list on.
+
+- **Used by:** `Write.svelte`, `Planning.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`.
 
 ## Rules and pitfalls
 

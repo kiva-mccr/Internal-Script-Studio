@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clearMarks, renderMath, toHtml, toggle, type Mark } from '../lib/format';
+  import { clearMarks, continueList, renderMath, showLists, toggleList, toHtml, toggle, type List, type Mark } from '../lib/format';
   import { paragraphs } from '../lib/script';
 
   // A Write cell (mock-up 8): while typing you see the marks (**bold**); elsewhere they show as formatting. Selecting
@@ -10,8 +10,11 @@
     placeholder,
     oninput,
     onparagraphs,
+    lists = false,
   }: {
     value: string; label: string; placeholder: string; oninput: () => void;
+    // Bullets, numbers and tick boxes, with their buttons always shown (the planning panel, AP-24).
+    lists?: boolean;
     // Pasting two or more paragraphs hands them over, with the text before and after the selection (AP-13).
     onparagraphs?: (lines: string[], head: string, tail: string) => void;
   } = $props();
@@ -19,7 +22,7 @@
   let box = $state<HTMLTextAreaElement>();
   let focused = $state(false);
   let selecting = $state(false);
-  const html = $derived(toHtml(value));
+  const html = $derived(toHtml(lists ? showLists(value) : value));
 
   const TOOLS: { mark: Mark | 'clear'; text: string; name: string; keys?: string }[] = [
     { mark: 'bold', text: 'B', name: 'Bold', keys: 'Ctrl+B' },
@@ -29,6 +32,11 @@
     { mark: 'link', text: 'Link', name: 'Link', keys: 'Ctrl+K' },
     { mark: 'equation', text: '∑ x', name: 'Equation (LaTeX)' },
     { mark: 'clear', text: 'Clear', name: 'Clear formatting' },
+  ];
+  const LISTS: { kind: List; text: string; name: string }[] = [
+    { kind: 'bullet', text: '•', name: 'Bulleted list' },
+    { kind: 'number', text: '1.', name: 'Numbered list' },
+    { kind: 'tick', text: '☐', name: 'Tick box (again to tick it)' },
   ];
   const KEYS: Record<string, Mark> = { b: 'bold', i: 'italic', u: 'underline', k: 'link' };
 
@@ -41,10 +49,12 @@
     selecting = !!box && box.selectionStart !== box.selectionEnd;
   }
 
-  function apply(mark: Mark | 'clear') {
+  function apply(mark: Mark | 'clear' | List) {
     if (!box) return;
     const [start, end] = [box.selectionStart, box.selectionEnd];
-    const next = mark === 'clear'
+    const next = mark === 'bullet' || mark === 'number' || mark === 'tick'
+      ? toggleList(value, start, end, mark)
+      : mark === 'clear'
       ? (() => {
           const cleared = clearMarks(value.slice(start, end));
           return { text: value.slice(0, start) + cleared + value.slice(end), start, end: start + cleared.length };
@@ -69,6 +79,19 @@
   }
 
   function keydown(e: KeyboardEvent) {
+    if (lists && box && e.key === 'Enter' && !e.shiftKey && box.selectionStart === box.selectionEnd) {
+      const next = continueList(value, box.selectionStart);
+      if (next) {
+        e.preventDefault();
+        box.setSelectionRange(0, value.length);
+        if (!document.execCommand('insertText', false, next.text)) {
+          value = next.text;
+          oninput();
+        }
+        box.setSelectionRange(next.at, next.at);
+        return;
+      }
+    }
     const mark = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey ? KEYS[e.key.toLowerCase()] : undefined;
     if (!mark) return;
     e.preventDefault();
@@ -76,6 +99,13 @@
   }
 </script>
 
+{#if lists}
+  <div class="lists" role="toolbar" aria-label="Lists">
+    {#each LISTS as tool (tool.kind)}
+      <button class="tool" aria-label={tool.name} title={tool.name} onmousedown={(e) => e.preventDefault()} onclick={() => apply(tool.kind)}>{tool.text}</button>
+    {/each}
+  </div>
+{/if}
 <div class="field" class:focused class:empty={!value}>
   {#if focused && selecting}
     <div class="toolbar" role="toolbar" aria-label="Formatting">
@@ -107,6 +137,8 @@
     border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
   .tool { min-width: 32px; height: 32px; padding: 0 8px; border: 0; border-radius: 6px; background: none; color: var(--ink); font-size: 14px; }
   .tool:hover { background: #f0f3fc; color: var(--accent); }
+  .lists { display: flex; gap: 2px; margin: 0 0 10px -8px; }
+  .lists .tool { color: var(--muted); }
   .bold { font-weight: 700; }
   .italic { font-style: italic; font-family: Georgia, serif; }
   .underline { text-decoration: underline; }

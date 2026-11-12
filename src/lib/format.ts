@@ -98,3 +98,46 @@ export function rangeOf(el: HTMLElement, quote: string): Range | null {
 function esc(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// Lists in the planning panel (AP-24): plain Markdown line starts, "- " bullets, "1. " numbers and "- [ ] " /
+// "- [x] " tick boxes.
+export type List = 'bullet' | 'number' | 'tick';
+const LIST_START = /^(- \[[ xX]\] |- |\d+\. )/;
+
+// The text as it is shown: a bullet, tick box or number in place of its marks.
+export function showLists(text: string): string {
+  return text.replace(/^- \[ \] /gm, '☐ ').replace(/^- \[[xX]\] /gm, '☑ ').replace(/^- /gm, '• ');
+}
+
+// The lines a selection touches made into a list, or taken out of it if they all are one already. A tick box on a
+// line that has one is ticked or unticked instead.
+export function toggleList(text: string, start: number, end: number, kind: List): { text: string; start: number; end: number } {
+  const from = text.lastIndexOf('\n', start - 1) + 1;
+  const next = text.indexOf('\n', end > start && text[end - 1] === '\n' ? end - 1 : end);
+  const to = next === -1 ? text.length : next;
+  const lines = text.slice(from, to).split('\n');
+  const is = (line: string) =>
+    kind === 'tick' ? /^- \[[ xX]\] /.test(line) : kind === 'number' ? /^\d+\. /.test(line) : /^- (?!\[[ xX]\] )/.test(line);
+  const all = lines.every(is);
+  const changed = lines.map((line, i) => {
+    if (kind === 'tick' && all) return line.replace(/^- \[([ xX])\] /, (_, mark) => (mark === ' ' ? '- [x] ' : '- [ ] '));
+    const bare = line.replace(LIST_START, '');
+    if (all) return bare;
+    return (kind === 'tick' ? '- [ ] ' : kind === 'number' ? `${i + 1}. ` : '- ') + bare;
+  }).join('\n');
+  // A selection stays on the lines; a caret goes to the end of its line, ready to type.
+  const after = from + changed.length;
+  return { text: text.slice(0, from) + changed + text.slice(to), start: start === end ? after : from, end: after };
+}
+
+// Enter at the end of a list line starts the next item (an empty item ends the list). Null: an ordinary Enter.
+export function continueList(text: string, at: number): { text: string; at: number } | null {
+  const from = text.lastIndexOf('\n', at - 1) + 1;
+  const line = text.slice(from, at);
+  const m = LIST_START.exec(line);
+  if (!m || text.slice(at).split('\n')[0].trim()) return null;
+  if (line === m[0]) return { text: text.slice(0, from) + text.slice(at), at: from };
+  const number = /^(\d+)\. /.exec(m[0]);
+  const start = number ? `${Number(number[1]) + 1}. ` : m[0].startsWith('- [') ? '- [ ] ' : '- ';
+  return { text: text.slice(0, at) + '\n' + start + text.slice(at), at: at + 1 + start.length };
+}
