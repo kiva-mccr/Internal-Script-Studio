@@ -282,6 +282,7 @@
 
   // Leaving the script (or opening History): save what is waiting and put it in History.
   async function leave() {
+    await changingStatus;
     if (status === 'waiting') await save();
     if (status === 'saved' && onDisk) await record(onDisk, true).catch(() => {});
   }
@@ -364,9 +365,15 @@
     if (mode !== 'review' || reviewStatus !== 'in review' || !dir) return void (sent = undefined);
     listVersions(dir).then((versions) => (sent = reviewNote(versions))).catch(() => {});
   });
+  // A status change in progress: leaving waits for its History entry, or a quick switch of tab made a second entry
+  // ("Changed the status") beside it.
+  let changingStatus: Promise<void> = Promise.resolve();
   async function setStatus(to: 'draft' | 'in review' | 'approved', note: string, message = '') {
     if (!dir || !script) return;
     await leave();
+    await (changingStatus = changeStatus(dir, script, to, note, message));
+  }
+  async function changeStatus(dir: FileSystemDirectoryHandle, script: Script, to: string, note: string, message: string) {
     script.front = setFrontValue(script.front, 'status', to);
     await save();
     if (status !== 'saved') return; // a clash or a failed save: shown already
