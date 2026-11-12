@@ -307,3 +307,52 @@ test('edit and delete your own comment, reply and suggestion, with Undo; never s
   expect(files.filter((f) => f.kind === 'undelete')).toHaveLength(2);
   expect(files.find((f) => f.kind === 'reply').text).toBe('Yse.');
 });
+
+test('rows changed since the last review are marked; the reviewer can show the edits, fold the rest or turn it off (RV-4)', async ({ page }) => {
+  // When Ana sent it back: row 3 said "grab", row 4 wasn't written yet, and a row after row 2 has since gone.
+  const before = example
+    .replace('chloroplasts catch the light', 'chloroplasts grab the light')
+    .replace(/## 4 <!-- id: b6n0w -->[\s\S]*?(?=# Wrap-up)/, '')
+    .replace('# Inside the leaf', '## 6 <!-- id: gone1 -->\nDialogue:\nChlorophyll is what makes leaves green.\n\n# Inside the leaf');
+  const sentBack = JSON.stringify({ v: 1, id: 'back0000', parents: [], who: 'Ana', when: '2026-11-10T09:12:00Z', kind: 'review', note: 'Sent back to writer', sha256: '', text: before });
+  await openReview(page, { ...ALL_FILES, 'Episode 03/.studio/versions/20261110T091200Z_back0000.json': sentBack });
+  const bar = page.getByRole('group', { name: "What's changed" });
+  await expect(bar).toContainText('2 rows changed · 1 row removed since Ana sent it back');
+  await expect(page.getByText('Changed', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('New', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('Chlorophyll is what makes leaves green.')).toBeVisible();
+  // Show the edits: the old words struck through above the new, only in the field that changed.
+  await expect(page.getByLabel('Dialogue before, row 3')).toHaveCount(0);
+  await bar.getByLabel('Show the edits').check();
+  await expect(page.getByLabel('Dialogue before, row 3')).toContainText('chloroplasts grab the light');
+  await expect(page.getByLabel('On screen before, row 3')).toHaveCount(0);
+  // Only changed rows: each run of unchanged rows is one line.
+  await bar.getByLabel('Only changed rows').check();
+  await expect(page.getByText('Rows 1–2 unchanged')).toBeVisible();
+  await expect(page.getByText('Row 5 unchanged')).toBeVisible();
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveCount(0);
+  await expect(page.getByLabel('Dialogue, row 4')).toBeVisible();
+  // Turned off: no marks, and it stays off after a reload (Show the edits is remembered too).
+  await bar.getByLabel("What's changed").uncheck();
+  await expect(bar).toContainText('Off: the script shows as it is');
+  await expect(page.getByText('Changed', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await expect(bar.getByLabel("What's changed")).not.toBeChecked();
+  await bar.getByLabel("What's changed").check();
+  await expect(bar.getByLabel('Show the edits')).toBeChecked();
+  await expect(bar.getByLabel('Only changed rows')).not.toBeChecked();
+  await expect(page.getByLabel('Dialogue before, row 3')).toBeVisible();
+  // Approving ends the review: the marks start again from here.
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await expect(bar).toContainText('Nothing changed since Sam approved it');
+  await expect(page.getByText('Changed', { exact: true })).toHaveCount(0);
+  await expect(bar.getByLabel('Show the edits')).toHaveCount(0);
+});
+
+test('a first review marks nothing (RV-4)', async ({ page }) => {
+  await openReview(page);
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  await expect(page.getByRole('group', { name: "What's changed" })).toHaveCount(0);
+});

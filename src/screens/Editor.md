@@ -10,6 +10,9 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 
 ## Rules and pitfalls
 
+- Review's note (RV-8) and the version when the last review ended (RV-4) are read from History when Review opens
+  and again after a status change's entry is written (`readReview`): the status changes before its entry exists,
+  so reading only on the status change missed the new entry. Only the newest read counts.
 - A status change (`setStatus`) is awaited by `leave()`: a tab switched before its History entry was written made a
   second entry, "Changed the status", beside it (found building RV-8, failed once in CI).
 - A save leaves empty sections out of the file, on a copy: never out of `script`, or a section emptied while its

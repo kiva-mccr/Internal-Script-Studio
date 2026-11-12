@@ -184,8 +184,15 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 4: Send for review (in Write, when not in review; only in Write, asked by the user), and in Review, Send back to writer and Approve. The
   status is the script's `status:` and each change is saved at once with a History entry ("Sent for review",
   "Approved", "Sent back to writer"). Anyone can press them (roles on trust).
-- [ ] **RV-4** Changed since last review (suggested, the user agreed): Review marks the rows edited since the
-  script was last sent for review or approved, so a reviewer rereads only those. The look is agreed before building.
+- [x] **RV-4** Changed since last review (suggested, the user agreed): Review marks the rows edited since the
+  script was last sent for review or approved, so a reviewer rereads only those.
+  Built as mock-up 28 (the user agreed, with all suggested choices and their own switch): compared with the version
+  from when the last review ended (Sent back to writer or Approved), since comparing with the last send would mark
+  nothing on a second round. Changed rows get a blue bar and "Changed" or "New"; a removed row stays as one grey
+  struck line; a moved row is not marked. A bar above the script: "What's changed" (on by default, the reviewer can
+  turn it off; remembered), the count and since when, "Only changed rows" (folds each unchanged run to one line) and
+  "Show the edits" (old text struck above the new, as in History; off at first, remembered). No marks on a first
+  review; marks last until the next Sent back or Approve.
 - [x] **RV-5** A check before Approve (suggested, the user agreed): Approve shows what is still open (comments,
   suggestions, and once built, flags and rows without a source) as a warning in the page, never a block.
   Built as mock-up 20 (the user agreed, with both suggested choices): with something open, Approve opens a panel

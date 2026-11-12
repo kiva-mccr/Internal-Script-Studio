@@ -55,6 +55,32 @@ export function reviewNote(versions: Version[]): Version | undefined {
   return newest?.note === 'Sent for review' && newest.message ? newest : undefined;
 }
 
+// The version from when the last review ended (RV-4): the newest "Sent back to writer" or "Approved" (also
+// "Approved, 2 still open"). Review marks what changed since it.
+export function reviewEnd(versions: Version[]): Version | undefined {
+  return versions.findLast((v) => v.kind === 'review' && (v.note.startsWith('Sent back') || v.note.startsWith('Approved')));
+}
+
+// Rows changed since `before` (RV-4), matched by id: each changed row with its old self (null for a new row), and
+// each removed row with the id of the row it came after ('' for the top). A moved row is not changed.
+export function sinceReview(before: Script, after: Script): { changed: Map<string, Row | null>; removed: { after: string; row: Row }[] } {
+  const old = new Map(numbered(before).map(({ row }) => [row.id, row]));
+  const changed = new Map<string, Row | null>();
+  for (const { row } of numbered(after)) {
+    const was = old.get(row.id);
+    if (!was) changed.set(row.id, null);
+    else if (FIELDS.some(([field]) => fieldText(was, field) !== fieldText(row, field))) changed.set(row.id, was);
+  }
+  const kept = new Set(numbered(after).map(({ row }) => row.id));
+  const removed: { after: string; row: Row }[] = [];
+  let previous = '';
+  for (const { row } of numbered(before)) {
+    if (kept.has(row.id)) previous = row.id;
+    else removed.push({ after: previous, row });
+  }
+  return { changed, removed };
+}
+
 // Writes a new version file and returns it.
 export async function addVersion(
   dir: FileSystemDirectoryHandle,

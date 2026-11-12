@@ -5,10 +5,11 @@
   import Attached from './Attached.svelte';
   import FlagIcon from './FlagIcon.svelte';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
-  import { readFileRef, type Row, type Script } from '../lib/script';
+  import { parseScript, readFileRef, type Row, type Script } from '../lib/script';
+  import { keep, recall } from '../lib/remember';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { ago, at } from '../lib/when';
-  import type { Version } from '../lib/history';
+  import { sinceReview, type Version } from '../lib/history';
 
   // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
   // change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
@@ -19,6 +20,7 @@
     flagged,
     me,
     sent,
+    reviewedAt,
     onAdd,
     onApply,
   }: {
@@ -28,6 +30,7 @@
     flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
     me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
     sent?: Version; // the note sent with it for review (RV-8), shown at the top while it is in review
+    reviewedAt?: Version; // when the last review ended (RV-4): rows changed since are marked
     // `files`: new files to attach to it (RV-11).
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
@@ -114,12 +117,55 @@
     field === 'files' ? row.files.map((f) => readFileRef(f).label).join('\n') : field === 'on_screen' ? row.onScreen : row.dialogue;
   let table = $state<HTMLElement>();
 
+  // What's changed since the last review (RV-4, mock-up 28). On unless this person turned it off; Show the edits is
+  // remembered too, Only changed rows is not.
+  let marking = $state(recall('review-changes') !== 'off');
+  let showEdits = $state(!!recall('review-edits'));
+  let onlyChanged = $state(false);
+  const since = $derived(reviewedAt ? sinceReview(parseScript(reviewedAt.text), script) : null);
+  const marks = $derived(marking ? since : null);
+  const removedAfter = $derived.by(() => {
+    const map = new Map<string, Row[]>();
+    for (const { after, row } of marks?.removed ?? []) map.set(after, [...(map.get(after) ?? []), row]);
+    return map;
+  });
+  const plural = (n: number, what: string) => `${n} ${n === 1 ? 'row' : 'rows'} ${what}`;
+  const sinceText = $derived.by(() => {
+    if (!since || !reviewedAt) return { what: '', when: '' };
+    const parts = [since.changed.size && plural(since.changed.size, 'changed'), since.removed.length && plural(since.removed.length, 'removed')];
+    const verb = reviewedAt.note.startsWith('Approved') ? 'approved it' : 'sent it back';
+    return { what: parts.filter(Boolean).join(' · ') || 'Nothing changed', when: `since ${reviewedAt.who} ${verb} · ${at(Date.parse(reviewedAt.when))}` };
+  });
+  // Only changed rows: each run of unchanged rows folds to one line, shown at its first row.
+  const folds = $derived.by(() => {
+    const label = new Map<string, string>();
+    const skip = new Set<string>();
+    if (!marks || !onlyChanged) return { label, skip };
+    let run: Row[] = [];
+    const end = () => {
+      if (!run.length) return;
+      const [a, b] = [numbers.get(run[0].id), numbers.get(run.at(-1)!.id)];
+      label.set(run[0].id, run.length === 1 ? `Row ${a} unchanged` : `Rows ${a}–${b} unchanged`);
+      run.slice(1).forEach((row) => skip.add(row.id));
+      run = [];
+    };
+    for (const block of script.blocks) {
+      if (block.type !== 'row' || marks.changed.has(block.id)) end();
+      else {
+        run.push(block);
+        if (removedAfter.has(block.id)) end(); // a removed row's line sits after it
+      }
+    }
+    end();
+    return { label, skip };
+  });
+
   // Each open comment's quote is marked in its cell with the browser's highlights (CSS.highlights), which can
   // cross bold, links and so on without changing the page.
   $effect(() => {
     const list = open;
     const on = active;
-    void script;
+    void [script, marks, showEdits, onlyChanged]; // each redraws the cells
     tick().then(async () => {
       if (!table) return;
       await renderMath(table);
@@ -217,28 +263,58 @@
       <button class="sent-folded" aria-expanded="false" onclick={() => (hideSent = false)}>{sent.who}'s note</button>
     {/if}
     <p class="hint">Select any text to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
+    {#if since}
+      <div class="changes" class:off={!marking} role="group" aria-label="What's changed">
+        <label class="tick"><input type="checkbox" bind:checked={marking} onchange={() => keep('review-changes', marking ? '' : 'off')} /> What's changed</label>
+        {#if marking}
+          <span class="what"><b>{sinceText.what}</b> {sinceText.when}</span>
+          {#if since.changed.size || since.removed.length}
+            <label class="tick"><input type="checkbox" bind:checked={onlyChanged} /> Only changed rows</label>
+            <label class="tick"><input type="checkbox" bind:checked={showEdits} onchange={() => keep('review-edits', showEdits ? '1' : '')} /> Show the edits</label>
+          {/if}
+        {:else}
+          <span class="what">Off: the script shows as it is, with no marks.</span>
+        {/if}
+      </div>
+    {/if}
     <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
+    {@render removedRows('')}
     {#each script.blocks as block, i (i)}
       {#if block.type === 'section'}
         <h3 class="section"><span>{block.title}</span>{#if words.get(block)}<span class="time" title="{words.get(block)} words at {speaking.wpm} words a minute">{clock((words.get(block)! / speaking.wpm) * 60)}</span>{/if}</h3>
-      {:else}
+      {:else if folds.label.has(block.id)}
+        <p class="folded">{folds.label.get(block.id)}</p>
+        {@render removedRows(block.id)}
+      {:else if !folds.skip.has(block.id)}
         {@const n = numbers.get(block.id)}
-        <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}>
+        {@const was = marks?.changed.get(block.id)}
+        <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}
+          class:changed={was !== undefined}>
           <div class="num">
             <span>{n}</span>
+            {#if was !== undefined}<span class="tag">{was ? 'Changed' : 'New'}</span>{/if}
             <button class="add" aria-label="Comment on row {n}" title="Comment on this row"
               onclick={() => start({ row: block.id, field: 'dialogue', quote: '' })}>Comment</button>
           </div>
           {#each FIELDS as [field, name] (field)}
-            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
-              onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
+            {#snippet cell()}
+              <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+              <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
+                onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
+            {/snippet}
+            {#if showEdits && was && text(was, field) !== text(block, field)}
+              <!-- Show the edits (RV-4): the old text struck through above the new, as in History. -->
+              <div class="edited"><p class="was {field}" aria-label="{name} before, row {n}">{@html toHtml(text(was, field))}</p>{@render cell()}</div>
+            {:else}
+              {@render cell()}
+            {/if}
           {/each}
           {#if flagged.get(block.id)}
             {@const flag = flagged.get(block.id)!}
             <p class="flag-note" aria-label="Flag, row {n}"><FlagIcon size={13} /><span>{flag.text || 'Flagged'}</span><span class="by">{flag.who}</span></p>
           {/if}
         </div>
+        {@render removedRows(block.id)}
       {/if}
     {/each}
   </div>
@@ -349,6 +425,13 @@
   {/if}
 {/snippet}
 
+<!-- Rows removed since the last review (RV-4): one grey struck line each, where they were. -->
+{#snippet removedRows(after: string)}
+  {#each removedAfter.get(after) ?? [] as row (row.id)}
+    <p class="removed grid"><span class="tag">Removed</span><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s></p>
+  {/each}
+{/snippet}
+
 {#snippet own(t: Thread)}
   {#if mine(t.comment, t) && editing !== t.comment.id}
     <span class="own">
@@ -407,6 +490,23 @@
   .time { font-size: 13px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
   .row { align-items: start; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   .row.active { background: #f7f9fe; }
+  /* What's changed (RV-4): a blue bar at the row's edge, a grey one for a removed row. */
+  .changes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 16px; padding: 4px 8px 4px 4px; border-radius: 8px; background: #eef2fb; font-size: 14px; }
+  .changes.off { background: #f2f2f2; }
+  .changes .what { flex: 1 1 300px; }
+  .changes.off .what { color: var(--muted); }
+  .what b { font-weight: 600; }
+  .tick { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; cursor: pointer; }
+  .tick input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .row.changed { box-shadow: inset 4px 0 0 var(--accent); }
+  .tag { font-size: 11px; font-weight: 600; color: var(--accent-dark); }
+  .removed { align-items: center; margin: 0; padding-top: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; box-shadow: inset 4px 0 0 #9a9a9a; }
+  .removed .tag { color: var(--muted); }
+  .removed s { grid-column: 2 / -1; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .folded { margin: 0; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: var(--muted); }
+  .edited { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .was { margin: 0; line-height: 1.55; white-space: pre-wrap; color: #8a2b2b; text-decoration: line-through; }
+  .edited .cell { color: #1b6b3e; }
   .flag-note { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px; border-radius: 8px;
     background: #fff7ed; color: var(--flag); font-size: 13px; }
   .flag-note .by { margin-left: auto; font-size: 12px; }
