@@ -130,7 +130,7 @@
             </div>
           {/if}
         </span>
-      {:else if reviewStatus !== 'in review'}
+      {:else if reviewStatus !== 'in review' && mode === 'write'}
         <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}

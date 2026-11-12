@@ -141,12 +141,14 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect(page.getByRole('region', { name: 'Still open' })).toHaveCount(0);
   await expect(page.getByText('Approved', { exact: true })).toBeVisible();
   await expect.poll(() => readFile(page, SCRIPT)).toContain('status: approved\n');
-  await page.getByRole('button', { name: 'Send for review' }).click();
-  await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Send for review' })).toHaveCount(0); // only Write sends it
   await page.getByRole('button', { name: 'Write', exact: true }).click();
+  await page.getByRole('button', { name: 'Send for review' }).click();
   await expect(page.getByText('In review', { exact: true })).toBeVisible(); // Write shows where it stands
   await page.getByRole('button', { name: /^Review/ }).click();
   await page.getByRole('button', { name: 'Send back to writer' }).click();
+  await expect(page.getByRole('button', { name: 'Send for review' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
   await expect.poll(() => readFile(page, SCRIPT)).toContain('status: draft\n');
   await page.getByRole('button', { name: 'History' }).click();
