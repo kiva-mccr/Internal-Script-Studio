@@ -1,7 +1,8 @@
 <script lang="ts">
   // Settings (AU-3, mock-up 19): a window in the page, opened from ⋯. Each kind of setting has its own small heading,
-  // so more can be added later: Voice-over (the microphone), then Read time (the speaking speed, AP-12). A choice
+  // so more can be added later: Voice-over (the microphone and the clean-up of takes, AU-4), then Read time (the speaking speed, AP-12). A choice
   // takes effect at once. voiceWpm: the script's takes' speed together, offered as the speed (0 with no takes).
+  import { cleaning, setCleaning } from '../lib/cleanup.svelte';
   import { chooseMic, chosenMic, listMics, type Mic } from '../lib/mic';
   import { setSpeed, speaking } from '../lib/readtime.svelte';
 
@@ -48,6 +49,15 @@
           Used for every take you record. Default follows the computer's sound settings.
         {/if}
       </p>
+      <p class="group">Clean up each take</p>
+      <label class="check"><input type="checkbox" checked={cleaning.crop} onchange={(e) => setCleaning({ crop: e.currentTarget.checked })} />
+        <span>Crop the silence at the start and end<small>Keeps a quarter second either side, and drops the click of the mouse.</small></span></label>
+      <label class="check"><input type="checkbox" checked={cleaning.noise} onchange={(e) => setCleaning({ noise: e.currentTarget.checked })} />
+        <span>Reduce background noise<small>Chrome's own noise reduction. A good mic in a quiet room may sound better without it.</small></span></label>
+      <label class="check"><input type="checkbox" checked={cleaning.level} onchange={(e) => setCleaning({ level: e.currentTarget.checked })} />
+        <span>Make every take equally loud<small>So one row isn't louder than the next when the script plays or is joined into one file.</small></span></label>
+      <p class="hint">The recording itself is kept whole, so turning these off later brings it all back. Takes recorded before
+        these switches play as they are.</p>
       <h3 class="next">Read time</h3>
       <label for="speed">Speaking speed</label>
       <div class="speed">
@@ -85,6 +95,10 @@
   select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff;
     color: var(--ink); font: inherit; font-size: 14px; }
   .next { margin-top: 24px; }
+  .group { margin: 20px 0 8px; font-size: 14px; font-weight: 500; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 10px; font-weight: 400; line-height: 1.4; cursor: pointer; }
+  .check input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; accent-color: var(--accent); }
+  .check small { display: block; font-size: 13px; color: var(--muted); }
   .speed { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #3d3d3d; }
   .step { min-width: 44px; min-height: 44px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; font-size: 16px; }
   .step:hover { background: #f2f2f2; }

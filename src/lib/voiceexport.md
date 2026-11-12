@@ -13,4 +13,5 @@ decoded to mono), `lineUp` (with silence for rows with no take, EX-9), `join` (o
 - A row with no take, or a take that can't be read, is left out (or silent, with `lineUp`'s `silence`); the export
   screen says how many.
 - No gap between takes by default: the user asked for the takes joined. The export screen offers half a second.
+- Each take is `cleaned` (cropped and made louder as set in Settings, AU-4) from its JSON, like Play plays it.
 - Never tried on Chrome's real webm takes here: tests record a WAV.

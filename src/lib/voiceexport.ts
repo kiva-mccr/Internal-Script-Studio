@@ -1,5 +1,6 @@
 // Voice-over out of the app (asked by the user, for their work): every row's take in row order, joined in one WAV
 // file (the user's choice over a file per row). WAV because video editors don't take the browser's webm recordings.
+import { span } from './cleanup.svelte';
 import type { Script } from './script';
 
 export type Clip = { row: number; samples: Float32Array; silent?: boolean };
@@ -19,7 +20,7 @@ export async function readClips(dir: FileSystemDirectoryHandle, script: Script, 
     row++;
     try {
       const file = await (await voice.getFileHandle(`row-${block.id}.webm`)).getFile();
-      clips.push({ row, samples: await decode(await file.arrayBuffer()) });
+      clips.push({ row, samples: cleaned(await decode(await file.arrayBuffer()), await readTake(voice, block.id), rate) });
     } catch {
       // No take for this row, or one that can't be read: left out.
     }
@@ -27,7 +28,23 @@ export async function readClips(dir: FileSystemDirectoryHandle, script: Script, 
   return clips;
 }
 
-function decoder(rate: number) {
+// The take's notes (its crop and gain, AU-4), or none when they can't be read.
+async function readTake(voice: FileSystemDirectoryHandle, id: string) {
+  try {
+    return JSON.parse(await (await (await voice.getFileHandle(`row-${id}.json`)).getFile()).text());
+  } catch {
+    return {};
+  }
+}
+
+// A take's samples cropped and made louder as set in Settings (AU-4), like Play plays it.
+export function cleaned(samples: Float32Array, take: { seconds?: number; from?: number; to?: number; gain?: number }, rate: number): Float32Array {
+  const { from, to, gain } = span({ ...take, seconds: Number(take.seconds) || 0 });
+  const part = samples.subarray(Math.round(from * rate), to === null ? samples.length : Math.round(to * rate));
+  return gain === 1 ? part : part.map((v) => Math.max(-1, Math.min(1, v * gain)));
+}
+
+export function decoder(rate: number) {
   return async (data: ArrayBuffer): Promise<Float32Array> => {
     // An offline context decodes without needing a click or a sound device, and resamples to `rate`.
     const audio = await new OfflineAudioContext(1, 1, rate).decodeAudioData(data);

@@ -17,4 +17,11 @@ id as state, with start, stop, play, remove and load), `readTakes` (a folder's t
 - `record` uses the mic picked in Settings (`lib/mic.ts`); `start` returns true when that mic was unplugged and the
   default recorded instead, and Write says so.
 - Tests replace the microphone with `window.studioRecord`, which returns a short real WAV so playback works.
+- AU-4: `start` sets `cue` for a second (the ring in Write); `cancel` throws a take away. `stop` decodes the take and
+  `measure`s it (`lib/cleanup.svelte.ts`): `from`, `to` and `gain` go in the JSON beside `seconds` (still the whole
+  recording, as timed). Nothing heard, or a take from before: none, and it plays whole.
+- Everything that times or plays a take goes through `span`/`takeLength`/`Sound`, never `take.seconds` alone: Write's
+  ▶, wpm, the top bar, the script list, Play the script and the joined WAV (`voiceexport.cleaned`).
+- `Sound` plays through Web Audio (its own AudioContext), not an <audio>: the crop is exact and the gain can go over 1.
+  Pause suspends that context.
 - Never tried with a real microphone here: the test browser has none.

@@ -94,6 +94,11 @@ Status: a first working version. What it does today:
   for rows with no take (as long as their read time).
   ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). If it's unplugged, the
   take is recorded with the default microphone and the page says so.
+  Clicking the mic records at once: a red ring fills round it for a second, then it turns into ■, your cue to read
+  (Esc while the ring fills throws the new take away). The silence before your first word and after your last, and
+  the click of the mouse, are cropped off; hover a take's ▶ to see how much. Settings > Voice-over switches the
+  clean-up: crop the silence, Chrome's noise reduction, and making every take equally loud. The recording itself is
+  kept whole, so turning crop or loudness off brings it back.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
   for its read time. Click a row's number to play from there; pause with the same button or Space, stop with ■ or

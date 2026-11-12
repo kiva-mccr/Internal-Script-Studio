@@ -6,6 +6,7 @@
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
   import { chosenMic } from '../lib/mic';
+  import { span } from '../lib/cleanup.svelte';
   import { outdated, wpm, type VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
   import FlagIcon from './FlagIcon.svelte';
@@ -304,10 +305,12 @@
           </button>
         </div>
         <div class="mic-cell">
-          <button class="mic" class:has={take} class:on={recording} disabled={!block.id} onclick={() => mic(block.id)}
-            aria-label={recording ? `Stop recording row ${n}` : take ? `Record row ${n} again` : `Record row ${n}`}
+          <button class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}
+            onclick={() => mic(block.id)} aria-label={recording ? `Stop recording row ${n}` : take ? `Record row ${n} again` : `Record row ${n}`}
             title={recording ? 'Stop' : take ? 'Record again' : 'Record'}>
-            {#if recording}■{:else}{@render micIcon()}{/if}
+            {#if recording && voice.cue}
+              <svg class="ring" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" /></svg>{@render micIcon()}
+            {:else if recording}■{:else}{@render micIcon()}{/if}
           </button>
         </div>
         {#if folded.has('dialogue')}{@render dot(block.dialogue !== '', 'Dialogue')}{:else}
@@ -316,12 +319,15 @@
           <div class="dialogue"><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
             onparagraphs={(lines, head, tail) => pasteRows(block, lines, head, tail)} /></div>
           {#if recording}
-            <p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>
+            {#if voice.cue}<p class="take" role="status">Getting ready…</p>
+            {:else}<p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>{/if}
           {:else if take}
             {@const rate = wpm(take, block.dialogue)}
+            {@const part = span(take)}
             <div class="take">
-              <button class="play" aria-label="{sounding ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}>
-                {sounding ? '❚❚' : '▶'} {clock(take.seconds)}
+              <button class="play" aria-label="{sounding ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}
+                title={part.cut ? `${clock(part.seconds)} after cropping ${part.cut} s of silence` : undefined}>
+                {sounding ? '❚❚' : '▶'} {clock(part.seconds)}
               </button>
               <span class="bar"><span style:width="{(here ? player.at : voice.playing === block.id ? voice.at : 0) * 100}%"></span></span>
               {#if outdated(take, block.dialogue)}<span class="old" title="The line has changed since this take">Outdated</span>{/if}
@@ -415,6 +421,11 @@
   .mic:hover { background: #f0f0f0; color: var(--muted); }
   .mic.has { color: var(--accent); }
   .mic.on { background: var(--danger); color: #fff; }
+  /* AU-4: recording from the click; a red ring fills round the mic for a second, then ■ is the cue to read. */
+  .mic.cue { position: relative; color: var(--danger); }
+  .ring { position: absolute; inset: -3px; width: 34px; height: 34px; transform: rotate(-90deg); fill: none;
+    stroke: var(--danger); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 88; animation: fill-ring 1s linear forwards; }
+  @keyframes fill-ring { from { stroke-dashoffset: 88; } to { stroke-dashoffset: 0; } }
   .take { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 13px; color: var(--muted); }
   .take.rec { color: var(--danger); }
   .old { padding: 1px 8px; border-radius: 999px; background: #fff4e5; color: #7a4a00; font-size: 12px; font-weight: 500; }

@@ -17,6 +17,14 @@ describe('openMic', () => {
     expect(get.mock.calls[0][0].audio.deviceId).toEqual({ exact: 'yeti' });
   });
 
+  it("turns Chrome's noise reduction off when Settings says so (AU-4)", async () => {
+    const get = vi.fn().mockResolvedValue(stream);
+    await openMic('', get);
+    await openMic('yeti', get, false);
+    expect(get.mock.calls[0][0].audio.noiseSuppression).toBe(true);
+    expect(get.mock.calls[1][0].audio.noiseSuppression).toBe(false);
+  });
+
   it('falls back to the default when the picked mic is unplugged, and says so', async () => {
     for (const name of ['OverconstrainedError', 'NotFoundError']) {
       const get = vi.fn().mockRejectedValueOnce(err(name)).mockResolvedValue(stream);

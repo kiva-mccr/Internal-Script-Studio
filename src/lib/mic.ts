@@ -5,7 +5,6 @@ import { keep, recall } from './remember';
 export type Mic = { id: string; name: string };
 type GetStream = (constraints: MediaStreamConstraints) => Promise<MediaStream>;
 
-const AUDIO = { echoCancellation: true, noiseSuppression: true };
 
 export const chosenMic = (): Mic => ({ id: recall('mic'), name: recall('mic-name') });
 
@@ -31,7 +30,9 @@ export async function listMics(): Promise<Mic[]> {
 
 // The stream from the chosen mic. If it is unplugged (or gone), the default records instead and `fellBack` says so,
 // so the take is never lost. Any other error (blocked, no mic at all) is thrown as it is.
-export async function openMic(id: string, get: GetStream): Promise<{ stream: MediaStream; fellBack: boolean }> {
+// noise: Chrome's own noise reduction (Settings > Voice-over, AU-4).
+export async function openMic(id: string, get: GetStream, noise = true): Promise<{ stream: MediaStream; fellBack: boolean }> {
+  const AUDIO = { echoCancellation: true, noiseSuppression: noise };
   if (!id) return { stream: await get({ audio: AUDIO }), fellBack: false };
   try {
     return { stream: await get({ audio: { ...AUDIO, deviceId: { exact: id } } }), fellBack: false };
