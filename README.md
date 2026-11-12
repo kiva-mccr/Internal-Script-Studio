@@ -92,8 +92,9 @@ Status: a first working version. What it does today:
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit. Its preview plays the
   file and lists the rows (click one to hear it from there); settings add half a second between takes, or silence
   for rows with no take (as long as their read time).
-  ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). If it's unplugged, the
-  take is recorded with the default microphone and the page says so.
+  ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). The computer's own default
+  is marked "(default)" and is used until you pick another. If the picked one is unplugged, the take is recorded with
+  the default microphone and the page says so.
   Clicking the mic records at once: a red ring fills round it for a second, then it turns into ■, your cue to read
   (Esc while the ring fills throws the new take away). The silence before your first word and after your last, and
   the click of the mouse, are cropped off; hover a take's ▶ to see how much. Settings > Voice-over switches the
