@@ -173,6 +173,9 @@ and suggestions, keeps every version, and exports them for production.
   name in the top bar is a folder icon back to the list ("Back to <folder>" on hover and for screen readers); the
   length follows the save status as one grey line, "Saved · 0:25", or with takes "Saved · 0:04/0:25", and steps
   aside while a red save message shows.
+- [ ] **AP-29** Numbered lists that renumber themselves (asked by the user): in the planning panel and every other
+  text box, adding, removing or moving a line of a numbered list renumbers the lines after it at once, so nothing is
+  fixed by hand (today Enter gives the next number but the lines below keep their old ones). Mock-up first.
 
 ## Phase 3: review
 
