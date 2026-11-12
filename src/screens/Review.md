@@ -26,4 +26,6 @@ suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / S
   only files. Cards show them with `Attached.svelte`. Snippets in the boxes are named `typing`, not `text`: `text`
   is already the cell-text function here.
 - A section's read time (AP-12) sits at the right of its title, as in Write.
+- The note sent for review (RV-8) shows at the top (`sent`, read by `Editor.svelte` from History while the script is
+  in review); Hide folds it to a "Sam's note" button until Review is left.
 - Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.

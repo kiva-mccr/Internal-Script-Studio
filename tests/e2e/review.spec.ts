@@ -144,6 +144,7 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect(page.getByRole('button', { name: 'Send for review' })).toHaveCount(0); // only Write sends it
   await page.getByRole('button', { name: 'Write', exact: true }).click();
   await page.getByRole('button', { name: 'Send for review' }).click();
+  await page.getByRole('region', { name: 'Send for review' }).getByRole('button', { name: 'Send for review' }).click(); // no note
   await expect(page.getByText('In review', { exact: true })).toBeVisible(); // Write shows where it stands
   await page.getByRole('button', { name: /^Review/ }).click();
   await page.getByRole('button', { name: 'Send back to writer' }).click();
@@ -156,6 +157,56 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect(versions.nth(0)).toContainText('Sent back to writer');
   await expect(versions.nth(1)).toContainText('Sent for review');
   await expect(versions.nth(2)).toContainText('Approved');
+});
+
+test('a note for the reviewers with Send for review: shown at the top of Review and kept in History (RV-8)', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', { [SCRIPT]: example.replace('status: in review', 'status: draft') });
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  const panel = page.getByRole('region', { name: 'Send for review' });
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel.getByLabel('A note for the reviewers')).toBeFocused();
+  await panel.getByLabel('A note for the reviewers').fill('Rows 2 and 3 are new.\nIs the CO2 line clear?');
+  // Cancel and Esc close it without sending, and keep what was typed.
+  await panel.getByRole('button', { name: 'Cancel' }).click();
+  await expect(panel).toHaveCount(0);
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  expect(await readFile(page, SCRIPT)).toContain('status: draft\n');
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel.getByLabel('A note for the reviewers')).toHaveValue('Rows 2 and 3 are new.\nIs the CO2 line clear?');
+  await panel.getByRole('button', { name: 'Send for review' }).click();
+  await expect(page.getByText('In review', { exact: true })).toBeVisible();
+  // The reviewer sees it at the top of Review, and can fold it away.
+  await page.getByRole('button', { name: /^Review/ }).click();
+  const note = page.getByRole('note', { name: 'Note from Sam' });
+  await expect(note).toContainText('Sam sent this for review');
+  await expect(note).toContainText('Rows 2 and 3 are new.\nIs the CO2 line clear?');
+  await note.getByRole('button', { name: 'Hide' }).click();
+  await expect(note).toHaveCount(0);
+  await page.getByRole('button', { name: "Sam's note" }).click();
+  await expect(note).toBeVisible();
+  // History keeps it with "Sent for review", in the same entry.
+  await page.getByRole('button', { name: 'History' }).click();
+  const newest = page.getByRole('navigation', { name: 'Versions' }).getByRole('button').nth(0);
+  await expect(newest).toContainText('Sent for review');
+  await expect(newest).toContainText('Rows 2 and 3 are new.\nIs the CO2 line clear?');
+  const files = await listFiles(page, 'Episode 03/.studio/versions');
+  const kept = await Promise.all(files.map((f) => readFile(page, `Episode 03/.studio/versions/${f}`).then((t) => JSON.parse(t))));
+  expect(kept.filter((v) => v.message).map((v) => [v.note, v.message])).toEqual([['Sent for review', 'Rows 2 and 3 are new.\nIs the CO2 line clear?']]);
+  // Once sent back, Review no longer shows it.
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await page.getByRole('button', { name: 'Send back to writer' }).click();
+  await expect(note).toHaveCount(0);
+  await expect(page.getByRole('button', { name: "Sam's note" })).toHaveCount(0);
+  // An empty note sends too, and shows nothing in Review.
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel.getByLabel('A note for the reviewers')).toHaveValue('');
+  await panel.getByRole('button', { name: 'Send for review' }).click();
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
+  await expect(note).toHaveCount(0);
 });
 
 test('Approve lists what is still open first, jumps to it, and never blocks (RV-5)', async ({ page }) => {

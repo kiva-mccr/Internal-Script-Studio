@@ -18,7 +18,7 @@
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
-    onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
+    onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx' | 'voice') => void; onShare: () => Promise<Shared>;
   } = $props();
 
@@ -29,7 +29,10 @@
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
   // Fountain, Final Draft and later exports) and ⋯ (Teleprompter). 'print': Print's choices, under Export.
   // 'approve': what is still open, before approving (RV-5, mock-up 20). It warns and never blocks.
-  let menu = $state<'' | 'more' | 'export' | 'print' | 'approve'>('');
+  // 'send': a note for the reviewers, before sending (RV-8, mock-up 26). Optional; kept while the page is open.
+  let menu = $state<'' | 'more' | 'export' | 'print' | 'approve' | 'send'>('');
+  let sendNote = $state('');
+  let sendEl = $state<HTMLElement>();
   let settings = $state(false); // the Settings window (AU-3), opened from ⋯
   let moreEl = $state<HTMLElement>();
   let exportEl = $state<HTMLElement>();
@@ -40,6 +43,11 @@
     if (loose.length && !anyway) return void (menu = menu === 'approve' ? '' : 'approve');
     menu = '';
     onStatus('approved', loose.length ? `Approved, ${loose.length} still open` : 'Approved');
+  }
+  function send() {
+    menu = '';
+    onStatus('in review', 'Sent for review', sendNote.trim());
+    sendNote = '';
   }
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
   let printColumn = $state(!!recall('print-notes'));
@@ -79,7 +87,7 @@
   // A click outside the menu or Esc closes it.
   function away(event: Event) {
     const inside = (el?: HTMLElement) => el?.contains(event.target as Node);
-    if (menu && !inside(moreEl) && !inside(exportEl) && !inside(approveEl)) menu = '';
+    if (menu && !inside(moreEl) && !inside(exportEl) && !inside(approveEl) && !inside(sendEl)) menu = '';
   }
 </script>
 
@@ -131,7 +139,20 @@
           {/if}
         </span>
       {:else if reviewStatus !== 'in review' && mode === 'write'}
-        <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
+        <span class="more" bind:this={sendEl}>
+          <button class="outline" aria-expanded={menu === 'send'} onclick={() => (menu = menu === 'send' ? '' : 'send')}>Send for review</button>
+          {#if menu === 'send'}
+            <div class="menu approve-menu" role="region" aria-label="Send for review">
+              <label class="lead" for="send-note">A note for the reviewers</label>
+              <textarea id="send-note" rows="4" bind:value={sendNote} {@attach (el) => el.focus()} placeholder="What should they look at? (optional)"></textarea>
+              <p class="quiet">They see it at the top of Review. It is kept in History.</p>
+              <div class="actions">
+                <button class="outline" onclick={() => (menu = '')}>Cancel</button>
+                <button class="dark" onclick={send}>Send for review</button>
+              </div>
+            </div>
+          {/if}
+        </span>
       {/if}
       {#if reviewStatus === 'approved' || (reviewStatus === 'in review' && mode !== 'review')}<span class="state">{reviewStatus === 'approved' ? 'Approved' : 'In review'}</span>{/if}
       {#if play}
@@ -228,6 +249,8 @@
   .approve-menu { width: 380px; gap: 12px; padding: 16px; white-space: normal; }
   .approve-menu p { margin: 0; }
   .lead { font-weight: 600; }
+  .approve-menu textarea { box-sizing: border-box; width: 100%; min-height: 96px; padding: 10px 12px; border: 1px solid var(--line-strong);
+    border-radius: 8px; font: inherit; font-size: 14px; line-height: 1.5; resize: vertical; }
   .quiet { font-size: 13px; color: var(--muted); }
   .loose { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
   .loose button { display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 6px;

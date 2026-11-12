@@ -7,7 +7,8 @@
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { readFileRef, type Row, type Script } from '../lib/script';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
-  import { ago } from '../lib/when';
+  import { ago, at } from '../lib/when';
+  import type { Version } from '../lib/history';
 
   // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
   // change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
@@ -17,6 +18,7 @@
     notes,
     flagged,
     me,
+    sent,
     onAdd,
     onApply,
   }: {
@@ -25,6 +27,7 @@
     notes: Note[];
     flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
     me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
+    sent?: Version; // the note sent with it for review (RV-8), shown at the top while it is in review
     // `files`: new files to attach to it (RV-11).
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
@@ -36,6 +39,7 @@
 
   let target = $state<{ row: string; field: Field; quote: string } | null>(null);
   let draft = $state('');
+  let hideSent = $state(false); // the review note folded to a button (RV-8), until Review is left
   let draftFiles = $state<File[]>([]);
   let draftMissing = $state('');
   let suggesting = $state(false);
@@ -201,6 +205,17 @@
 
 <div class="review">
   <div class="script" bind:this={table}>
+    {#if sent && !hideSent}
+      <div class="sent" role="note" aria-label="Note from {sent.who}">
+        <div>
+          <p class="from"><b>{sent.who}</b> sent this for review · {at(Date.parse(sent.when))}</p>
+          <p class="message">{sent.message}</p>
+        </div>
+        <button class="fold" aria-expanded="true" onclick={() => (hideSent = true)}>Hide</button>
+      </div>
+    {:else if sent}
+      <button class="sent-folded" aria-expanded="false" onclick={() => (hideSent = false)}>{sent.who}'s note</button>
+    {/if}
     <p class="hint">Select any text to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
     <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
     {#each script.blocks as block, i (i)}
@@ -371,6 +386,16 @@
 {/snippet}
 
 <style>
+  .sent { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 20px; padding: 14px 16px; border: 1px solid #d6e0f7;
+    border-radius: 10px; background: #f5f8fe; }
+  .sent > div { flex: 1; min-width: 0; }
+  .sent p { margin: 0; }
+  .sent .from { margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+  .from b { color: var(--ink); font-weight: 600; }
+  .message { font-size: 15px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .sent .fold, .sent-folded { flex: none; min-height: 44px; padding: 0 12px; border-radius: 8px; color: var(--accent); font-size: 13px; font-weight: 500; }
+  .sent .fold { border: 0; background: none; }
+  .sent-folded { display: block; margin: 0 0 20px; border: 1px solid #d6e0f7; background: #f5f8fe; }
   .review { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
   .script { flex: 999 1 640px; min-width: 0; }
   aside { flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }

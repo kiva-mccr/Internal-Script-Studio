@@ -14,5 +14,7 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
 - Rows are matched by id, so a moved row is not "edited".
 - Official versions (kind `official`) get their number from `officialNumbers`, by publish order; never stored.
   `officialNumber` says which one the script still is (printing), or 0 once anything has changed since.
+- `message` (RV-8) is written only when there is one. `reviewNote` is the newest review change, if it was a send
+  with a note; sent back or approved since means none.
 - `heads` are the versions nothing was made from: two mean two saves at the same time, and `ancestor` is the
   newest version both came from (what `lib/merge.ts` compares them with). A merge version has two parents.

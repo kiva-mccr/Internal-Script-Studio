@@ -116,6 +116,7 @@
       onclick={() => (picked = i)}>
       <span class="note">{#if n}<span class="tag">v{n}</span>{version.note}{:else}{summary(version, before(i))}{/if}</span>
       <span class="meta">{n ? 'Published by ' : ''}{version.who} · {at(Date.parse(version.when))}</span>
+      {#if version.message}<span class="message">{version.message}</span>{/if}
     </button>
   {/snippet}
   <div class="history">
@@ -207,6 +208,8 @@
   .versions button.entry:hover { background: #f7f7f7; }
   .versions button.entry.picked { background: #f0f3fc; }
   .note { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .message { margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--line-strong); font-size: 13px; line-height: 1.5;
+    color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
   .meta { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
   .detail { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
   .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
