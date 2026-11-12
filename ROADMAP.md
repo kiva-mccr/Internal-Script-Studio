@@ -153,6 +153,10 @@ and suggestions, keeps every version, and exports them for production.
   Also shown by the 5 s check and on coming back to the tab. Other failed saves still retry.
 - [ ] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
   labelled "Planning", for notes, outlining and the script's learning goals. Kept with the script. Mock-up first.
+- [ ] **AP-26** Opens without wifi (asked by the user; explore first): keep the whole app in the browser (a service
+  worker caching its files) so it opens and works offline. The scripts are already on the computer through the synced
+  folder; OneDrive catches up once back online. To explore: how an update reaches people (a new version on the next
+  visit), and what stays online-only (Follow my voice's first model download, links, Copy for Teams).
 
 ## Phase 3: review
 
