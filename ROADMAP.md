@@ -268,6 +268,11 @@ and suggestions, keeps every version, and exports them for production.
   a line fitted to the last 4 s heard, smoothly; the page behind loses its scroll bar, the teleprompter shows its own.
 - [ ] **EX-13** A speed limit for Follow my voice (asked by the user): while following, the teleprompter never moves
   faster than the words a minute set for playing it, so a mishearing or a jump ahead can't race the text away.
+- [ ] **EX-14** Follow my voice, smoother still (asked by the user: "still a little choppy, much better though").
+  Shelved by the user. Ideas, to measure on the user's computer first: a gentler catch-up and a longer window for
+  the pace; scrolling by the line's real height instead of its share of words (a long line moves faster); allowing
+  for the half second each hearing takes; the next words of the script given to the model as a hint (Whisper takes
+  one, Moonshine doesn't), so fewer misheard words pull the marker.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
