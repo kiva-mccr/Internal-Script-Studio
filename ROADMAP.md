@@ -266,6 +266,8 @@ and suggestions, keeps every version, and exports them for production.
   The user tried it: "much better", but it skipped ahead on repeated "The …" sentences, jumped instead of gliding,
   and the scroll bar did nothing. Polished: a far place needs 4 words and two hearings in a row; the marker follows
   a line fitted to the last 4 s heard, smoothly; the page behind loses its scroll bar, the teleprompter shows its own.
+- [ ] **EX-13** A speed limit for Follow my voice (asked by the user): while following, the teleprompter never moves
+  faster than the words a minute set for playing it, so a mishearing or a jump ahead can't race the text away.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
