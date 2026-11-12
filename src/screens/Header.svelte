@@ -22,6 +22,7 @@
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
     locked: 'Not saved: the browser needs your OK to edit the folder' };
+  const bad = $derived(status === 'failed' || status === 'conflict' || status === 'locked');
   // What was just copied, said in the menu for a moment before it closes.
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
@@ -80,11 +81,15 @@
 
 <header class:pinned={play?.time}>
   <nav class="crumbs" class:locked={ready && status === 'locked'} aria-label="Breadcrumb">
-    <a href="#/">{folder}</a>
-    <span aria-hidden="true">/</span>
+    <!-- A folder icon back to the list (mock-up 30, the user's pick): it leaves room for the length beside Saved. -->
+    <a href="#/" class="back" aria-label="Back to {folder}" title="Back to {folder}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+    </a>
     <span class="title">{title}</span>
     <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
-    {#if ready}<span class="status" class:bad={status === 'failed' || status === 'conflict' || status === 'locked'} role="status">{statusText[status]}</span>{/if}
+    {#if ready}<span class="status" class:bad role="status">{statusText[status]}</span>{/if}
+    <!-- The length follows Saved as one grey line (mock-up 30, A), and steps aside for a red message. -->
+    {#if ready && voiceText && !bad}<span class="voice" title={voiceText.includes('/') ? 'Voice-over recorded so far / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
     <!-- The browser took back its OK to edit the folder: only a click can ask again (mock-up 18, option A). -->
     {#if ready && status === 'locked'}<button class="allow" onclick={onAllow}>Allow editing</button>{/if}
   </nav>
@@ -147,7 +152,6 @@
         </button>
         {#if play.time}<button class="outline stop" aria-label="Stop playing" title="Stop" onclick={onStop}>■</button>{/if}
       {/if}
-      {#if voiceText}<span class="voice" title={voiceText.includes('of') ? 'Voice-over: rows recorded and their length / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
       <span class="more" bind:this={exportEl}>
         <button class="outline" aria-expanded={menu === 'export'}
           onclick={() => (menu = menu === 'export' ? '' : 'export')}>Export / Share</button>
@@ -187,9 +191,9 @@
   .crumbs { display: flex; align-items: center; gap: 6px; flex: 1 1 280px; min-width: 0; } /* below that the bar wraps */
   /* The long "Not saved" and Allow editing don't fit beside the tabs: the bar wraps instead of hiding them. */
   .crumbs.locked { flex: 1 0 auto; max-width: 100%; }
-  .crumbs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: 14px; white-space: nowrap; color: var(--muted); text-decoration: none; }
-  .crumbs a:hover { color: var(--accent); }
-  .crumbs span[aria-hidden] { color: #9a9a9a; }
+  .back { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: -10px;
+    border-radius: 8px; color: var(--muted); }
+  .back:hover { background: #f2f2f2; color: var(--accent); }
   .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .right { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 auto; }
   .right > * { white-space: nowrap; }
@@ -205,8 +209,9 @@
   .dark { min-height: 44px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 500; }
   .dark:hover { background: #333; }
   .state { padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 13px; font-weight: 500; }
-  .status, .voice { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .status, .voice { flex: none; font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .status { margin-left: 6px; }
+  .voice::before { content: '· '; } /* drawn, so the length's text stays just the time */
   .status.bad { color: var(--danger); }
   .allow { flex: none; min-height: 36px; margin-left: 4px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; }
   .play { font-variant-numeric: tabular-nums; }

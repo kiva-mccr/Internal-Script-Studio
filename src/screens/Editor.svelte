@@ -86,8 +86,8 @@
   let editors = $state<string[]>([]); // other people with this script open
   // Voice-over takes (AU-1): read with the script and with the 5 s check, so others' takes appear.
   const voice = new VoiceOver();
-  // The top bar's length (AP-12): "1 of 6 · 0:04/13:42", the takes so far and the whole script (takes, plus read
-  // time for rows with none, as Play times it). With no take yet, only the whole: "13:42".
+  // The top bar's length (AP-12), beside Saved: "0:04/13:42", the takes so far and the whole script (takes, plus read
+  // time for rows with none, as Play times it). With no take yet, only the whole: "13:42". No "1 of 6" (the user's call).
   const taken = $derived(script ? rows(script).filter((row) => voice.takes[row.id]) : []);
   const voiceText = $derived.by(() => {
     if (!script) return '';
@@ -95,7 +95,7 @@
     const total = steps.reduce((sum, step) => sum + step.seconds, 0);
     if (!taken.length) return total ? clock(total) : '';
     const seconds = taken.reduce((sum, row) => sum + voice.takes[row.id].seconds, 0);
-    return `${taken.length} of ${rows(script).length} · ${clock(seconds)}/${clock(total)}`; // short, so the bar stays on one line (AP-16)
+    return `${clock(seconds)}/${clock(total)}`;
   });
   // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
   const player = new Player();

@@ -23,7 +23,7 @@ test('the speaking speed is set in Settings, shared with the teleprompter, and k
     'Episode 03/script.md': example,
     'Episode 03/voice/row-k3f9a.json': take(4, 'Every leaf you have ever seen is running a tiny factory.'), // 11 words in 4 s
   });
-  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:04/0:25');
+  await expect(page.locator('header .voice')).toHaveText('0:04/0:25');
   await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('button', { name: 'Settings' }).click();
   const speed = page.getByLabel('Speaking speed');
@@ -31,7 +31,7 @@ test('the speaking speed is set in Settings, shared with the teleprompter, and k
   await speed.fill('300');
   await speed.press('Tab');
   await expect(page.locator('.section .time')).toHaveText(['0:04', '0:06', '0:02']);
-  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:04/0:14'); // 4 s, then 52 words at 300
+  await expect(page.locator('header .voice')).toHaveText('0:04/0:14'); // 4 s, then 52 words at 300
   await page.getByRole('button', { name: 'Slower' }).click();
   await expect(speed).toHaveValue('290');
   await speed.fill('5');

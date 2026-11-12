@@ -1,8 +1,8 @@
 # `src/screens/Header.svelte`
 
-The bar at the top of a script: the folder name (back to the list), the title and the save status beside it, the Write · Review · History · Assets
+The bar at the top of a script: a folder icon (back to the list, AP-27), the title, and the save status and length beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
-Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the length (AP-12: "0:25", or with takes "3 of 4 · 0:14/0:25", short so the bar stays on one line), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
+Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
 Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over and later exports, each opening the export screen, EX-9), and ⋯ with Teleprompter and Settings (AU-3, `Settings.svelte`).
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
@@ -41,3 +41,8 @@ Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over
   the bar stays on one line with Send for review, Play, the total and Export / Share: the title shortens with "…"
   (`.crumbs` shrinks, down to its 280 px basis, and then the bar wraps rather than squash the name to a stub). With
   "… is editing" too it wraps. `editor.spec.ts` measures this; CI installs Inter so it measures the app's own font.
+- The length (AP-12: "0:25", or with takes "0:14/0:35") follows the save status in the breadcrumb, "Saved · 0:25"
+  (AP-27, mock-up 30 option A; the user dropped "1 of 5"). The "· " is drawn by CSS so `.voice`'s text is just the
+  time, which the tests read. It is hidden while the status is red (`bad`), so the warning is never pushed off.
+- The folder is only an icon: its name is in `aria-label` and `title` ("Back to Video Scripts"); tests click the link
+  by that name (a part match on "Video Scripts" still finds it).

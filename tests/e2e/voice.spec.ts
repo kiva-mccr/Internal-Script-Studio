@@ -31,7 +31,7 @@ test('record a take for a row, see its length and words a minute, and play it ba
   await expect(page.getByRole('button', { name: 'Play row 1' })).toContainText(/▶ 0:0\d/);
   await expect(page.locator('.take .about')).toContainText(/\d+ wpm · Sam, \w{3} \d+/);
   await expect(page.getByRole('button', { name: 'Record row 1 again' })).toBeVisible();
-  await expect(page.locator('header .voice')).toHaveText(/^1 of 5 · 0:0\d\/0:\d\d$/);
+  await expect(page.locator('header .voice')).toHaveText(/^0:0\d\/0:\d\d$/);
   const take = JSON.parse(await readFile(page, 'Episode 03/voice/row-k3f9a.json'));
   expect(take).toMatchObject({ by: 'Sam', text: expect.stringContaining('Every leaf') });
   expect((await readFile(page, 'Episode 03/voice/row-k3f9a.webm')).startsWith('RIFF')).toBe(true);
@@ -62,7 +62,7 @@ test('deleting a take takes it out of the folder; someone else’s take appears'
   await expect(page.locator('.take')).toHaveCount(0);
   await expect(page.locator('header .voice')).toHaveText('0:25'); // only the read time, with no take
   await writeFile(page, 'Episode 03/voice/row-p8x2m.json', JSON.stringify({ by: 'Alex', at: Date.now(), seconds: 4, text: 'x' }));
-  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:04/0:25', { timeout: 10000 }); // 4 s for row 2's 10 words (4 s at 150)
+  await expect(page.locator('header .voice')).toHaveText('0:04/0:25', { timeout: 10000 }); // 4 s for row 2's 10 words (4 s at 150)
   await expect(page.getByRole('button', { name: 'Record row 2 again' })).toBeVisible();
 });
 

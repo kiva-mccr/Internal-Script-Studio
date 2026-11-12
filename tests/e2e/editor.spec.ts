@@ -16,7 +16,11 @@ async function saved(page: Page) {
 
 test('shows the three columns, sections and files', async ({ page }) => {
   await openExample(page);
-  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveText(/Video Scripts\s*\/\s*How Photosynthesis Works/);
+  // The folder is an icon back to the list (mock-up 30); its name is in the label and the tooltip.
+  const back = page.getByRole('link', { name: 'Back to Video Scripts' });
+  await expect(back).toHaveAttribute('title', 'Back to Video Scripts');
+  await expect(back).toHaveText('');
+  await expect(page.locator('header .title')).toHaveText('How Photosynthesis Works');
   await expect(page.getByLabel('Section title')).toHaveCount(3);
   await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
   await expect(page.getByRole('button', { name: 'leaf-closeup.jpg', exact: true })).toBeVisible();
@@ -99,8 +103,11 @@ test('the save status sits beside the title, and the bar stays on one line at 12
   });
   await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
-  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:14/0:35');
+  await expect(page.locator('header .voice')).toHaveText('0:14/0:35');
   await expect(page.locator('header .crumbs').getByRole('status')).toHaveText('Saved');
+  // The length follows Saved, as "Saved · 0:14/0:35" (mock-up 30, A), not among the buttons.
+  await expect(page.locator('header .crumbs .status + .voice')).toHaveText('0:14/0:35');
+  await expect(page.locator('header .right .voice')).toHaveCount(0);
   const middles = await page.locator('header > *, header .right > *').evaluateAll((els) =>
     els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
   expect(Math.max(...middles) - Math.min(...middles)).toBeLessThan(2); // everything shares one line
@@ -309,7 +316,9 @@ test("a save that fails with access still there says Couldn't save and tries aga
   });
   await page.getByLabel('Dialogue, row 1').fill('Saved on the second try.');
   await expect(page.getByRole('status')).toHaveText("Couldn't save, trying again", { timeout: 10000 });
+  await expect(page.locator('header .voice')).toHaveCount(0); // the length steps aside for the red message
   await saved(page);
+  await expect(page.locator('header .voice')).toBeVisible();
   expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the second try.\n');
 });
 
