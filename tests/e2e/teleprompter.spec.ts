@@ -61,7 +61,7 @@ test('scrolling by hand moves where it goes on from', async ({ page }) => {
   await expect(prompter).toHaveCount(0);
 });
 
-// Follow my voice (EX-8): the microphone and Whisper are stood in for by window.studioListen (lib/listen.ts).
+// Follow my voice (EX-8): the microphone and the speech model are stood in for by window.studioListen (lib/listen.ts).
 type Hooks = { onText: (text: string) => void; onProgress: (loaded: number, total: number) => void; onFail: () => void };
 type Fake = { hooks?: Hooks; ready?: () => void; stopped?: boolean; fail?: string };
 
@@ -90,10 +90,13 @@ test('Follow my voice: downloads once with progress, then the marker follows the
   const say = (text: string) => page.evaluate((t) => (window as unknown as { fake: Fake }).fake.hooks!.onText(t), text);
   await say('every leaf you have ever seen is running a tiny factory');
   await expect(prompter.locator('.past').first()).toContainText('Every leaf'); // the first line has been read
-  await expect(prompter.locator('.said')).toHaveCount(11); // each word said is greyed out
-  await say('it needs three simple');
+  // Each word said is greyed out, and between hearings the marker goes on at the reading pace (EX-12), stopping 4
+  // words past the last word heard.
   await expect(prompter.locator('.said')).toHaveCount(15);
-  await expect(prompter.locator('.said').last()).toHaveText('simple');
+  await expect(prompter.locator('.said').nth(10)).toHaveText('factory.');
+  await say('it needs three simple');
+  await expect(prompter.locator('.said')).toHaveCount(19);
+  await expect(prompter.locator('.said').nth(14)).toHaveText('simple');
   const after = await scrollTop(page);
   expect(after).toBeGreaterThan(50);
   await say('sorry, can we start again'); // nothing in the script: it stays where it is

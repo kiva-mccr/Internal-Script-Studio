@@ -51,7 +51,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24 (done), RV-7 (done), EX-12, RV-11, RV-8, EX-9, RV-4, AS-1.
+  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11, RV-8, EX-9, RV-4, AS-1.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -63,9 +63,10 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Nothing has been tried on a real OneDrive synced folder yet.
 - The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
 - Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
-- Follow my voice (EX-8) with real Whisper and a real microphone: this container can't reach Hugging Face, so
-  only the worker starting and asking for the model was seen; the following itself was tested with a fake.
-  Works on the user's desktop; doesn't follow on a Pixel 8 in Chrome (issue #24, shelved).
+- Follow my voice (EX-8, EX-12) with real Moonshine, WebGPU and a real microphone: this container can't reach
+  Hugging Face, so only the worker asking for the model was seen; the following was tested with a fake. Whisper
+  worked on the user's desktop; the user is to check Moonshine's speed and accuracy (fallback: Whisper on WebGPU).
+  Didn't follow on a Pixel 8 in Chrome (issue #24, shelved).
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
 - Voice-over takes (AU-1) and the joined WAV (EX-11) with a real microphone and real OneDrive: tests fake the
   recording (a WAV); decoding Chrome's real webm takes was never seen here.

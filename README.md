@@ -53,7 +53,8 @@ Status: a first working version. What it does today:
 - **Teleprompter:** reads the dialogue full screen, scrolling at the speaking speed (words a minute, the same as read time). Space starts
   and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read
-  (Whisper runs in the browser; the first time it downloads about 75 MB, and no sound leaves the computer). Words
+  (Moonshine speech recognition runs in the browser, on the graphics card when there is one; the first time it
+  downloads about 100 MB, and no sound leaves the computer). Between hearings it keeps going at your pace. Words
   grey out once said.
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder; it opens on Review. Copy for Teams copies a
   short message to paste into a Teams chat: the title as a link (which also opens on Review), status, version, rows, read-aloud time, who edited

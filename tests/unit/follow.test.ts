@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { follow, normal, wordsOf } from '../../src/lib/follow';
+import { aim, follow, normal, paceFrom, wordsOf } from '../../src/lib/follow';
 
 const script = wordsOf(
   'Every leaf you have ever seen is running a tiny factory. It needs three simple ingredients: sunlight, water, ' +
@@ -34,5 +34,20 @@ describe('follow', () => {
     // "tiny" comes twice; "tiny parts called" only fits the second, "a tiny factory" only the first.
     expect(follow(script, wordsOf('a tiny factory'), 3)).toBe(11);
     expect(follow(script, wordsOf('tiny parts called'), 20)).toBe(27);
+  });
+});
+
+describe('between hearings (EX-12)', () => {
+  it('goes on at the reading pace, at most 4 words past the word heard, never past the end', () => {
+    expect(aim(10, 1, 2.5, 100)).toBe(12.5);
+    expect(aim(10, 10, 2.5, 100)).toBe(14);
+    expect(aim(10, -Infinity, 2.5, 100)).toBe(10); // nothing heard yet: it waits
+    expect(aim(98, 1, 2.5, 100)).toBe(100);
+  });
+  it('learns the pace from the voice, but not from a long pause or a step back', () => {
+    expect(paceFrom(2, 6, 2)).toBeCloseTo(2.3);
+    expect(paceFrom(2, 6, 10)).toBe(2);
+    expect(paceFrom(2, -5, 1)).toBe(2);
+    expect(paceFrom(2, 100, 1)).toBeCloseTo(3.2); // a skipped line counts as fast reading, not 100 words a second
   });
 });
