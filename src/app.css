@@ -13,6 +13,8 @@
   color: var(--ink);
   background: var(--ground);
 }
+/* Always keep room for the scrollbar, so the top bar doesn't shift when a tab's page is shorter or longer. */
+html { scrollbar-gutter: stable; }
 body { margin: 0; }
 
 /* The kinds of button used everywhere. */
