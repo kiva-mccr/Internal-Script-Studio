@@ -15,15 +15,21 @@ async function openExample(page: Page) {
   await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
 }
 
-async function print(page: Page, notes = false) {
+// Export / Share > Print… opens the export screen on Print (EX-9); its Print… button opens the print window.
+async function openPrint(page: Page) {
   await page.getByRole('button', { name: 'Export' }).click();
   await page.getByRole('button', { name: 'Print…' }).click();
+  await expect(page.getByRole('button', { name: 'Print / PDF' })).toHaveAttribute('aria-pressed', 'true');
+}
+
+async function print(page: Page, notes = false) {
+  await openPrint(page);
   if (notes) {
     await page.getByLabel('Notes column on each row').check();
     await page.getByLabel('Notes space at the end').check();
     await page.getByLabel('Text size').fill('80');
   }
-  await page.locator('.print-menu').getByRole('button', { name: 'Print' }).click();
+  await page.getByLabel('Settings').getByRole('button', { name: 'Print…' }).click();
   await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
   await page.emulateMedia({ media: 'print' });
 }
@@ -32,7 +38,7 @@ test('Print shows only the print version: title, version, every row, files and p
   await openExample(page);
   await print(page);
   const sheet = page.locator('.print-view');
-  await expect(page.getByRole('navigation', { name: 'Mode' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Back to the script' })).toBeHidden();
   await expect(sheet.getByRole('heading', { name: 'How Photosynthesis Works' })).toBeVisible();
   await expect(sheet).toContainText('Kiva, Sam');
   await expect(sheet).toContainText('Draft · In review');
@@ -61,11 +67,11 @@ test('room for notes (a column on each row, lines at the end) and the text size,
   await expect(sheet).toHaveCSS('font-size', '10.6667px'); // 8pt: 80% of 10pt
   await page.emulateMedia({ media: 'screen' });
   await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
-  await page.getByRole('button', { name: 'Export' }).click();
-  await page.getByRole('button', { name: 'Print…' }).click();
+  await page.getByRole('button', { name: 'Back to the script' }).click();
+  await openPrint(page);
   await expect(page.getByLabel('Notes column on each row')).toBeChecked();
   await expect(page.getByLabel('Notes space at the end')).toBeChecked();
-  await expect(page.locator('.print-menu')).toContainText('80%');
+  await expect(page.getByLabel('Settings')).toContainText('80%');
 });
 
 test('the official version number is printed while the script is still that version', async ({ page }) => {
@@ -77,4 +83,6 @@ test('the official version number is printed while the script is still that vers
   await expect(page.getByRole('heading', { name: 'v1 · First draft' })).toBeVisible();
   await print(page);
   await expect(page.locator('.print-view')).toContainText('v1 · In review');
+  await page.emulateMedia({ media: 'screen' });
+  await expect(page.getByLabel('Preview')).toContainText('v1 · In review'); // the preview says so too
 });

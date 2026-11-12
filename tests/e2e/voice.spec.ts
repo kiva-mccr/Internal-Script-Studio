@@ -85,18 +85,45 @@ test('Export > Voice-over joins the takes in row order into one WAV, and says wh
     await expect(page.getByRole('button', { name: `Record row ${row} again` })).toBeVisible();
   }
   await page.getByRole('button', { name: 'Export' }).click();
-  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Voice-over (.wav)' }).click()]);
+  await page.getByRole('button', { name: 'Voice-over (.wav)' }).click();
+  await expect(page.getByLabel('Preview')).toContainText('2 of 5 rows have a take; the other 3 are left out.');
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save .wav' }).click()]);
   expect(file.suggestedFilename()).toBe('How Photosynthesis Works voice-over.wav');
   const bytes = readFileSync(await file.path());
   expect(bytes.subarray(0, 4).toString()).toBe('RIFF');
   expect(bytes.readUInt32LE(24)).toBe(48000);
   expect(bytes.length).toBe(44 + 2 * 24000 * 2); // two takes of half a second, mono, 16 bits
-  await expect(page.getByRole('alert')).toContainText('The file has 2 of 5 rows. 3 rows have no take yet.');
 });
 
-test('Export > Voice-over with no takes says so and downloads nothing', async ({ page }) => {
+test('Export > Voice-over: a pause between takes, silence for rows with none, and a row plays from its place', async ({ page }) => {
+  await openExample(page);
+  for (const row of [3, 1]) {
+    await page.getByRole('button', { name: `Record row ${row}`, exact: true }).click();
+    await page.getByRole('button', { name: `Stop recording row ${row}` }).click();
+    await expect(page.getByRole('button', { name: `Record row ${row} again` })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Export' }).click();
+  await page.getByRole('button', { name: 'Voice-over (.wav)' }).click();
+  await page.getByLabel('Half a second between takes').check();
+  await expect(page.getByLabel('Preview').locator('.pause')).toHaveCount(1);
+  let [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save .wav' }).click()]);
+  expect(readFileSync(await file.path()).length).toBe(44 + 3 * 24000 * 2); // two takes and the pause between
+  await page.getByLabel('Half a second between takes').uncheck();
+  await page.getByLabel('Silence for rows with no take').check();
+  await expect(page.getByLabel('Preview')).toContainText('the other 3 are silent for their read time');
+  await expect(page.getByLabel('Preview').locator('.row.silent')).toHaveCount(3);
+  [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save .wav' }).click()]);
+  expect(readFileSync(await file.path()).length).toBeGreaterThan(44 + 2 * 24000 * 2 + 48000 * 2);
+  // Row 3's take starts after row 1's take and row 2's read time.
+  await page.getByLabel('Preview').locator('li').nth(2).getByRole('button').click();
+  const at = await page.locator('audio').evaluate((a: HTMLAudioElement) => a.currentTime);
+  expect(at).toBeGreaterThan(0.5);
+});
+
+test('Export > Voice-over with no takes says so and saves nothing', async ({ page }) => {
   await openExample(page);
   await page.getByRole('button', { name: 'Export' }).click();
   await page.getByRole('button', { name: 'Voice-over (.wav)' }).click();
   await expect(page.getByRole('alert')).toContainText('No voice-over has been recorded yet');
+  await expect(page.getByRole('button', { name: 'Save .wav' })).toBeDisabled();
 });

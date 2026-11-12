@@ -269,9 +269,12 @@ and suggestions, keeps every version, and exports them for production.
 - [x] **EX-7** Exports carry the version (suggested, the user agreed): every export is stamped with the official
   version and the status ("v2 · Approved", else "Draft"), as print (EX-1) already is, so nobody records from a draft.
   Done along the way: print, Fountain and Final Draft all use `version()` in the Editor; later exports must too.
-- [ ] **EX-9** Export preview and settings (asked by the user): an in-app screen for each export format (PDF/print,
-  Fountain, Final Draft, and later ones) that previews the result and holds its settings before saving the file.
-  Today the exports download straight from the Export menu. Mock-up first.
+- [x] **EX-9** Export preview and settings (asked by the user; board 27, agreed as drawn): each item under Export
+  opens an export screen in place of the script: formats on the left, the real result in the middle (the print page,
+  the Fountain file beside a screenplay look, Final Draft's look, the joined voice-over with its rows), settings and
+  Print… or Save on the right. New settings: the speaker's name and sections as scene headings for Fountain and Final
+  Draft, row numbers and files as notes; for voice-over half a second between takes and silence for rows with no
+  take. Defaults are what the exports did before; settings are remembered in this browser.
 - [x] **EX-10** Export becomes Export / Share (asked by the user; board 15, agreed as drawn): Share on top (Copy link,
   moved in from the ⋯ menu, and Copy for Teams), the exports below. Copy for Teams puts a formatted message on the
   clipboard (plain text too): the title as a link, status, version when official, rows, read-aloud time, who edited

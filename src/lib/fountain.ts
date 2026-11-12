@@ -1,12 +1,22 @@
 // The script as Fountain (EX-3, mock-up 11), the plain-text screenplay format Trelby, Highland and Fade In open.
-// Sections become scene headings; each row's On screen is an action line and its Dialogue is spoken by NARRATOR.
+// By default sections become scene headings; each row's On screen is an action line and its Dialogue is spoken by NARRATOR.
 // Files and row numbers are kept as [[notes]], which those apps keep but don't print.
 import { frontList, type Script } from './script';
 
 export const SPEAKER = 'NARRATOR';
 
+// The export screen's settings (EX-9, board 27), shared with Final Draft: who speaks the dialogue, sections as scene
+// headings (or Fountain sections, which apps hide when printing), and row numbers and files kept as notes.
+export type Screenplay = { speaker: string; scenes: boolean; numbers: boolean; files: boolean };
+export const SCREENPLAY: Screenplay = { speaker: SPEAKER, scenes: true, numbers: true, files: true };
+
+// The speaker as a screenplay writes it: one line, in capitals (Fountain reads a name in capitals as a speaker).
+export function speakerName(name: string): string {
+  return oneLine(name).toUpperCase() || SPEAKER;
+}
+
 // `stand`: the version and status for the title page, as print shows them ("v3 · Approved"). `date`: "Nov 10, 2026".
-export function toFountain(script: Script, title: string, stand: string, date: string): string {
+export function toFountain(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY): string {
   const out: string[] = [`Title: ${oneLine(title)}`];
   const authors = frontList(script.front, 'authors');
   if (authors.length) out.push('Credit: Written by', `Author: ${authors.join(', ')}`);
@@ -15,14 +25,14 @@ export function toFountain(script: Script, title: string, stand: string, date: s
   let n = 0;
   for (const block of script.blocks) {
     if (block.type === 'section') {
-      out.push(`.${oneLine(block.title).toUpperCase()}`, '');
+      out.push(how.scenes ? `.${oneLine(block.title).toUpperCase()}` : `# ${oneLine(block.title)}`, '');
       continue;
     }
-    const lines = [`[[Row ${++n}]]${block.note.trim() ? ` [[${oneLine(block.note)}]]` : ''}`];
-    if (block.onScreen.trim()) lines[0] += ` ${action(block.onScreen)}`;
-    if (block.files.length) lines.push(`[[Files: ${block.files.map(oneLine).join(', ')}]]`);
-    out.push(lines.join('\n'), '');
-    if (block.dialogue.trim()) out.push(SPEAKER, dialogue(block.dialogue), '');
+    n++;
+    const head = [how.numbers && `[[Row ${n}]]`, block.note.trim() && `[[${oneLine(block.note)}]]`, block.onScreen.trim() && action(block.onScreen)];
+    const lines = [head.filter(Boolean).join(' '), how.files && block.files.length && `[[Files: ${block.files.map(oneLine).join(', ')}]]`];
+    if (lines.some(Boolean)) out.push(lines.filter(Boolean).join('\n'), '');
+    if (block.dialogue.trim()) out.push(speakerName(how.speaker), dialogue(block.dialogue), '');
   }
   return out.join('\n').replace(/\n+$/, '\n');
 }

@@ -49,12 +49,13 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   put a new screen or panel in its own file, not in this one.
 - Deleting happens in Write, but the Undo bar and its 10 s timer are here, so it stays up across the tabs.
 - `Print.svelte` is mounted here, at the top level, never inside another element (its print CSS needs that).
-- Print saves what is waiting first. Its choices come from `Header.svelte`. It shows "v3" only while the newest version is
+- Print saves what is waiting first. Its choices come from `Export.svelte`. It shows "v3" only while the newest version is
   official and script.md still matches it (`officialNumber`, through `version()`); otherwise "Draft".
 - Copy for Teams (`shareNow`, EX-10) saves what is waiting, then gives `lib/share.ts` the shared link (`?review`, RV-10), the version, the newest History
   entry's person and time (none for "Outside the app"), open comments and rows with a take.
-- Exports (`exportAs`) use the same `version()`, turn the script into text (`lib/fountain.ts`, `lib/fdx.ts`) or its takes into one WAV (`lib/voiceexport.ts`) and download it
-  with a link click; the file is named after the title (`safeName`), "script" if that is empty.
+- Exports (`openExport`, EX-9) save what is waiting, use the same `version()`, and show `Export.svelte` in place of
+  the top bar and the tabs (the messages, the teleprompter and the print version stay outside it, so printing from
+  it works). It makes and downloads the files itself.
 - Missing files (`lostFiles`) are worked out here, not in `Assets.svelte`, so the tab's count shows in every tab. They
   are checked when the Files lines change (`untrack`, or every keystroke would re-check), when the tab opens and with
   the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.

@@ -27,6 +27,18 @@ describe('toFdx', () => {
   });
 });
 
+describe('settings (EX-9)', () => {
+  it('names the speaker, makes sections General lines, and leaves the row line out with numbers and files off', () => {
+    const out = toFdx(parseScript(example), 'T', 'Draft', 'Nov 1, 2026', { speaker: 'Host', scenes: false, numbers: false, files: false });
+    expect(out).toContain([
+      '<Paragraph Type="General"><Text>Intro</Text></Paragraph>',
+      '<Paragraph Type="Action"><Text>Slow push-in on a sunlit leaf.</Text></Paragraph>',
+      '<Paragraph Type="Character"><Text>HOST</Text></Paragraph>',
+    ].join('\n'));
+    expect(out).not.toContain('Row 1');
+  });
+});
+
 describe('runs', () => {
   it('carries bold, italic and underline as styles; the rest becomes plain and escaped', () => {
     expect(runs('a **b *bi*** <u>u</u> ~~s~~ [w](https://x.org) $x<y$ & "q"')).toBe(

@@ -5,10 +5,7 @@
   import { clock, speaking } from '../lib/readtime.svelte';
   import { askAccess, hasAccess } from '../lib/remember';
   import { takesSpeed, VoiceOver } from '../lib/voice.svelte';
-  import { join, readClips, wav } from '../lib/voiceexport';
-  import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
-  import { toFdx } from '../lib/fdx';
-  import { toFountain } from '../lib/fountain';
+  import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
@@ -17,7 +14,8 @@
   import { merge, type Merged, type Side } from '../lib/merge';
   import Assets from './Assets.svelte';
   import Conflict from './Conflict.svelte';
-  import Header, { type Loose, type PrintChoices } from './Header.svelte';
+  import Export, { type Format, type PrintChoices } from './Export.svelte';
+  import Header, { type Loose } from './Header.svelte';
   import History from './History.svelte';
   import Planning from './Planning.svelte';
   import Print from './Print.svelte';
@@ -47,6 +45,7 @@
   let undo = $state<{ blocks: Block[]; what: string } | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
   let printing = $state<(PrintChoices & { version: string }) | null>(null); // the print version, while printing (EX-1)
+  let exporting = $state<{ to: Format; version: string } | null>(null); // the export screen (EX-9), in place of the script
   let onDisk = ''; // the text of script.md as last read or written by this page
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
@@ -542,16 +541,11 @@
     return n ? `v${n}` : '';
   }
 
-  // Export: the script as a Fountain (EX-3) or Final Draft (EX-4) file, or its voice-over as one WAV, downloaded.
-  async function exportAs(to: 'fountain' | 'fdx' | 'voice') {
+  // Export (EX-9): saves what is waiting, then opens the export screen on that format, in place of the script.
+  async function openExport(to: Format) {
     if (!script) return;
-    if (to === 'voice') return exportVoice();
-    const v = await version();
-    const state = reviewStatus === 'draft' ? '' : reviewStatus[0].toUpperCase() + reviewStatus.slice(1);
-    const stand = [v || 'Draft', state].filter(Boolean).join(' · ');
-    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const text = (to === 'fdx' ? toFdx : toFountain)(script, title ?? '', stand, date);
-    download(`${safeName(title ?? '') || 'script'}.${to}`, text);
+    player.stop();
+    exporting = { to, version: await version() };
   }
 
   // Copy for Teams (EX-10): saves what is waiting, then the script's facts as a short message (lib/share.ts).
@@ -565,32 +559,6 @@
       open: openCount, voice: voiced }, script);
   }
 
-  // Every row's take in row order, joined in one file (asked by the user). Rows with no take are left out, and said.
-  const VOICE_RATE = 48000;
-  async function exportVoice() {
-    if (!script || !dir) return;
-    try {
-      const clips = await readClips(dir, script, VOICE_RATE);
-      if (!clips.length) {
-        notice = 'No voice-over has been recorded yet. Record a take with the mic beside a row first.';
-        return;
-      }
-      download(`${safeName(title ?? '') || 'script'} voice-over.wav`, new Blob([wav(join(clips, VOICE_RATE, 0), VOICE_RATE)], { type: 'audio/wav' }));
-      const rowCount = script.blocks.filter((b) => b.type === 'row').length;
-      const left = rowCount - clips.length;
-      if (left) notice = `The file has ${clips.length} of ${rowCount} rows. ${left === 1 ? '1 row has' : `${left} rows have`} no take yet.`;
-    } catch {
-      notice = "The voice-over couldn't be put together. If OneDrive is still syncing the takes, wait a moment and try again.";
-    }
-  }
-
-  function download(name: string, data: string | Blob) {
-    const url = URL.createObjectURL(typeof data === 'string' ? new Blob([data], { type: 'text/plain;charset=utf-8' }) : data);
-    const a = Object.assign(document.createElement('a'), { href: url, download: name });
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  }
-
   // Leaving saves what is waiting. Only a failed save or a lost OK, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
     leave();
@@ -600,11 +568,6 @@
 
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
 <svelte:document onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
-
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
-  play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
-  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />
@@ -629,6 +592,14 @@
     </div>
   {/if}
 </div>
+
+{#if exporting && script && dir}
+  <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
+{:else}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
+  play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
+  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 <div class="page">
 <main>
@@ -655,6 +626,7 @@
   <Planning {dir} />
 {/if}
 </div>
+{/if}
 <style>
   .toasts { position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(720px, calc(100% - 32px));
     display: flex; flex-direction: column; gap: 8px; }

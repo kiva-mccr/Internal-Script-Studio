@@ -2,7 +2,7 @@
 // file (the user's choice over a file per row). WAV because video editors don't take the browser's webm recordings.
 import type { Script } from './script';
 
-export type Clip = { row: number; samples: Float32Array };
+export type Clip = { row: number; samples: Float32Array; silent?: boolean };
 
 // The takes of the rows that have one, in row order, decoded to mono at `rate`. Tests can pass their own decoder.
 export async function readClips(dir: FileSystemDirectoryHandle, script: Script, rate: number, decode = decoder(rate)): Promise<Clip[]> {
@@ -38,6 +38,18 @@ function decoder(rate: number) {
     }
     return out;
   };
+}
+
+// Every row in order (`seconds`: each row's read time, row 1 first): its take, or with `silence` quiet for its read
+// time (EX-9). Otherwise a row with no take is left out, as is one with neither a take nor words.
+export function lineUp(clips: Clip[], seconds: number[], rate: number, silence: boolean): Clip[] {
+  if (!silence) return clips;
+  return seconds.flatMap((s, i) => {
+    const clip = clips.find((c) => c.row === i + 1);
+    if (clip) return [clip];
+    const length = Math.round(s * rate);
+    return length > 0 ? [{ row: i + 1, samples: new Float32Array(length), silent: true }] : [];
+  });
 }
 
 // The clips one after another, with `gap` seconds of silence between them.

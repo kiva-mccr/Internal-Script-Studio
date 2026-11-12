@@ -3,7 +3,7 @@
 The bar at the top of a script: the folder name (back to the list), the title and the save status beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
 Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the length (AP-12: "0:25", or with takes "3 of 4 · 0:14/0:25", short so the bar stays on one line), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
-Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final Draft, Voice-over and later exports), and ⋯ with Teleprompter and Settings (AU-3, `Settings.svelte`).
+Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over and later exports, each opening the export screen, EX-9), and ⋯ with Teleprompter and Settings (AU-3, `Settings.svelte`).
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
   `conflict.spec.ts`, `settings.spec.ts`.
@@ -12,11 +12,11 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
 
 - One menu is open at a time (`menu`). It closes on Esc, on a click outside both menus, after choosing, and a
   moment after a copy (the item says "Link copied" or "Copied, paste it in Teams"; a failed copy says so in the menu).
-  Tests open ⋯ with the "More" button, and Print with "Export" (it matches "Export / Share") then "Print…".
+  Tests open ⋯ with the "More" button, and an export with "Export" (it matches "Export / Share") then its item.
 - Copy link copies `shareLink(location.href)`, which opens on Review (RV-10).
 - Copy for Teams hands the clipboard promises (`ClipboardItem`) and asks `onShare` for the text, so the click still
   counts while the Editor saves and reads History. The text itself is `lib/share.ts`.
-- A new export goes in the Export menu, and `onExport` grows a new `to`.
+- A new export goes in the Export menu and in `Export.svelte`'s formats (`Format`).
 
 - Approve with something still open (`loose`: comments, suggestions, missing files) opens a panel under it, like the
   menus (mock-up 20, RV-5): each line goes to that item (`onLoose`), Keep reviewing or Esc closes, Approve anyway
@@ -26,10 +26,9 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
   region and its button are both named "Send for review": tests pick the button inside the region.
 - Send for review shows only in Write (asked by the user); Review has Send back to writer and Approve, and History
   and Assets show neither. Tests that send for review go to Write first.
-- It only shows and asks: switching tabs, the status and printing are done by `Editor.svelte` (`onMode`,
-  `onStatus`, `onPrompt`, `onPrint`, `onExport`, `onPlay`, `onStop`), which saves what is waiting first.
+- It only shows and asks: switching tabs, the status and exports are done by `Editor.svelte` (`onMode`,
+  `onStatus`, `onPrompt`, `onExport`, `onPlay`, `onStop`), which saves what is waiting first.
 - The button names contain "Write" (Send back to writer), so tests pick the Write tab with `exact: true`.
-- Print's choices (notes column, notes space, text size) are remembered with `recall`/`keep` (`lib/remember.ts`).
 - While the script plays, the bar is `position: sticky` (`.pinned`) so Pause and ■ stay in view as the page follows
   the rows; it then covers Write's sticky column headings, which is fine for that while.
   It also covers the top of `main`, so a test must not click there to leave a text field while playing (`play.spec.ts`

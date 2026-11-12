@@ -198,10 +198,12 @@ test('Copy for Teams puts the title, status and facts on the clipboard, formatte
   await expect(page.locator('.menu')).toHaveCount(0);
 });
 
-test('Fountain downloads the script as a .fountain file named after it', async ({ page }) => {
+test('Fountain opens the export screen and saves the script as a .fountain file named after it', async ({ page }) => {
   await openExample(page);
   await page.getByRole('button', { name: 'Export' }).click();
-  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Fountain (.fountain)' }).click()]);
+  await page.getByRole('button', { name: 'Fountain (.fountain)' }).click();
+  await expect(page.getByLabel('Preview').locator('pre')).toContainText('[[Row 1]]');
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save .fountain' }).click()]);
   expect(file.suggestedFilename()).toBe('How Photosynthesis Works.fountain');
   const text = readFileSync(await file.path(), 'utf8');
   expect(text).toMatch(/^Title: How Photosynthesis Works\n/);
@@ -211,10 +213,11 @@ test('Fountain downloads the script as a .fountain file named after it', async (
   await expect(page.locator('.menu')).toHaveCount(0);
 });
 
-test('Final Draft downloads the script as an .fdx file that is well-formed XML', async ({ page }) => {
+test('Final Draft saves the script as an .fdx file that is well-formed XML', async ({ page }) => {
   await openExample(page);
   await page.getByRole('button', { name: 'Export' }).click();
-  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Final Draft (.fdx)' }).click()]);
+  await page.getByRole('button', { name: 'Final Draft (.fdx)' }).click();
+  const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save .fdx' }).click()]);
   expect(file.suggestedFilename()).toBe('How Photosynthesis Works.fdx');
   const text = readFileSync(await file.path(), 'utf8');
   const parsed = await page.evaluate((xml) => {
