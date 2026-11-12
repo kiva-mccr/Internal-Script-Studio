@@ -25,8 +25,9 @@ voice (EX-8, `lib/listen.ts`, `lib/follow.ts`): the marker follows the words hea
 - Each dialogue word is wrapped in a span (`wordSpans`, after `{@html}`), numbered like `read`, so the words
   already said are greyed out one by one (asked by the user); only the ones that change are touched each frame.
 - `listen()` must be called straight from the click, before any await (it makes the AudioContext there).
-- Follow my voice hides Start and the speed. The marker glides to where the voice was heard and keeps going at the
-  pace learnt from the voice (EX-12, `aim` and `paceFrom` in `lib/follow.ts`), up to 4 words on; it doesn't step
-  back for those few words, only for a line read again. It snaps the last bit, or it would never quite arrive and
-  the line would never dim. A hand scroll sets `heardTime` to Infinity, so it waits there for the voice. A failed start unticks the box by hand: the
+- Follow my voice hides Start and the speed. Each hearing adds a mark; the marker moves smoothly to where the
+  marks say the voice is now (EX-12, `voiceAt` and `move` in `lib/follow.ts`). A far place is followed only when
+  the next hearing agrees (`jump`). A hand scroll clears the marks, so it waits there for the voice.
+- The page behind loses its scroll bar while the teleprompter is open (`overflow: hidden` on the html element, put
+  back on close): it used to show one that moved nothing (found by the user). The teleprompter's own is thin. A failed start unticks the box by hand: the
   click ticked it while `voice` stayed ''.
