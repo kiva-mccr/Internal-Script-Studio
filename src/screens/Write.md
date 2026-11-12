@@ -39,4 +39,9 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   to, and its take's bar fills (a row with no take shows a grey bar and "No take yet"). A row's number is a button
   ("Play from row n") only while there is something to play (`canPlay`). A row's own ▶ pauses the script when it
   is the row being played, so its name is "Pause row n" then: tests tell it from the top bar's "Pause the script".
+- Flags (AP-9, mock-up 22): the flag button sits in the third slot of the row tools' top line (left 50px, clear of
+  the mic), seen on hover and focus and always once flagged. A new flag puts the cursor in its note; the note is
+  written on blur or Enter (`onchange`), not per key. "Needs a source" is offered while the note is empty. ‹ › above
+  the table step in row order (`current`, tinted `.stepped`). The flag's Clear has no aria-label (the flag button
+  already says "Clear the flag on row n"), so tests find it inside the row. Saving is the Editor's (`onFlag`).
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.

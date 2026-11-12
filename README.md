@@ -58,6 +58,10 @@ Status: a first working version. What it does today:
   back). The Review tab shows how many are open. Send for review, then Approve or Send back to writer; each step
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
+- **Flags:** flag a row to come back to it (the flag under its number, shown when you point at the row), with an
+  optional note such as "Needs a source". Step through flagged rows with ‹ › above the table and Clear each one.
+  Review shows them, the list counts them ("2 flagged"), and they are listed before Approve. Flags never change the
+  script, never make a History version and never show in exports.
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.

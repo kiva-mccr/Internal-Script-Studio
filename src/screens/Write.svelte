@@ -2,19 +2,23 @@
   import { tick } from 'svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
+  import type { Flag } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
   import { chosenMic } from '../lib/mic';
   import { outdated, wpm, type VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
+  import FlagIcon from './FlagIcon.svelte';
   import TextField from './TextField.svelte';
 
   // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, or a paste made rows,
   // with the blocks as they were before, so the Editor can offer Undo. onNotice: a message for the person.
   // voice: the rows' voice-over takes (AU-1), kept by the Editor; `name` signs a new take.
   // player: Play the script (AU-2), kept by the Editor; canPlay: a row's number plays from that row (onPlayFrom).
-  let { script = $bindable(), dir, voice, player, canPlay, name, onChange, onDeleted, onNotice, onPlayFrom }: {
+  // flagged: the flagged rows (AP-9), in row order; onFlag flags a row with a note, or clears it (null).
+  let { script = $bindable(), dir, voice, player, canPlay, name, flagged, onChange, onDeleted, onNotice, onPlayFrom, onFlag }: {
     script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
+    flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
@@ -92,6 +96,32 @@
   async function play(id: string) {
     if (player.row === id) return player.toggle();
     await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, OneDrive may still be syncing."));
+  }
+
+  // Flags (AP-9, mock-up 22). A new flag puts the cursor in its note; ‹ › step through them in row order.
+  let current = $state(''); // the flag stepped to
+  const flagIds = $derived([...flagged.keys()]);
+  const at = $derived(flagIds.indexOf(current));
+
+  async function toggleFlag(id: string) {
+    if (flagged.has(id)) return void onFlag(id, null);
+    if (!(await onFlag(id, ''))) return;
+    current = id;
+    await tick();
+    table?.querySelector<HTMLInputElement>(`[data-row="${id}"] .flag-note input`)?.focus();
+  }
+
+  function step(by: number) {
+    const count = flagIds.length;
+    if (!count) return;
+    current = flagIds[at < 0 ? (by > 0 ? 0 : count - 1) : (at + by + count) % count];
+    table?.querySelector(`[data-row="${current}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  // A note is written when the box is left or Enter is pressed, not on every key.
+  function saveNote(id: string, box: HTMLInputElement) {
+    const flag = flagged.get(id);
+    if (flag && box.value.trim() !== flag.text) onFlag(id, box.value.trim());
   }
 
   const day = (ms: number) => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -209,6 +239,16 @@
 </script>
 
 {#if script.intro}<p class="note">{script.intro}</p>{/if}
+{#if flagIds.length}
+  <div class="flags">
+    <span role="group" aria-label="Flags">
+      <FlagIcon />
+      <span class="count">{at < 0 ? '' : `${at + 1} of `}{flagIds.length} flagged</span>
+      <button aria-label="Previous flag" title="Previous flag" onclick={() => step(-1)}>‹</button>
+      <button aria-label="Next flag" title="Next flag" onclick={() => step(1)}>›</button>
+    </span>
+  </div>
+{/if}
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="table" bind:this={table} onkeydown={keys}>
   <div class="head grid" style:grid-template-columns={columns}>
@@ -243,7 +283,8 @@
       {@const recording = voice.recording === block.id}
       {@const here = player.row === block.id}
       {@const sounding = voice.playing === block.id || (here && player.on)}
-      <div class="row grid" style:grid-template-columns={columns} class:here data-row={block.id} data-block={i}>
+      {@const flag = flagged.get(block.id)}
+      <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && current === block.id} data-row={block.id} data-block={i}>
         <div class="num">
           {#if canPlay}
             <button class="from" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}>{n}</button>
@@ -256,6 +297,10 @@
             <button aria-label="Add a row below row {n}" title="Add a row below" onclick={() => insertRow(i + 1)}>+</button>
             <button aria-label="Delete row {n}" title="Delete" onclick={() => remove(i)}>×</button>
           </span>
+          <button class="flag" class:on={flag} disabled={!block.id} onclick={() => toggleFlag(block.id)}
+            aria-label={flag ? `Clear the flag on row ${n}` : `Flag row ${n}`} aria-pressed={!!flag} title={flag ? 'Clear the flag' : 'Flag this row'}>
+            <FlagIcon filled={!!flag} size={15} />
+          </button>
         </div>
         <div class="mic-cell">
           <button class="mic" class:has={take} class:on={recording} disabled={!block.id} onclick={() => mic(block.id)}
@@ -297,6 +342,20 @@
         {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
           <FilesCell files={block.files} {dir} {onNotice}
             onChange={(files) => { block.files = files; onChange(); }} />
+        {/if}
+        {#if flag}
+          <div class="flag-note">
+            <label>
+              <FlagIcon size={13} />
+              <input value={flag.text} aria-label="Flag note, row {n}" placeholder="Add a note (optional), e.g. check this fact"
+                onchange={(e) => saveNote(block.id, e.currentTarget)} onkeydown={(e) => e.key === 'Enter' && e.currentTarget.blur()} />
+            </label>
+            {#if !flag.text}
+              <button class="chip" onclick={() => onFlag(block.id, 'Needs a source')}>Needs a source</button>
+            {/if}
+            <span class="by">{flag.who}</span>
+            <button class="clear" onclick={() => onFlag(block.id, null)}>Clear</button>
+          </div>
         {/if}
       </div>
     {/if}
@@ -375,4 +434,27 @@
   .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .note { margin: 0 0 8px; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
   .adds { display: flex; gap: 8px; margin-top: 12px; }
+  /* Flags (AP-9): amber, like the page's other "come back to this" marks. */
+  .flags { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .flags > span { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 12px; border: 1px solid #f5d9b5;
+    border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
+  .flags .count { padding: 0 6px 0 2px; font-weight: 500; }
+  .flags button { min-width: 36px; min-height: 36px; border: 0; border-radius: 6px; background: none; color: var(--flag); font-size: 16px; }
+  .flags button:hover { background: #fdebd3; }
+  /* In the third slot of the tools' top line, clear of the mic; seen on hover and focus, always once flagged. */
+  .flag { position: absolute; top: 24px; left: 50px; display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: #8a8a8a; opacity: 0; }
+  .row:hover .flag, .flag:focus-visible, .flag.on { opacity: 1; }
+  .flag:hover { background: #f0f0f0; color: var(--ink); }
+  .flag.on { color: var(--flag-mark); }
+  .row.stepped { border-radius: 8px; background: #fffbf5; }
+  .flag-note { grid-column: 3 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px;
+    padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
+  .flag-note label { display: flex; flex: 1 1 280px; align-items: center; gap: 8px; min-width: 0; }
+  .flag-note input { flex: 1; min-width: 0; min-height: 32px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 14px; }
+  .flag-note input::placeholder { color: #a07850; }
+  .chip { min-height: 30px; padding: 0 10px; border: 1px solid #f5d9b5; border-radius: 999px; background: #fff; color: var(--flag); font-size: 13px; font-weight: 500; }
+  .by { font-size: 12px; }
+  .clear { min-height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--flag); font-size: 13px; font-weight: 500; }
+  .clear:hover, .chip:hover { background: #fdebd3; }
 </style>

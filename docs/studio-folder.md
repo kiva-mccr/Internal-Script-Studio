@@ -144,4 +144,8 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
 - `row` and `field` say where it belongs (`dialogue`, `on_screen` or `files`); the row id keeps it attached when
   rows move. If its quote is no longer in the row, it shows as "on text that has since changed".
 
+Flags on rows (AP-9) are kept here too: `flag` (with `row`, and the note in `text`, which may be empty) and
+`unflag` (with `row`). The newest of the two about a row says whether it is flagged; a changed note is a new
+`flag`. A flag on a row no longer in the script is not shown (Undo of the delete brings it back).
+
 RV-1 to RV-3 build on this and may add fields; they never change what these mean.

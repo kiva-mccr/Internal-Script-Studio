@@ -23,7 +23,7 @@
   import Teleprompter from './Teleprompter.svelte';
   import Review from './Review.svelte';
   import Write from './Write.svelte';
-  import { addNote, listNotes, threads, type Field, type Note } from '../lib/comments';
+  import { addNote, flags, listNotes, threads, type Field, type Note } from '../lib/comments';
 
   // review: opened from a shared link, so it starts on the Review tab (RV-10).
   let { folder, path, name, review = false }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean } =
@@ -60,15 +60,18 @@
   let prompting = $state(false); // the teleprompter is open (EX-2)
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
-  // What is still open, shown before Approve (RV-5, mock-up 20): open comments and suggestions, then missing files.
+  // Flagged rows (AP-9), in row order; kept with the comments.
+  const flagged = $derived(flags(notes, script ? rows(script).map((row) => row.id) : []));
+  // What is still open, shown before Approve (RV-5, mock-up 20): flags, open comments and suggestions, then missing files.
   const loose = $derived.by(() => {
     const numbers = new Map(script ? rows(script).map((row, i) => [row.id, i + 1]) : []);
-    const items: Loose[] = threads(notes).filter((t) => !t.resolved).map((t) => {
+    const items: Loose[] = [...flagged.values()].map((f) => ({ id: `flag:${f.row}`, head: `Flag · ${f.who} · row ${numbers.get(f.row)}`, text: f.text || 'No note' }));
+    items.push(...threads(notes).filter((t) => !t.resolved).map((t) => {
       const n = numbers.get(t.comment.row ?? '');
       const suggestion = t.comment.kind === 'suggestion';
       return { id: t.comment.id, head: `${suggestion ? 'Suggestion' : 'Comment'} · ${t.comment.who} · ${n ? `row ${n}` : 'a deleted row'}`,
         text: suggestion ? `“${t.comment.replace}”` : t.comment.text ?? '' };
-    });
+    }));
     const lost = lostFiles.size;
     if (lost) items.push({ id: '', head: `${lost} ${lost === 1 ? 'file' : 'files'} missing`, text: [...lostFiles].map((f) => f.split('/').pop()).join(', ') });
     return items;
@@ -321,6 +324,9 @@
     }
   }
 
+  // Flags a row with a note (AP-9), or clears its flag (null).
+  const flag = (row: string, text: string | null) => note(text === null ? { kind: 'unflag', row } : { kind: 'flag', row, text });
+
   // A comment, reply, resolve or reopen, in this person's name. Returns false if it couldn't be written.
   async function note(entry: Omit<Note, 'v' | 'id' | 'when' | 'who'>): Promise<boolean> {
     if (!dir) return false;
@@ -451,6 +457,13 @@
   // From the list before Approve (RV-5): to that comment in Review, or to the Assets tab for missing files.
   async function showLoose(id: string) {
     if (!id) return (mode = 'assets'), checkFiles();
+    if (id.startsWith('flag:')) {
+      mode = 'write';
+      await tick();
+      const row = document.querySelector(`[data-row="${id.slice(5)}"]`);
+      row?.scrollIntoView({ block: 'center' });
+      return row?.querySelector<HTMLElement>('.flag-note input')?.focus({ preventScroll: true });
+    }
     const card = document.querySelector<HTMLElement>(`article[data-id="${id}"]`);
     card?.scrollIntoView({ block: 'center' });
     card?.click(); // marks it, and its quote, as the one being read
@@ -613,13 +626,13 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {script} {notes} onAdd={note} onApply={apply} />
+    <Review {script} {notes} {flagged} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    <Write bind:script {dir} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
+    <Write bind:script {dir} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
 <style>
