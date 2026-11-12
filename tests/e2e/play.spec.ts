@@ -76,7 +76,7 @@ test('Space pauses and Esc stops, but not while typing', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
 });
 
-test('Play is offered only in Write and once a row has a take; recording stops it', async ({ page }) => {
+test('Play is offered in Write and Review once a row has a take; recording stops it', async ({ page }) => {
   await openWithTakes(page, []);
   await expect(page.getByRole('button', { name: 'Play the script' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Play from row 1' })).toHaveCount(0);
@@ -114,4 +114,46 @@ test('a row number turns into ▶ under the mouse, and shows ❚❚ while its ro
   await pause.click();
   await expect(page.getByRole('button', { name: 'Carry on playing the script' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play from row 3' })).toBeVisible();
+});
+
+test('Review plays the takes without the recording tools (AU-9)', async ({ page }) => {
+  await openWithTakes(page, [1]);
+  await page.getByRole('button', { name: 'Review' }).click();
+  const row1 = page.locator('.row').filter({ has: page.getByLabel('Dialogue, row 1') });
+  await expect(row1.locator('.take .about')).toContainText(/\d+ wpm · Sam, \w{3} \d+/);
+  // Only listening: no mic, no deleting the take, no rows of other takes.
+  await expect(page.getByRole('button', { name: /^Record row/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Delete the take/ })).toHaveCount(0);
+  await expect(page.locator('.take')).toHaveCount(1);
+  // A take alone.
+  await page.getByRole('button', { name: 'Play row 1' }).click();
+  await expect(page.getByRole('button', { name: 'Pause row 1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play row 1' })).toBeVisible({ timeout: 5000 });
+  // Play the script from a row: the row is tinted, a row with no take waits its read time.
+  const from = page.getByRole('button', { name: 'Play from row 2' });
+  await expect(from.locator('.go')).toBeHidden();
+  await page.getByLabel('Dialogue, row 2').hover();
+  await expect(from.locator('.go')).toBeVisible();
+  await from.click();
+  await expect(page.locator('.row.here').getByLabel('Dialogue, row 2')).toBeVisible();
+  await expect(page.locator('.row.here').getByRole('status')).toContainText('No take yet · waiting its read time, 0:0');
+  await expect(page.getByRole('button', { name: 'Pause at row 2' })).toHaveText('❚❚');
+  await page.getByRole('button', { name: 'Pause the script' }).click();
+  await page.getByRole('button', { name: 'Stop playing' }).click();
+  await expect(page.locator('.row.here')).toHaveCount(0);
+  // The top bar's Play starts from the top, where the take is.
+  await page.getByRole('button', { name: 'Play the script' }).click();
+  await expect(page.locator('.row.here').getByLabel('Dialogue, row 1')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pause row 1' })).toBeVisible();
+});
+
+test('an outdated take shows Outdated in Review, with no × to hide it (AU-9)', async ({ page }) => {
+  await openWithTakes(page, [1]);
+  await page.getByLabel('Dialogue, row 1').click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' Changed.');
+  await expect(page.locator('.old')).toContainText('Outdated');
+  await page.getByRole('button', { name: 'Review' }).click();
+  await expect(page.locator('.old')).toHaveText('Outdated');
+  await expect(page.getByRole('button', { name: /hide Outdated/ })).toHaveCount(0);
 });

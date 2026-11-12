@@ -36,7 +36,7 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
 - A folded column's cells are not drawn at all (no hidden text fields); a grey dot marks a row with something there.
 - Recording (AU-4): the mic records from the click; while `voice.cue` (the first second) a red ring fills round it and the
   line says "Getting ready…", then ■ and "● Recording". Esc then throws the take away (the Editor's keys). The ▶ shows the
-  cropped length (`span`), its title how much was cut.
+  cropped length (`span`), its title how much was cut. The take line is `Take.svelte`, shared with Review.
 - The mic has no `title` (no hover text) in any state: it covered the line being read (user asked twice). Its
   name is only the `aria-label`. A test checks this.
 - The takes live in the Editor's `VoiceOver` (`lib/voice.svelte.ts`); a row with no id yet can't record.

@@ -105,7 +105,7 @@ Status: a first working version. What it does today:
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
   for its read time. With the mouse on a row, its number becomes ▶: click it to play from there (the row playing shows ❚❚); pause with the same button or Space, stop with ■ or
-  Esc.
+  Esc. It works the same in Review, where each line also shows its take to listen to, without the mic or delete.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.

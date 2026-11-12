@@ -6,10 +6,10 @@
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
   import { chosenMic } from '../lib/mic';
-  import { span } from '../lib/cleanup.svelte';
-  import { outdated, wpm, type VoiceOver } from '../lib/voice.svelte';
+  import type { VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
   import FlagIcon from './FlagIcon.svelte';
+  import Take from './Take.svelte';
   import TextField from './TextField.svelte';
 
   // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, or a paste made rows,
@@ -126,7 +126,6 @@
     if (flag && box.value.trim() !== flag.text) onFlag(id, box.value.trim());
   }
 
-  const day = (ms: number) => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   function move(i: number, by: number) {
     const j = i + by;
@@ -325,24 +324,13 @@
             {#if voice.cue}<p class="take" role="status">Getting ready…</p>
             {:else}<p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>{/if}
           {:else if take}
-            {@const rate = wpm(take, block.dialogue)}
-            {@const part = span(take)}
-            <div class="take">
-              <button class="play" aria-label="{sounding ? 'Pause' : 'Play'} row {n}" onclick={() => play(block.id)}
-                title={part.cut ? `${clock(part.seconds)} after cropping ${part.cut} s of silence` : undefined}>
-                {sounding ? '❚❚' : '▶'} {clock(part.seconds)}
-              </button>
-              <span class="bar"><span style:width="{(here ? player.at : voice.playing === block.id ? voice.at : 0) * 100}%"></span></span>
-              {#if outdated(take, block.dialogue)}<span class="old" title="The line has changed since this take">Outdated<button
-                aria-label="Row {n}'s take matches the line: hide Outdated" title="The take already says this: hide Outdated"
-                onclick={() => voice.current(dir, block.id, block.dialogue).catch(() => onNotice("Outdated couldn't be hidden."))}>×</button></span>{/if}
-              <span class="about">{rate ? `${rate} wpm` : ''}{rate && take.by ? ' · ' : ''}{take.by ? `${take.by}, ${day(take.at)}` : ''}</span>
-              <button class="drop" aria-label="Delete the take of row {n}" title="Delete the take"
-                onclick={() => voice.remove(dir, block.id).catch(() => onNotice("The take couldn't be deleted."))}>×</button>
-            </div>
+            <Take {take} dialogue={block.dialogue} n={n ?? 0} {sounding} at={here ? player.at : voice.playing === block.id ? voice.at : 0}
+              onPlay={() => play(block.id)}
+              onCurrent={() => voice.current(dir, block.id, block.dialogue).catch(() => onNotice("Outdated couldn't be hidden."))}
+              onDrop={() => voice.remove(dir, block.id).catch(() => onNotice("The take couldn't be deleted."))} />
           {:else if here}
             <p class="take" role="status">
-              <span class="bar wait"><span style:width="{player.at * 100}%"></span></span>
+              <span class="bar"><span style:width="{player.at * 100}%"></span></span>
               No take yet · waiting its read time, {clock(player.steps[player.i].seconds)}
             </p>
           {/if}
@@ -437,20 +425,9 @@
   @keyframes fill-ring { from { stroke-dashoffset: 88; } to { stroke-dashoffset: 0; } }
   .take { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 13px; color: var(--muted); }
   .take.rec { color: var(--danger); }
-  .old { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px 1px 8px; border-radius: 999px; background: #fff4e5;
-    color: #7a4a00; font-size: 12px; font-weight: 500; }
-  .old button { min-width: 20px; min-height: 20px; padding: 0; border: 0; border-radius: 999px; background: none; color: inherit;
-    font-size: 14px; cursor: pointer; }
-  .old button:hover { background: #ffe3bf; }
-  .play { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border: 1px solid var(--accent);
-    border-radius: 999px; background: #eef2fb; color: var(--accent); font-size: 13px; font-weight: 500; }
+  /* A row with no take while the script plays over it; the take's own bar is in Take.svelte. */
   .bar { flex: 0 1 72px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
-  .bar span { display: block; height: 100%; background: var(--accent); }
-  .bar.wait { flex-basis: 72px; }
-  .bar.wait span { background: #8a8a8a; }
-  .drop { min-height: 28px; padding: 0 6px; border: 0; background: none; color: #8a8a8a; font-size: 15px; opacity: 0; }
-  .row:hover .drop, .drop:focus-visible { opacity: 1; }
-  .drop:hover { color: var(--danger); }
+  .bar span { display: block; height: 100%; background: #8a8a8a; }
   .screen { font-size: 15px; color: #3d3d3d; }
   .section { display: flex; align-items: center; gap: 12px; padding: 28px 12px 8px; border-bottom: 1px solid var(--line); }
   .section-title { flex: 1; border: 0; padding: 4px 0; font: inherit; font-size: 18px; font-weight: 600; background: none; }
