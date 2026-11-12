@@ -628,7 +628,7 @@
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    <Write bind:script {dir} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
+    <Write bind:script {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
   {/if}
 </main>
 {#if script && dir && !clash && (mode === 'write' || mode === 'review')}

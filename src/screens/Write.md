@@ -1,7 +1,7 @@
 # `src/screens/Write.svelte`
 
 The Write screen (mock-up 3): one script as rows of three columns. Edit in place, add, move and delete rows and
-sections, add files, links and notes (`FilesCell.svelte`), record a voice-over take for a row (AU-1), and follow the
+sections, add files, links and notes (`FilesCell.svelte`, with files from other scripts, AS-1), record a voice-over take for a row (AU-1), and follow the
 script as it plays (AU-2). Any column but the last one open folds to a thin strip (AP-17).
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `format.spec.ts`, `voice.spec.ts`, `play.spec.ts`.

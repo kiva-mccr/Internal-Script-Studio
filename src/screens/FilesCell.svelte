@@ -1,23 +1,33 @@
 <script lang="ts">
   import { IMAGE } from './Attached.svelte';
+  import SharedFiles from './SharedFiles.svelte';
   import { addAsset, assetFile } from '../lib/folder';
   import { readFileRef } from '../lib/script';
 
-  // files: the row's Files lines. onChange: called with the new list. onNotice: a message for the page.
+  // files: the row's Files lines. root and here: the picked folder and this script's folder name, for "From other
+  // scripts…" (AS-1); row: the row's number. onChange: called with the new list. onNotice: a message for the page.
   let {
     files,
     dir,
+    root,
+    here,
+    row,
     onChange,
     onNotice,
   }: {
     files: string[];
     dir: FileSystemDirectoryHandle;
+    root: FileSystemDirectoryHandle;
+    here: string;
+    row: number;
     onChange: (files: string[]) => void;
     onNotice: (message: string) => void;
   } = $props();
 
-
   let adding = $state(false);
+  let browsing = $state(false);
+  // The line last added from another script, and that script's title, shown under its chip.
+  let copied = $state<{ line: string; from: string } | null>(null);
   // Thumbnails: image files in the script's folder, by path, as short-lived blob URLs. Linked images use their link.
   let previews = $state<Record<string, string>>({});
 
@@ -73,6 +83,12 @@
     }
   }
 
+  function addShared(line: string, from: string) {
+    onChange([...files, line]);
+    copied = { line, from };
+    browsing = adding = false;
+  }
+
   function addTyped(event: SubmitEvent) {
     event.preventDefault();
     const line = typed.trim();
@@ -102,11 +118,15 @@
       {/if}
       <button class="remove" aria-label="Remove {ref.label}" onclick={() => onChange(files.filter((_, j) => j !== i))}>×</button>
     </span>
+    {#if copied?.line === line}<span class="copied">Copied from {copied.from}</span>{/if}
   {/each}
 
   {#if adding}
     <form class="add-form" onsubmit={addTyped}>
-      <button type="button" class="choose" onclick={() => picker.click()}>Choose a file…</button>
+      <span class="ways">
+        <button type="button" class="choose" onclick={() => picker.click()}>Choose a file…</button>
+        <button type="button" class="choose" onclick={() => (browsing = true)}>From other scripts…</button>
+      </span>
       <!-- svelte-ignore a11y_autofocus -->
       <input bind:value={typed} placeholder="or paste a link, or describe it" aria-label="Link or description" autofocus
         onkeydown={(e) => e.key === 'Escape' && (adding = false)} />
@@ -115,6 +135,7 @@
     <button class="add" onclick={() => (adding = true)}>+ Add</button>
   {/if}
   <input type="file" multiple hidden bind:this={picker} onchange={picked} />
+  {#if browsing}<SharedFiles {root} {here} {dir} {row} onAdd={addShared} onClose={() => (browsing = false)} />{/if}
 </div>
 
 <style>
@@ -135,6 +156,8 @@
   .add:focus-visible, :global(.row:hover) .add, :global(.row:focus-within) .add { opacity: 1; }
   .add:hover { color: var(--accent); }
   .add-form { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-  .choose { align-self: flex-start; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; padding: 5px 10px; font-size: 13px; }
+  .ways { display: flex; flex-wrap: wrap; gap: 6px; }
+  .copied { font-size: 12px; color: var(--muted); }
+  .choose { border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; padding: 5px 10px; font-size: 13px; }
   .add-form input { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: 6px; }
 </style>

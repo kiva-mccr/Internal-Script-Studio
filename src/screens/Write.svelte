@@ -16,8 +16,9 @@
   // voice: the rows' voice-over takes (AU-1), kept by the Editor; `name` signs a new take.
   // player: Play the script (AU-2), kept by the Editor; canPlay: a row's number plays from that row (onPlayFrom).
   // flagged: the flagged rows (AP-9), in row order; onFlag flags a row with a note, or clears it (null).
-  let { script = $bindable(), dir, voice, player, canPlay, name, flagged, onChange, onDeleted, onNotice, onPlayFrom, onFlag }: {
-    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
+  // root and folderName: the picked folder and this script's folder name, for "From other scripts…" (AS-1).
+  let { script = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, onChange, onDeleted, onNotice, onPlayFrom, onFlag }: {
+    script: Script; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
@@ -340,7 +341,7 @@
           <div class="screen"><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
         {/if}
         {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
-          <FilesCell files={block.files} {dir} {onNotice}
+          <FilesCell files={block.files} {dir} {root} here={folderName} row={n ?? 0} {onNotice}
             onChange={(files) => { block.files = files; onChange(); }} />
         {/if}
         {#if flag}
