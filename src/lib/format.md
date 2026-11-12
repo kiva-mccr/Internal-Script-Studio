@@ -6,7 +6,8 @@ quote in formatted text.
 
 Also lists for the planning panel (AP-24): `showLists` shows `- `, `1. ` and `- [ ] ` / `- [x] ` as • 1. ☐ ☑,
 `toggleList` puts lines in or out of a list (a tick box line is ticked instead), `continueList` carries a list on
-with Enter.
+with Enter (or splits a line), `unlist` takes a mark off with Backspace, and `renumber` counts numbered lists again
+(AP-29). `changed` finds the stretch two texts differ by, so only that is typed over.
 
 - **Used by:** `screens/TextField.svelte`, `screens/Review.svelte`, `screens/History.svelte`. **Tests:**
   `tests/unit/format.test.ts`, `tests/unit/planning.test.ts`, `tests/e2e/format.spec.ts`.
@@ -19,3 +20,6 @@ with Enter.
 - KaTeX is imported only when an equation is on screen, so scripts without one never load it.
 - `toggleList` on a caret puts it at the end of the line, ready to type; on a selection it keeps the lines selected.
 - `plain` needs a DOM (it reads the HTML's text): browser only, not unit tests.
+- `renumber`: numbered lines that touch are one list, counted from its first line's number (so a list started at 5
+  stays 5, 6, 7); a blank or plain line ends it. Backspace on a middle item leaves the list after it as its own list,
+  which keeps its number (1, b, 3), like Word.

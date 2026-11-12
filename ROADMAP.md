@@ -173,9 +173,12 @@ and suggestions, keeps every version, and exports them for production.
   name in the top bar is a folder icon back to the list ("Back to <folder>" on hover and for screen readers); the
   length follows the save status as one grey line, "Saved · 0:25", or with takes "Saved · 0:04/0:25", and steps
   aside while a red save message shows.
-- [ ] **AP-29** Numbered lists that renumber themselves (asked by the user): in the planning panel and every other
-  text box, adding, removing or moving a line of a numbered list renumbers the lines after it at once, so nothing is
-  fixed by hand (today Enter gives the next number but the lines below keep their old ones). Mock-up first.
+- [x] **AP-29** Numbered lists that renumber themselves (asked by the user). Mock-up 40, agreed as drawn. Built: in
+  the planning panel and in Dialogue and On screen, numbered lines that touch are one list and count on from its
+  first line's number after every change (Enter, Delete, Backspace, cut, paste, the list button); a blank or plain
+  line ends a list. Enter in the middle of a list line splits it into two items; Backspace just after a list mark
+  takes the mark off. Ctrl+Z undoes the renumbering, then the change. Cells get this for lists typed by hand, with no
+  list buttons. Not in this step: lists inside lists, letters or Roman numerals.
 - [ ] **AP-31** Credits and contacts (asked by the user): the people who work on the scripts are kept once for the
   whole folder, each with their contact details, so the team always knows where to find someone; each script's
   credits pick from them and only add a short blurb on what that person did on it or their role, so the credits stay
