@@ -9,8 +9,8 @@ export type Measure = { from: number; to: number; gain: number };
 const KEY = 'voice-cleanup';
 const PAD = 0.25; // seconds kept either side of the speech, so words never start abruptly
 const FRAME = 0.01; // seconds per loudness reading
-const JOIN = 0.3; // gaps shorter than this are inside the speech
-const SOUND = 0.1; // a sound shorter than this on its own (a mouse click) isn't speech
+const JOIN = 0.25; // gaps shorter than this are inside the speech
+const SOUND = 0.15; // a sound shorter than this on its own (a mouse click, a breath) isn't speech
 const TARGET = 0.1; // the speech's loudness to aim for (RMS, about -20 dBFS)
 const CEILING = 0.9; // the loudest sample never goes past this
 
@@ -44,8 +44,13 @@ export function measure(samples: Float32Array, rate: number): Measure | null {
   if (!levels.length) return null;
   const peak = Math.max(...levels);
   if (peak < 0.001) return null; // silence (about -60 dBFS)
-  const floor = [...levels].sort((a, b) => a - b)[Math.floor(levels.length / 10)];
-  const loud = Math.max(floor * 3, peak * 0.03);
+  // "Loud" is measured against the voice, not the peak (a click can be the peak) or only the room's noise (which sat
+  // just under it, so breaths and rustles counted as speech and nothing was cut): a tenth of the voice's level
+  // (-20 dB), and well over the quietest tenth.
+  const sorted = [...levels].sort((a, b) => a - b);
+  const floor = sorted[Math.floor(levels.length / 10)];
+  const voice = sorted[Math.floor(levels.length * 0.95)];
+  const loud = Math.max(floor * 4, voice * 0.1, 0.001);
   // Runs of loud frames, joined across short gaps; the speech is from the first long one to the last.
   const runs: [number, number][] = [];
   levels.forEach((level, i) => {
