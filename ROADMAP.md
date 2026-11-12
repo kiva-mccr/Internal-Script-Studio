@@ -341,7 +341,9 @@ and suggestions, keeps every version, and exports them for production.
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
 - [ ] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
   request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
-  and which features are in it. Mock-up first (board 32).
+  and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
+  GitHub, hover shows its title and when it went live; set at build time (docs-only merges don't rebuild); "dev"
+  when run locally.
 
 ## Last (the user's order: these wait until everything above is done)
 
