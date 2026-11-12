@@ -2,7 +2,8 @@
 // browser (its id and name). '' is the computer's default.
 import { keep, recall } from './remember';
 
-export type Mic = { id: string; name: string };
+// isDefault: the computer's default mic (its sound settings), shown "(default)" in Settings.
+export type Mic = { id: string; name: string; isDefault?: boolean };
 type GetStream = (constraints: MediaStreamConstraints) => Promise<MediaStream>;
 
 
@@ -13,19 +14,31 @@ export function chooseMic(mic: Mic): void {
   keep('mic-name', mic.id ? mic.name : '');
 }
 
-// The microphones the browser shows. Before Chrome may use the mic it hides their names (and ids), so then there are
-// none to list but the default. Tests stand in for it with `window.studioMics`.
+// The microphones the browser shows, with the computer's default marked (AU-5, board 33). Before the browser may use
+// the mic it hides their names (and ids), so then there are none to list. Tests stand in for the browser's device list
+// with `window.studioMics`.
 export async function listMics(): Promise<Mic[]> {
-  const fake = (window as unknown as { studioMics?: () => Promise<Mic[]> }).studioMics;
-  if (fake) return fake();
+  const fake = (window as unknown as { studioMics?: () => Promise<Device[]> }).studioMics;
   try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices
-      .filter((d) => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications' && d.label)
-      .map((d) => ({ id: d.deviceId, name: d.label }));
+    return micsFrom(fake ? await fake() : await navigator.mediaDevices.enumerateDevices());
   } catch {
     return [];
   }
+}
+
+type Device = Pick<MediaDeviceInfo, 'deviceId' | 'kind' | 'label' | 'groupId'>;
+
+// Chrome and Edge list the computer's default twice: as itself and as an extra "default" entry ("Default - Blue
+// Yeti", same groupId). The extra entries ("default", "communications") are left out and mark the real mic instead.
+// With no "default" entry the browser lists the default first.
+export function micsFrom(devices: Device[]): Mic[] {
+  const inputs = devices.filter((d) => d.kind === 'audioinput' && d.deviceId && d.label);
+  const extra = inputs.find((d) => d.deviceId === 'default');
+  const mics = inputs.filter((d) => d.deviceId !== 'default' && d.deviceId !== 'communications');
+  const byGroup = extra?.groupId ? mics.filter((d) => d.groupId === extra.groupId) : [];
+  const byName = extra ? mics.filter((d) => extra.label.endsWith(d.label)) : [];
+  const def = (byGroup.length === 1 ? byGroup[0] : byName[0] ?? byGroup[0]) ?? (extra ? undefined : mics[0]);
+  return mics.map((d) => ({ id: d.deviceId, name: d.label, ...(d === def ? { isDefault: true } : {}) }));
 }
 
 // The stream from the chosen mic. If it is unplugged (or gone), the default records instead and `fellBack` says so,

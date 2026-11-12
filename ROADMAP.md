@@ -338,6 +338,14 @@ and suggestions, keeps every version, and exports them for production.
   and wpm; hovering ▶ says how much was cut. Esc while the ring fills throws the new take away. Settings >
   Voice-over adds three switches, kept in this browser: crop the silence (on), reduce background noise (Chrome's
   own, on as today) and make every take equally loud (on); they apply to takes recorded from then on.
+- [x] **AU-5** Mark the default mic (asked by the user): in Settings > Voice-over, drop the separate "Default" entry
+  from the Microphone list and show "(default)" on the right of the row of the mic that is the computer's default.
+  Agreed on board 33: our own small drop-down (the browser's can't right-align), "(default)" on the computer's default
+  mic and moving with it; never picked or picking that row follows the default, any other row sticks to that mic;
+  before Chrome may use the mic one row "Computer's microphone (default)"; an unplugged pick stays, "(unplugged)".
+  Built so: the default is found from the browser's extra "default" entry (same device, or its name); with no such
+  entry the first mic is the default. Arrow keys, Enter and Esc work as in the browser's drop-down; Esc closes the
+  list, not Settings.
 
 - [ ] **AU-6** Quiet the hum in the pauses of a take (a noise gate between words; suggested while fixing AU-4).
   Shelved by the user: "we can come back to that much later".
