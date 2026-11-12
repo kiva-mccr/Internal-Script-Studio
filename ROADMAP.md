@@ -104,8 +104,11 @@ and suggestions, keeps every version, and exports them for production.
   for each paragraph (drafts written in Word). Built: each line of the pasted text is a paragraph (blank lines and
   spaces around them dropped); the first goes where the cursor is, the others get new rows below, and what followed
   the cursor ends the last one. One line pastes as usual. The Undo bar ("Pasted as n rows.") puts it back.
-- [ ] **AP-14** Keyboard flow (suggested, the user agreed): Tab between cells, Ctrl+Enter for a new row below,
+- [x] **AP-14** Keyboard flow (suggested, the user agreed): Tab between cells, Ctrl+Enter for a new row below,
   Alt+Up / Alt+Down to move a row, so writing never needs the mouse.
+  Built: Tab and Shift+Tab go between the text boxes only (section titles, Dialogue, On screen), past the row's
+  buttons and files; Ctrl+Enter adds a row below (or a section's first row, from its title) and puts the cursor in it;
+  Alt+Up / Alt+Down move the row (or section) and the cursor stays where it was.
 - [ ] **AP-15** New script from a template (suggested, the user agreed): New script can start as a copy of a script
   the person picks (its sections and rows, not its history or comments). The look is agreed before building.
 - [x] **AP-16** A better place for the save status (asked by the user: where it sat, between Send for review and

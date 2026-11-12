@@ -22,6 +22,10 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   `paragraphs` in `lib/script.ts`) make rows (`pasteRows`); one line pastes as usual. It goes through the Undo bar
   (`onDeleted`), not Ctrl+Z, so the row pasted into is copied for Undo, not kept by reference. New rows are set up
   in full before going into `script.blocks`: changing the plain object afterwards would not show (Svelte's proxy).
+- Keyboard flow (AP-14) is one `keydown` on the table (`keys`), for its text boxes only (section titles and
+  textareas). Tab goes to the next box in the page, past the buttons and files; from the last box the browser carries
+  on. Moving a row takes its box out of the page for a moment, so the cursor (box and selection) is put back after
+  `tick()`, found again by `data-block`. Alt+Up/Down swaps with the block next to it, a section too, like ↑ and ↓.
 - Row tools are placed over the number column so they never make a row taller.
 - Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

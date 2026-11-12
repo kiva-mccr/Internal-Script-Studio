@@ -166,13 +166,50 @@
     onChange();
   }
 
+  // Keyboard flow (AP-14): Tab and Shift+Tab go from text box to text box (section titles, Dialogue, On screen),
+  // past the buttons in between; Ctrl+Enter adds a row below and goes to it; Alt+Up / Alt+Down move the row.
+  const BOXES = '.section-title, textarea';
+  async function keys(e: KeyboardEvent) {
+    const box = e.target as HTMLElement;
+    const block = box.closest<HTMLElement>('[data-block]');
+    if (!table || !block || !box.matches(BOXES)) return;
+    const i = Number(block.dataset.block);
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const all = [...table.querySelectorAll<HTMLElement>(BOXES)];
+      const next = all[all.indexOf(box) + (e.shiftKey ? -1 : 1)];
+      // From the last box the browser carries on as usual (to + Add row).
+      if (!next) return;
+      e.preventDefault();
+      next.focus();
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+      e.preventDefault();
+      insertRow(i + 1);
+      await tick();
+      table.querySelector<HTMLElement>(`[data-block="${i + 1}"] textarea`)?.focus();
+    } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+      e.preventDefault();
+      const j = i + (e.key === 'ArrowUp' ? -1 : 1);
+      if (j < 0 || j >= script.blocks.length) return;
+      // Moving takes the box out of the page for a moment, so the cursor is put back where it was.
+      const nth = [...block.querySelectorAll(BOXES)].indexOf(box);
+      const [start, end] = box instanceof HTMLTextAreaElement || box instanceof HTMLInputElement
+        ? [box.selectionStart ?? 0, box.selectionEnd ?? 0] : [0, 0];
+      move(i, j - i);
+      await tick();
+      const again = table.querySelectorAll<HTMLTextAreaElement | HTMLInputElement>(`[data-block="${j}"] :is(${BOXES})`)[nth];
+      again?.focus();
+      again?.setSelectionRange(start, end);
+    }
+  }
+
   const focusIf = (node: HTMLInputElement, on: boolean) => {
     if (on) { node.focus(); fresh = null; }
   };
 </script>
 
 {#if script.intro}<p class="note">{script.intro}</p>{/if}
-<div class="table" bind:this={table}>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="table" bind:this={table} onkeydown={keys}>
   <div class="head grid" style:grid-template-columns={columns}>
     <span>#</span><span></span>
     {#each COLUMNS as col (col.key)}

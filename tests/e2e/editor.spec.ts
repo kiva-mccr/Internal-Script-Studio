@@ -380,3 +380,41 @@ test('pasting several paragraphs into Dialogue makes a row for each; Undo puts i
   await expect(page.getByLabel('Dialogue, row 2')).toHaveValue('');
   await expect(page.getByLabel('Dialogue, row 3')).toHaveValue(/It needs three simple ingredients/);
 });
+
+test('Tab goes from box to box, Ctrl+Enter adds a row below, Alt+Up and Alt+Down move the row (AP-14)', async ({ page }) => {
+  await openExample(page);
+  const dialogue1 = page.getByLabel('Dialogue, row 1');
+  // Tab skips the row's buttons and files: Dialogue, On screen, then the next row's Dialogue; Shift+Tab goes back.
+  await dialogue1.click();
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('On screen, row 1')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('Dialogue, row 2')).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialogue1).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByLabel('Section title').first()).toBeFocused();
+
+  // Ctrl+Enter: a new row right below, with the cursor in its Dialogue.
+  await dialogue1.click();
+  await page.keyboard.press('Control+Enter');
+  await expect(page.getByLabel('Dialogue, row 2')).toBeFocused();
+  await expect(page.getByLabel('Dialogue, row 2')).toHaveValue('');
+  await page.keyboard.type('A new line.');
+  await expect(page.getByLabel('Dialogue, row 3')).toHaveValue(/^It needs three simple ingredients/);
+
+  // Alt+Up moves it above row 1 and the cursor stays in it, where it was.
+  await page.keyboard.press('Alt+ArrowUp');
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('A new line.');
+  await expect(page.getByLabel('Dialogue, row 1')).toBeFocused();
+  await page.keyboard.type(' More.');
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('A new line. More.');
+  await page.keyboard.press('Alt+ArrowDown');
+  await expect(page.getByLabel('Dialogue, row 2')).toHaveValue('A new line. More.');
+  await expect(page.getByLabel('Dialogue, row 2')).toBeFocused();
+  await saved(page);
+  const text = await readFile(page, SCRIPT);
+  expect(text.indexOf('Every leaf you have ever seen')).toBeLessThan(text.indexOf('A new line. More.'));
+  expect(text.indexOf('A new line. More.')).toBeLessThan(text.indexOf("It needs three simple ingredients"));
+});

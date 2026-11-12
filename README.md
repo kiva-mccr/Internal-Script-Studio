@@ -16,7 +16,8 @@ Status: a first working version. What it does today:
   folder with "Add shortcut to My files"). The browser remembers both.
 - **The list:** every script in the folder, its status, and who last edited it and when. New script starts one.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
-  add or delete it. Add section puts a new section right after the box you are typing in (or at the end); a section
+  add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Enter adds a row below, Alt+Up and
+  Alt+Down move the row. Add section puts a new section right after the box you are typing in (or at the end); a section
   left with no title is removed once you click out of it. Paste a draft (from Word, say) into a Dialogue box and
   each paragraph gets its own row; Undo at the bottom puts it back. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
   Images show a small preview; click it to see it full size. Select text for bold, italic, underline,
