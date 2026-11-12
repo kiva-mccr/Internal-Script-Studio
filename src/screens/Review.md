@@ -21,5 +21,9 @@ suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / S
 - Edit and Delete show only when `who` is `me` (the name in Settings) and the thread is open. A deleted one stays
   in place as "… deleted. Undo" while its id is in `gone`, which empties when Review is left. While a card's own
   edit box is open its other actions are hidden (the aside is narrow; they wrapped).
+- Files on comments (RV-11): the comment, reply and edit boxes are wrapped in `AttachBox.svelte`; a suggestion
+  (and its edit box) has none, and switching to Suggest a change drops any picked files. A comment or reply may be
+  only files. Cards show them with `Attached.svelte`. Snippets in the boxes are named `typing`, not `text`: `text`
+  is already the cell-text function here.
 - A section's read time (AP-12) sits at the right of its title, as in Write.
 - Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.

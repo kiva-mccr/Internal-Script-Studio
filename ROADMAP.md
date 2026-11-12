@@ -209,8 +209,14 @@ and suggestions, keeps every version, and exports them for production.
 - [x] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
   Review tab by default (Copy link, and the Teams embed of EX-10). Built: shared links end in `?review`; the app opens
   Review and drops the mark from the address, so a reload after moving to Write stays in Write.
-- [ ] **RV-11** Files on comments (asked by the user): a reviewer can attach files to a comment, kept in the script's
-  folder. Mock-up first.
+- [x] **RV-11** Files on comments (asked by the user): a reviewer can attach files to a comment, kept in the script's
+  folder. Built as mock-up 25 (the user agreed "Yes, as drawn", with every suggested choice): Attach file in the
+  comment and reply boxes, plus dropping files and pasting a screenshot; × takes one off before sending; a comment
+  or reply can be only files. Not on suggestions. Kept in `.studio/files/<note id>/`, written once and never
+  deleted (not in assets/, so never on the Assets tab or counted missing); 50 MB a file, with a message saying to
+  use a OneDrive link instead. Cards show images as a small preview and other files as a chip with the size;
+  clicking opens it in a new tab (Word and the like download). Editing your own (RV-7) can take files off or add
+  new ones. Left out as agreed: a "Use in script" button (idea below).
 
 ## Phase 4: exports
 
@@ -300,6 +306,9 @@ and suggestions, keeps every version, and exports them for production.
   Settings opens one with a Voice-over heading and a Microphone drop-down (Default first), kept in this browser.
   Before Chrome may use the mic only Default is listed, with why; an unplugged pick records with the default and
   says so.
+
+- [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
+  "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
 
 ## Last (the user's order: these wait until everything above is done)
 

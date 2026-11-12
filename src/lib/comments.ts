@@ -3,8 +3,15 @@
 // Editing your own (RV-7) is the same: an `edit` (new text or replace) or a `delete` / `undelete` about one; only the
 // author's count, and the newest counts.
 // Flags on rows (AP-9) live there too: a `flag` (with its note) or an `unflag`; the newest about a row counts.
+// Files on comments (RV-11): a comment's or reply's attached files are kept in .studio/files/<its id>/, written once;
+// an edit lists the files it keeps and adds its own new ones under its own id.
+
+import { safeName } from './folder';
 
 export type Field = 'dialogue' | 'on_screen' | 'files';
+// An attached file (RV-11): `path` is inside the script's folder, `.studio/files/<note id>/<name>`.
+export type Attachment = { name: string; path: string; size: number };
+export const MAX_FILE = 50 * 1024 * 1024; // 50 MB: bigger things go in OneDrive, as a link in the text
 export type Note = {
   v: 1;
   id: string;
@@ -19,6 +26,7 @@ export type Note = {
   text?: string; // a comment's words, or a flag's note (may be empty)
   replace?: string; // a suggestion's new text for `quote`
   about?: string; // the comment a reply, resolve, reopen, edit or delete is about
+  files?: Attachment[]; // a comment's or reply's files; on an edit, the whole new list
   // Worked out by threads(), never written: when its author last edited it, and whether it is deleted.
   edited?: string;
   deleted?: boolean;
@@ -45,14 +53,18 @@ export async function listNotes(dir: FileSystemDirectoryHandle): Promise<Note[]>
   return notes;
 }
 
+// Writes a note; `attach` are new files for it (RV-11), copied first into .studio/files/<its id>/ and added to the
+// end of `files`, so the note never names a file that isn't there.
 export async function addNote(
   dir: FileSystemDirectoryHandle,
   entry: Omit<Note, 'v' | 'id' | 'when'>,
   now = new Date(),
+  attach: File[] = [],
 ): Promise<Note> {
   // Kept to the millisecond, so a resolve and a reopen in the same second still come in order. Names keep seconds.
   const when = now.toISOString();
   const note: Note = { v: 1, id: randomId(), ...entry, when };
+  if (attach.length) note.files = [...(entry.files ?? []), ...(await saveFiles(dir, note.id, attach))];
   const folder = (await commentsFolder(dir, true))!;
   const name = `${when.replace(/\.\d+Z$/, 'Z').replace(/[-:]/g, '')}_${note.id}.json`;
   const writable = await (await folder.getFileHandle(name, { create: true })).createWritable();
@@ -77,6 +89,7 @@ export function threads(notes: Note[], withDeleted = false): Thread[] {
       if (note.kind === 'edit') {
         if (note.text !== undefined) target.text = note.text;
         if (note.replace !== undefined) target.replace = note.replace;
+        if (note.files !== undefined) target.files = note.files;
         target.edited = note.when;
       } else target.deleted = note.kind === 'delete';
       continue;
@@ -112,6 +125,41 @@ export function flags(notes: Note[], rows: string[]): Map<string, Flag> {
     if (note?.kind === 'flag') found.set(row, { row, text: note.text ?? '', who: note.who, when: note.when });
   }
   return found;
+}
+
+// A size as people say it: 180 KB, 2.4 MB, 1.8 GB.
+export function sizeText(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  const mb = bytes / (1024 * 1024);
+  if (mb < 1024) return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+  return `${(mb / 1024).toFixed(1)} GB`;
+}
+
+// Why a file can't be attached, or '' if it can.
+export function tooBig(file: File): string {
+  return file.size > MAX_FILE
+    ? `${file.name} is too big to attach (${sizeText(file.size)}; the limit is 50 MB). Put it in OneDrive and paste its link in the comment instead.`
+    : '';
+}
+
+async function saveFiles(dir: FileSystemDirectoryHandle, id: string, files: File[]): Promise<Attachment[]> {
+  const studio = await dir.getDirectoryHandle('.studio', { create: true });
+  const folder = await (await studio.getDirectoryHandle('files', { create: true })).getDirectoryHandle(id, { create: true });
+  const taken = new Set<string>();
+  const saved: Attachment[] = [];
+  for (const file of files) {
+    const dot = file.name.lastIndexOf('.');
+    const stem = safeName(dot > 0 ? file.name.slice(0, dot) : file.name) || 'file';
+    const ext = dot > 0 ? file.name.slice(dot).replace(/[\\/:*?"<>|\s]/g, '') : '';
+    let name = stem + ext;
+    for (let n = 2; taken.has(name.toLowerCase()); n++) name = `${stem} ${n}${ext}`;
+    taken.add(name.toLowerCase());
+    const writable = await (await folder.getFileHandle(name, { create: true })).createWritable();
+    await writable.write(file);
+    await writable.close();
+    saved.push({ name, path: `.studio/files/${id}/${name}`, size: file.size });
+  }
+  return saved;
 }
 
 const byTime = (notes: Note[]) => [...notes].sort((a, b) => (a.when < b.when ? -1 : a.when > b.when ? 1 : 0));

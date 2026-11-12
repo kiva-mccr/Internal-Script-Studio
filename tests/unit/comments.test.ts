@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flags, threads, type Note } from '../../src/lib/comments';
+import { flags, sizeText, threads, tooBig, type Note } from '../../src/lib/comments';
 
 const note = (id: string, kind: Note['kind'], when: string, extra: Partial<Note> = {}): Note => ({
   v: 1, id, kind, who: 'Ana', when: `2026-11-09T14:${when}Z`, ...extra,
@@ -100,5 +100,29 @@ describe('editing your own (RV-7)', () => {
 
   it('a delete by someone other than the author is ignored', () => {
     expect(threads([note('a', 'comment', '00:00'), note('d', 'delete', '01:00', { about: 'a', who: 'Lee' })])).toHaveLength(1);
+  });
+});
+
+describe('files on comments (RV-11)', () => {
+  const leaf = { name: 'leaf.jpg', path: '.studio/files/a/leaf.jpg', size: 2400000 };
+  const notes = { name: 'notes.pdf', path: '.studio/files/e/notes.pdf', size: 180000 };
+
+  it('an edit by the author replaces the list of files; one without files keeps them', () => {
+    const list = threads([
+      note('a', 'comment', '00:00', { text: 'Look', files: [leaf] }),
+      note('e', 'edit', '01:00', { about: 'a', text: 'Look again', files: [notes] }),
+      note('f', 'edit', '02:00', { about: 'a', text: 'Look once more' }),
+      note('x', 'edit', '03:00', { about: 'a', who: 'Sam', files: [] }),
+    ]);
+    expect(list[0].comment.files).toEqual([notes]);
+    expect(list[0].comment.text).toBe('Look once more');
+  });
+
+  it('sizes read as people say them, and files over 50 MB are refused with a message', () => {
+    expect([sizeText(300), sizeText(180000), sizeText(2400000), sizeText(60 * 1024 * 1024), sizeText(1.8 * 1024 ** 3)])
+      .toEqual(['1 KB', '176 KB', '2.3 MB', '60 MB', '1.8 GB']);
+    const big = { name: 'pilot-cut.mov', size: 51 * 1024 * 1024 } as File;
+    expect(tooBig(big)).toBe('pilot-cut.mov is too big to attach (51 MB; the limit is 50 MB). Put it in OneDrive and paste its link in the comment instead.');
+    expect(tooBig({ name: 'ok.png', size: 50 * 1024 * 1024 } as File)).toBe('');
   });
 });
