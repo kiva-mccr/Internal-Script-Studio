@@ -182,6 +182,12 @@ and suggestions, keeps every version, and exports them for production.
   accurate. Anyone can add and edit. To agree at the mock-up: where it opens from, whether exports carry the credits,
   and which contact details. Mock-up first.
 
+- [x] **AP-30** Turn a row into a section and back (asked by the user, first in the round): a row can become a
+  section heading where it is, and a section a row, without reaching for "+ Add section" at the bottom of a long
+  script. Mock-up 39 with the suggested choices, the buttons grey like the other tools (the user). Built: a § row tool
+  under the flag and a ¶ beside a section's ↑ ↓ ×; the title is the dialogue as plain text, On screen and files stay
+  in a row under it; the row's take, flag and comments are put away as a delete would; each goes through the Undo bar.
+
 ## Phase 3: review
 
 - [x] **RV-1** Comments on a row or a selection, reply, resolve.

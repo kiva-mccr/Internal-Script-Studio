@@ -50,4 +50,7 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   written on blur or Enter (`onchange`), not per key. "Needs a source" is offered while the note is empty. ‹ › above
   the table step in row order (`current`, tinted `.stepped`). The flag's Clear has no aria-label (the flag button
   already says "Clear the flag on row n"), so tests find it inside the row. Saving is the Editor's (`onFlag`).
+- Row to section and back (AP-30, mock-up 39): § sits under the flag (`.promote`, placed like the flag), ¶ in a
+  section's tools. Both go through the Undo bar (`onDeleted`). The Undo message is worked out before the splice: after
+  it the row has no number. A section turned into a row gets a fresh id (no take, flag or comments).
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.

@@ -2,6 +2,7 @@
   import { tick } from 'svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
+  import { plain } from '../lib/format';
   import type { Flag } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
@@ -173,6 +174,31 @@
     onChange();
   }
 
+  // A row becomes a section where it is, and a section a row (AP-30, mock-up 39), through the Undo bar. The title is
+  // the dialogue as plain text; On screen and files stay in a row under it. Its take, flag and comments are put away
+  // as a delete would; a section turned back gets a fresh row.
+  function toSection(i: number) {
+    const row = script.blocks[i];
+    if (row.type !== 'row') return;
+    const before = [...script.blocks];
+    const what = `Row ${numbers.get(row)} is now a section.`; // before the splice renumbers
+    const title = plain(row.dialogue).replace(/\s+/g, ' ').trim();
+    const section: Block = { type: 'section', title, note: row.note };
+    const rest = row.onScreen || row.files.length ? [{ ...emptyRow(script), onScreen: row.onScreen, files: [...row.files] }] : [];
+    script.blocks.splice(i, 1, section, ...rest);
+    onDeleted(before, what);
+    onChange();
+  }
+
+  function toRow(i: number) {
+    const section = script.blocks[i];
+    if (section.type !== 'section') return;
+    const before = [...script.blocks];
+    script.blocks.splice(i, 1, { ...emptyRow(script), dialogue: section.title, note: section.note });
+    onDeleted(before, `Section "${section.title}" is now a row.`);
+    onChange();
+  }
+
   // A new section goes right after the box the cursor is in (after a section's rows, from its title), or at the
   // end when no box is in use (AP-22). It starts empty, with "New section" as grey stand-in text, and takes the cursor.
   let fresh = $state<Block | null>(null);
@@ -275,6 +301,7 @@
         <span class="tools">
           <button aria-label="Move section up" title="Move up" onclick={() => move(i, -1)}>↑</button>
           <button aria-label="Move section down" title="Move down" onclick={() => move(i, 1)}>↓</button>
+          <button aria-label="Turn section into a row" title="Turn into a row" onclick={() => toRow(i)}>¶</button>
           <button aria-label="Delete section" title="Delete" onclick={() => remove(i)}>×</button>
         </span>
       </div>
@@ -306,6 +333,7 @@
             aria-label={flag ? `Clear the flag on row ${n}` : `Flag row ${n}`} aria-pressed={!!flag} title={flag ? 'Clear the flag' : 'Flag this row'}>
             <FlagIcon filled={!!flag} size={15} />
           </button>
+          <button class="promote" aria-label="Turn row {n} into a section" title="Turn into a section" onclick={() => toSection(i)}>§</button>
         </div>
         <div class="mic-cell">
           <button class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}
@@ -449,6 +477,11 @@
   .row:hover .flag, .flag:focus-visible, .flag.on { opacity: 1; }
   .flag:hover { background: #f0f0f0; color: var(--ink); }
   .flag.on { color: var(--flag-mark); }
+  /* Turn into a section (AP-30): under the flag, seen like the other row tools. */
+  .promote { position: absolute; top: 54px; left: 50px; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px;
+    background: none; color: var(--muted); font-size: 14px; opacity: 0; }
+  .row:hover .promote, .row:focus-within .promote { opacity: 1; }
+  .promote:hover { background: #f0f0f0; color: var(--ink); }
   .row.stepped { border-radius: 8px; background: #fffbf5; }
   .flag-note { grid-column: 3 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px;
     padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
