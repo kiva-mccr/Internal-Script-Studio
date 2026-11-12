@@ -332,7 +332,14 @@ and suggestions, keeps every version, and exports them for production.
 ## Last (the user's order: these wait until everything above is done)
 
 - [ ] **AS-1** A shared asset browser between scripts (asked by the user): browse and reuse the files of every
-  script in the folder. Mock-up first.
+  script in the folder. Picked by the user for the round of 10 and agreed on board 29; built in two steps:
+  - [x] **AS-1a** "From other scripts…" in a row's + Add: a window in the page lists the files in every other
+    script's assets/ and the links its rows use, grouped by script (newest edited first), images as thumbnails, each
+    with how many rows use it; Find narrows by name. A picked file is copied into this script's assets/ (a name
+    already there gets " 2", as Choose a file does; nothing is overwritten); a link is added as the same link.
+    "To find" notes are left out. "Copied from …" shows under the new chip.
+  - [ ] **AS-1b** A Files button on the script list: the same files, browse only (a name opens the file, a script
+    name opens that script).
 - [ ] **EX-5** SRT subtitles from the dialogue (DaVinci Resolve imports them). Shelved by the user: it needs more
   depth and will be built together with other features they have in mind. Moved to the very end by the user ("subtitle syncing").
 - [ ] **CC-1** Drop in the final video; Whisper (open source, in the browser) hears it; the script's own words are
