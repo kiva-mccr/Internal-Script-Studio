@@ -41,8 +41,9 @@ describe('measure', () => {
     expect(quiet.gain * 0.02).toBeLessThanOrEqual(0.9);
   });
 
-  it('crops in a noisy room: hiss, a breath and rustles before the first word are not speech', () => {
-    const noisy = (parts: [number, number][]) => sound(parts).map((v) => v + (Math.random() - 0.5) * 0.03);
+  it('crops in a noisy room: hum, hiss, a breath and rustles before the first word are not speech', () => {
+    // Hiss plus a steady 60 Hz hum, as from a fridge or a computer.
+    const noisy = (parts: [number, number][]) => sound(parts).map((v, i) => v + (Math.random() - 0.5) * 0.03 + 0.03 * Math.sin((2 * Math.PI * 60 * i) / RATE));
     const m = measure(noisy([[0.6, 0], [0.12, 0.05], [0.5, 0], [0.3, 0.02], [0.4, 0], [1.5, 0.3], [0.8, 0], [0.1, 0.04], [0.4, 0]]), RATE)!;
     expect(m.from).toBeCloseTo(1.65, 1);
     expect(m.to).toBeCloseTo(3.65, 1);
