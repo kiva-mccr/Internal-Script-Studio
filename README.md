@@ -110,7 +110,9 @@ Status: a first working version. What it does today:
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
   side for you to pick.
 
-Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom corner).
+Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom-right corner). The bottom-left corner shows the live version, "PR #62" for
+example: after a refresh it tells you whether a new version is live, hovering shows what that version added and when,
+and clicking opens it on GitHub.
 
 ## For developers
 
