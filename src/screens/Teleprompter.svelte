@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte';
   import { clearMarks, plain, toHtml } from '../lib/format';
-  import { aim, follow, LEAD, normal, paceFrom } from '../lib/follow';
+  import { addMark, follow, LEAD, move, normal, voiceAt, type Mark } from '../lib/follow';
   import { listen, type ListenError, type Listening } from '../lib/listen';
   import { clock, countWords, setSpeed, speaking } from '../lib/readtime.svelte';
   import { keep, recall } from '../lib/remember';
@@ -21,9 +21,10 @@
   let voice = $state<'' | 'loading' | 'on'>('');
   let got = $state({ loaded: 0, total: 0 }); // the download, in bytes
   let voiceError = $state('');
-  let heardAt = 0; // the word the voice was last heard at; the marker glides there and on at the reading pace
-  let heardTime = Infinity; // when (performance.now()); Infinity: nothing heard yet, so it doesn't go on
-  let pace = 0; // words a second, learnt from the voice
+  let heardAt = 0; // the word the voice was last heard at
+  let marks: Mark[] = []; // the places heard in the last few seconds: where the voice is and its pace (EX-12)
+  let pace = 0; // words a second until the marks tell
+  let jump = -1; // a far place heard once: it is followed only if the next hearing agrees (EX-12)
   let listening: Listening | null = null;
   let voiceBox: HTMLInputElement;
 
@@ -52,10 +53,13 @@
   let lastSet = 0; // the scroll position this view set itself; anything else was the person scrolling
 
   onMount(() => {
+    // The page behind keeps its own scroll bar otherwise, which moves nothing you can see (found by the user).
+    document.documentElement.style.overflow = 'hidden';
     root.focus();
     root.requestFullscreen?.().catch(() => {});
   });
   onDestroy(() => {
+    document.documentElement.style.overflow = '';
     cancelAnimationFrame(frame);
     listening?.stop();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -133,7 +137,8 @@
       at = line.start + Math.min(1, (y - top) / el.offsetHeight) * line.words;
     }
     read = heardAt = Math.min(at, total);
-    heardTime = Infinity; // waits there for the voice
+    marks = []; // waits there for the voice
+    jump = -1;
   }
 
   function step(time: number) {
@@ -156,13 +161,14 @@
   const faster = (by: number) => setSpeed(speed + by);
   const bigger = (by: number) => (size = Math.min(96, Math.max(24, size + by)));
 
-  // Follow my voice: the marker glides to where the voice was last heard and keeps going at the reading pace (EX-12),
-  // a little each frame. It doesn't step back for the few words it ran ahead: only for a line read again.
+  // Follow my voice: the marker heads for where the voice probably is now, worked out from the last few seconds heard
+  // (EX-12), and moves there smoothly each frame (`move`) instead of jumping from hearing to hearing.
   function glide(time: number) {
     if (voice !== 'on') return;
-    const target = aim(heardAt, (time - heardTime) / 1000, pace, total);
-    if (target > read || read - target > LEAD) read += (target - read) * Math.min(1, ((time - lastTime) / 1000) * 4);
-    if (Math.abs(target - read) < 0.05) read = target; // arrived (it would only ever come close)
+    if (marks.length) {
+      const now = voiceAt(marks, time, pace);
+      read = Math.min(total, move(read, Math.min(total, now.at), now.speed, (time - lastTime) / 1000));
+    }
     lastTime = time;
     place();
     frame = requestAnimationFrame(glide);
@@ -180,17 +186,21 @@
     cancelAnimationFrame(frame);
     voice = 'loading';
     heardAt = read;
-    heardTime = Infinity;
     pace = speed / 60; // the words a minute set, until the voice says otherwise
+    marks = [];
+    jump = -1;
     try {
       const started = await listen({
         onText: (text) => {
           const at = follow(scriptWords, text.split(/\s+/).map(normal).filter(Boolean), heardAt);
-          if (at === heardAt) return; // nothing new: the marker goes on at the pace, up to LEAD words
-          const now = performance.now();
-          pace = paceFrom(pace, at - heardAt, (now - heardTime) / 1000);
+          // A far place must be heard twice in a row (the speaker a word or two on): one hearing that ends a word
+          // early fits a look-alike sentence further on (found by the user).
+          const far = Math.abs(at - heardAt) > 2 * LEAD;
+          if (far && !(jump >= 0 && Math.abs(at - jump) <= LEAD)) return void (jump = at);
+          jump = -1;
+          // Every hearing counts, the same place too: the voice staying put is a slower pace.
+          if (at !== heardAt || marks.length) marks = addMark(marks, { at, time: performance.now() });
           heardAt = at;
-          heardTime = now;
         },
         onProgress: (loaded, total) => (got = { loaded, total }),
         onFail: () => {
@@ -279,7 +289,7 @@
 
 <style>
   .prompter { position: fixed; inset: 0; z-index: 50; background: #0b0b0b; color: #f5f5f5; outline: none; }
-  .scroller { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+  .scroller { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #444 transparent; }
   /* The first line starts at the marker; the last can scroll up to it. */
   .text { max-width: 900px; margin: 0 auto; padding: 33vh 32px 70vh; font-weight: 500; line-height: 1.45; }
   .mirror { transform: scaleX(-1); }

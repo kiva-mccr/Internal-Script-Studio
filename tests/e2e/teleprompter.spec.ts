@@ -54,11 +54,15 @@ test('Start scrolls at the speed, Space pauses, keys change the speed, Esc leave
 
 test('scrolling by hand moves where it goes on from', async ({ page }) => {
   const prompter = await openPrompter(page);
+  // Only the teleprompter scrolls: the page behind has no scroll bar of its own while it is open.
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('hidden');
+  await expect(page.locator('.prompter .scroller')).toHaveCSS('scrollbar-width', 'thin');
   const before = await prompter.locator('.left').textContent();
   await page.locator('.prompter .scroller').evaluate((el) => (el.scrollTop = 400));
   await expect(prompter.locator('.left')).not.toHaveText(before!);
   await prompter.getByRole('button', { name: 'Exit' }).click();
   await expect(prompter).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('');
 });
 
 // Follow my voice (EX-8): the microphone and the speech model are stood in for by window.studioListen (lib/listen.ts).
@@ -88,15 +92,23 @@ test('Follow my voice: downloads once with progress, then the marker follows the
   await expect(prompter.getByText('Listening: it follows as you speak')).toBeVisible();
   await expect(prompter.getByRole('button', { name: 'Start' })).toHaveCount(0); // the voice sets the pace
   const say = (text: string) => page.evaluate((t) => (window as unknown as { fake: Fake }).fake.hooks!.onText(t), text);
+  await say('every leaf you have ever seen'); // hearings come often, so the voice is heard a few words at a time
   await say('every leaf you have ever seen is running a tiny factory');
   await expect(prompter.locator('.past').first()).toContainText('Every leaf'); // the first line has been read
-  // Each word said is greyed out, and between hearings the marker goes on at the reading pace (EX-12), stopping 4
+  // Each word said is greyed out, and between hearings the marker goes on at the reading pace (EX-12), stopping 3
   // words past the last word heard.
-  await expect(prompter.locator('.said')).toHaveCount(15);
+  await expect(prompter.locator('.said')).toHaveCount(14);
   await expect(prompter.locator('.said').nth(10)).toHaveText('factory.');
   await say('it needs three simple');
-  await expect(prompter.locator('.said')).toHaveCount(19);
+  await expect(prompter.locator('.said')).toHaveCount(18);
   await expect(prompter.locator('.said').nth(14)).toHaveText('simple');
+  // A far place heard once is not followed: one hearing can fit a look-alike sentence further on (EX-12).
+  await say('inside each cell tiny');
+  await page.waitForTimeout(500);
+  await expect(prompter.locator('.said')).toHaveCount(18);
+  await say('inside each cell tiny parts'); // heard again, a word on: now it goes there
+  await expect(prompter.locator('.said')).toHaveCount(29);
+  await expect(prompter.locator('.said').nth(25)).toHaveText('parts');
   const after = await scrollTop(page);
   expect(after).toBeGreaterThan(50);
   await say('sorry, can we start again'); // nothing in the script: it stays where it is
