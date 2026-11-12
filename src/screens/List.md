@@ -1,9 +1,9 @@
 # `src/screens/List.svelte`
 
 The script list (mock-up 2): every script in the folder with its status, its length (AP-12, board 21) and when it was last edited, newest
-first; New script; Change folder.
+first; New script; Change folder; Files, to browse every script's files (`SharedFiles.svelte`, AS-1b).
 
-- **Used by:** `App.svelte`. **Tests:** `tests/e2e/list.spec.ts`, `assets.spec.ts`.
+- **Used by:** `App.svelte`. **Tests:** `tests/e2e/list.spec.ts`, `assets.spec.ts`, `shared.spec.ts`.
 
 ## Rules and pitfalls
 

@@ -3,8 +3,10 @@
 Files from other scripts (AS-1, board 29): a window in the page, opened from "From other scripts…" in a row's + Add.
 Every other script's files and links as tiles, grouped by script, newest edited first; Find narrows by name; pick one
 and "Add to row N" (or double-click it) adds it to the row.
+Without `onAdd` it only browses ("Files in every script", from the script list's Files, AS-1b): every script is
+listed, a file or link opens in a new tab, and a script's name opens that script.
 
-- **Used by:** `screens/FilesCell.svelte`. **Tests:** `tests/e2e/shared.spec.ts`.
+- **Used by:** `screens/FilesCell.svelte`, `screens/List.svelte`. **Tests:** `tests/e2e/shared.spec.ts`.
 
 ## Rules and pitfalls
 

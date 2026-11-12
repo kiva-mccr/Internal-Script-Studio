@@ -51,7 +51,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (in two steps: AS-1a done, AS-1b next).
+  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). The user prioritizes
+  what comes next; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -79,4 +80,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - The planning panel (AP-24) with two real computers: saves at once are only simulated by writing plan.md in tests.
 - Files on comments (RV-11) dropped from real Explorer or pasted from a real screenshot tool, and big files over
   real OneDrive: tests pass files through the file input and a made-up paste.
+- Files from other scripts (AS-1) over real OneDrive: a file that is only a placeholder ("online only") is unseen.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.
