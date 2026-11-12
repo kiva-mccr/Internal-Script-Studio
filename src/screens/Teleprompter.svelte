@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte';
   import { clearMarks, plain, toHtml } from '../lib/format';
-  import { follow, normal } from '../lib/follow';
+  import { aim, follow, LEAD, normal, paceFrom } from '../lib/follow';
   import { listen, type ListenError, type Listening } from '../lib/listen';
   import { clock, countWords, setSpeed, speaking } from '../lib/readtime.svelte';
   import { keep, recall } from '../lib/remember';
@@ -21,7 +21,9 @@
   let voice = $state<'' | 'loading' | 'on'>('');
   let got = $state({ loaded: 0, total: 0 }); // the download, in bytes
   let voiceError = $state('');
-  let heardAt = 0; // the word the voice was last heard at; the marker glides there
+  let heardAt = 0; // the word the voice was last heard at; the marker glides there and on at the reading pace
+  let heardTime = Infinity; // when (performance.now()); Infinity: nothing heard yet, so it doesn't go on
+  let pace = 0; // words a second, learnt from the voice
   let listening: Listening | null = null;
   let voiceBox: HTMLInputElement;
 
@@ -131,6 +133,7 @@
       at = line.start + Math.min(1, (y - top) / el.offsetHeight) * line.words;
     }
     read = heardAt = Math.min(at, total);
+    heardTime = Infinity; // waits there for the voice
   }
 
   function step(time: number) {
@@ -153,11 +156,13 @@
   const faster = (by: number) => setSpeed(speed + by);
   const bigger = (by: number) => (size = Math.min(96, Math.max(24, size + by)));
 
-  // Follow my voice: the marker glides to where the voice was last heard, a little each frame.
+  // Follow my voice: the marker glides to where the voice was last heard and keeps going at the reading pace (EX-12),
+  // a little each frame. It doesn't step back for the few words it ran ahead: only for a line read again.
   function glide(time: number) {
     if (voice !== 'on') return;
-    read += (heardAt - read) * Math.min(1, ((time - lastTime) / 1000) * 3);
-    if (Math.abs(heardAt - read) < 0.05) read = heardAt; // arrived (it would only ever come close)
+    const target = aim(heardAt, (time - heardTime) / 1000, pace, total);
+    if (target > read || read - target > LEAD) read += (target - read) * Math.min(1, ((time - lastTime) / 1000) * 4);
+    if (Math.abs(target - read) < 0.05) read = target; // arrived (it would only ever come close)
     lastTime = time;
     place();
     frame = requestAnimationFrame(glide);
@@ -175,9 +180,18 @@
     cancelAnimationFrame(frame);
     voice = 'loading';
     heardAt = read;
+    heardTime = Infinity;
+    pace = speed / 60; // the words a minute set, until the voice says otherwise
     try {
       const started = await listen({
-        onText: (text) => (heardAt = follow(scriptWords, text.split(/\s+/).map(normal).filter(Boolean), heardAt)),
+        onText: (text) => {
+          const at = follow(scriptWords, text.split(/\s+/).map(normal).filter(Boolean), heardAt);
+          if (at === heardAt) return; // nothing new: the marker goes on at the pace, up to LEAD words
+          const now = performance.now();
+          pace = paceFrom(pace, at - heardAt, (now - heardTime) / 1000);
+          heardAt = at;
+          heardTime = now;
+        },
         onProgress: (loaded, total) => (got = { loaded, total }),
         onFail: () => {
           listening?.stop();

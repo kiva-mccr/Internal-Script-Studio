@@ -36,3 +36,18 @@ export function follow(script: string[], heard: string[], at: number): number {
   // Three words must match (two when only two were heard); one word alone is too often a coincidence.
   return best.score >= Math.max(2, Math.min(3, tail.length)) ? best.end : at;
 }
+
+// Between hearings (EX-12) the marker keeps going at the reading pace instead of waiting for the next one.
+export const LEAD = 4; // words it may run past the word last heard, so a pause stops it soon
+
+// Where the marker heads `seconds` after the voice was heard at `heardAt`, at `pace` words a second.
+export function aim(heardAt: number, seconds: number, pace: number, total: number): number {
+  return Math.min(total, heardAt + Math.max(0, Math.min(LEAD, pace * seconds)));
+}
+
+// The reading pace in words a second, nudged by the voice moving on `words` words in `seconds`. A move after a long
+// pause, or backwards, says nothing about the pace.
+export function paceFrom(pace: number, words: number, seconds: number): number {
+  if (words <= 0 || seconds <= 0 || seconds > 3) return pace;
+  return pace * 0.7 + Math.min(6, Math.max(0.5, words / seconds)) * 0.3;
+}

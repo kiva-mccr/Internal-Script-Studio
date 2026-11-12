@@ -235,9 +235,12 @@ and suggestions, keeps every version, and exports them for production.
   desktop, didn't move on a phone; asked for each word to grey out once said (done, also with Start). For phones:
   the sound is resumed and resampled, and a Whisper that stops working says so. Still didn't follow on a Pixel 8
   in Chrome; shelved by the user as a bug (issue #24).
-- [ ] **EX-12** Follow my voice feels slow (asked by the user; to talk through before building): is it Whisper itself,
-  or how the sound is cut up and sent to it (the last 4 s, about once a second)? Measure where the delay comes from,
-  then agree a fix. Goes with issue #24.
+- [x] **EX-12** Follow my voice feels slow (asked by the user). Found: mostly Whisper itself (it always works through
+  30 s of sound, on one core); the 1 s steps added about half a second, the matching 0.03 ms, and the marker stopped
+  between hearings. Agreed with the user (no mock-up, nothing new to see): Moonshine instead of Whisper, on the
+  graphics card (WebGPU) where there is one, otherwise the processor; hearings as soon as the last is done (up to 4 a
+  second); between hearings the marker keeps going at the pace learnt from the voice, up to 4 words on. The user is
+  to read a page aloud to check accuracy; if Moonshine mishears more, go back to Whisper on WebGPU. Issue #24.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the

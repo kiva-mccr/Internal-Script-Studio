@@ -1,5 +1,5 @@
-// Listening to the microphone for the teleprompter (EX-8): a few seconds of sound at a time go to Whisper
-// (`whisper.worker.ts`), and what it hears comes back as text. Everything stays in the browser.
+// Listening to the microphone for the teleprompter (EX-8): a few seconds of sound at a time go to Moonshine
+// (`speech.worker.ts`), and what it hears comes back as text. Everything stays in the browser.
 
 export type Listening = { stop: () => void };
 type Hooks = { onText: (text: string) => void; onProgress: (loaded: number, total: number) => void; onFail?: () => void };
@@ -9,13 +9,13 @@ export class ListenError extends Error {
   }
 }
 
-const RATE = 16000; // what Whisper hears
+const RATE = 16000; // what the model hears
 const WINDOW = 4 * RATE; // each time, the last 4 s are heard
-const EVERY = RATE; // and at most once a second
-const QUIET = 0.01; // below this loudness it is silence (Whisper makes up words in silence)
+const EVERY = RATE / 4; // as soon as the last hearing is done, and at most 4 times a second (EX-12)
+const QUIET = 0.01; // below this loudness it is silence (speech models make up words in silence)
 
 export async function listen(hooks: Hooks): Promise<Listening> {
-  // Tests stand in for the microphone and Whisper (tests/e2e/teleprompter.spec.ts).
+  // Tests stand in for the microphone and the speech model (tests/e2e/teleprompter.spec.ts).
   const fake = (window as unknown as { studioListen?: (h: Hooks) => Promise<Listening> }).studioListen;
   if (fake) return fake(hooks);
 
@@ -31,7 +31,7 @@ export async function listen(hooks: Hooks): Promise<Listening> {
     context.close().catch(() => {});
     throw new ListenError('microphone');
   }
-  const worker = new Worker(new URL('./whisper.worker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(new URL('./speech.worker.ts', import.meta.url), { type: 'module' });
   const stop = () => {
     stream.getTracks().forEach((t) => t.stop());
     worker.terminate();
@@ -77,8 +77,8 @@ export async function listen(hooks: Hooks): Promise<Listening> {
     if (busy || fresh < EVERY) return;
     fresh = 0;
     let sum = 0;
-    for (let i = WINDOW - EVERY; i < WINDOW; i++) sum += sound[i] * sound[i];
-    if (Math.sqrt(sum / EVERY) < QUIET) return;
+    for (let i = WINDOW - RATE; i < WINDOW; i++) sum += sound[i] * sound[i]; // the last second
+    if (Math.sqrt(sum / RATE) < QUIET) return;
     busy = true;
     worker.postMessage({ type: 'hear', audio: sound.slice() });
   };
