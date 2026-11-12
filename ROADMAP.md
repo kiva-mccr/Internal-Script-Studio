@@ -392,7 +392,7 @@ and suggestions, keeps every version, and exports them for production.
   a blue speech bubble with a count under the row number, quotes are marked yellow; a card scrolls to its row. Review
   stays the reviewers' place (new comments start there). The six smaller choices on board 37 (one panel with two
   tabs; no new comments in Write; bubbles; opens by itself after Send back, with a note on Send back; no
-  auto-resolve; "Review · 3" on the tab) are to be agreed before building.
+  auto-resolve; "Review · 3" on the tab) were agreed by the user as suggested (2026-11-12); waiting for its turn.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
   request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
   and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
