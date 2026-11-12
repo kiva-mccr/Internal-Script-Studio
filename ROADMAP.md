@@ -328,6 +328,9 @@ and suggestions, keeps every version, and exports them for production.
   Settings opens one with a Voice-over heading and a Microphone drop-down (Default first), kept in this browser.
   Before Chrome may use the mic only Default is listed, with why; an unplugged pick records with the default and
   says so.
+- [ ] **AU-4** A countdown and cleanup for takes (asked by the user): clicking a row's mic counts down (3, 2, 1)
+  before it starts rolling, the silence at the start and end of a take is cropped off, and Settings > Voice-over
+  gets options for cleaning up the sound. Mock-up first: board 31.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
