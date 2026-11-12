@@ -371,6 +371,13 @@ and suggestions, keeps every version, and exports them for production.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
+- [ ] **RV-13** Review comments in Write (asked by the user: writers had no way to work through comments while
+  rewriting). The user picked idea A of three on board 37: the side panel gets two tabs, Planning and Comments; in
+  Write the writer replies, resolves and accepts or rejects suggestions beside the text. Rows with something open get
+  a blue speech bubble with a count under the row number, quotes are marked yellow; a card scrolls to its row. Review
+  stays the reviewers' place (new comments start there). The six smaller choices on board 37 (one panel with two
+  tabs; no new comments in Write; bubbles; opens by itself after Send back, with a note on Send back; no
+  auto-resolve; "Review · 3" on the tab) are to be agreed before building.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
   request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
   and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
