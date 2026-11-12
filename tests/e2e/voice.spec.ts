@@ -25,12 +25,14 @@ async function openExample(page: Page) {
 
 test('record a take for a row, see its length and words a minute, and play it back', async ({ page }) => {
   await openExample(page);
+  await expect(page.getByRole('button', { name: 'Record row 1', exact: true })).not.toHaveAttribute('title'); // no hover text over the line
   await page.getByRole('button', { name: 'Record row 1', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Recording' })).toContainText('● Recording 0:0');
+  await expect(page.getByRole('button', { name: 'Stop recording row 1' })).not.toHaveAttribute('title');
   await page.getByRole('button', { name: 'Stop recording row 1' }).click();
   await expect(page.getByRole('button', { name: 'Play row 1' })).toContainText(/▶ 0:0\d/);
   await expect(page.locator('.take .about')).toContainText(/\d+ wpm · Sam, \w{3} \d+/);
-  await expect(page.getByRole('button', { name: 'Record row 1 again' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Record row 1 again' })).not.toHaveAttribute('title');
   await expect(page.locator('header .voice')).toHaveText(/^0:0\d\/0:\d\d$/);
   const take = JSON.parse(await readFile(page, 'Episode 03/voice/row-k3f9a.json'));
   expect(take).toMatchObject({ by: 'Sam', text: expect.stringContaining('Every leaf') });
