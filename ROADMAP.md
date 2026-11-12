@@ -398,6 +398,20 @@ and suggestions, keeps every version, and exports them for production.
   stays the reviewers' place (new comments start there). The six smaller choices on board 37 (one panel with two
   tabs; no new comments in Write; bubbles; opens by itself after Send back, with a note on Send back; no
   auto-resolve; "Review · 3" on the tab) were agreed by the user as suggested (2026-11-12); waiting for its turn.
+- [ ] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
+  only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
+  Mock-up first.
+- [ ] **AP-32** Find and replace in a script (suggested, the user's second pick): search all three columns, step
+  through the matches, replace one or all (for renaming a term or a person across an episode). Mock-up first.
+- [ ] **RV-15** What changed since you last looked (suggested, the user's third pick): on opening a script, rows
+  others edited since your last visit get a small mark, with a line such as "3 changes since Tuesday" to step through
+  them. Mock-up first.
+- [ ] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
+  example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
+  addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
+  it. Mock-up first.
+- [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
+  shared tick boxes for each row's on-screen shots and files, for the day of filming.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
   request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
   and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
