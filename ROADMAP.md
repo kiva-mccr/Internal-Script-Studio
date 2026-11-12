@@ -176,6 +176,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-29** Numbered lists that renumber themselves (asked by the user): in the planning panel and every other
   text box, adding, removing or moving a line of a numbered list renumbers the lines after it at once, so nothing is
   fixed by hand (today Enter gives the next number but the lines below keep their old ones). Mock-up first.
+- [ ] **AP-31** Credits and contacts (asked by the user): the people who work on the scripts are kept once for the
+  whole folder, each with their contact details, so the team always knows where to find someone; each script's
+  credits pick from them and only add a short blurb on what that person did on it or their role, so the credits stay
+  accurate. Anyone can add and edit. To agree at the mock-up: where it opens from, whether exports carry the credits,
+  and which contact details. Mock-up first.
 
 ## Phase 3: review
 
