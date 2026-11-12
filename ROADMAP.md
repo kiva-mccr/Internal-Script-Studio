@@ -336,6 +336,9 @@ and suggestions, keeps every version, and exports them for production.
   and wpm; hovering ▶ says how much was cut. Esc while the ring fills throws the new take away. Settings >
   Voice-over adds three switches, kept in this browser: crop the silence (on), reduce background noise (Chrome's
   own, on as today) and make every take equally loud (on); they apply to takes recorded from then on.
+- [ ] **AU-5** Mark the default mic (asked by the user): in Settings > Voice-over, drop the separate "Default" entry
+  from the Microphone list and show "(default)" on the right of the row of the mic that is the computer's default.
+  Mock-up: board 33.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
