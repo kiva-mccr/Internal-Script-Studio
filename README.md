@@ -18,7 +18,8 @@ Status: a first working version. What it does today:
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
   add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Enter adds a row below, Alt+Up and
   Alt+Down move the row. Add section puts a new section right after the box you are typing in (or at the end); a section
-  left with no title is removed once you click out of it. Paste a draft (from Word, say) into a Dialogue box and
+  left with no title is removed once you click out of it. A row's § (hover it) turns it into a section heading right
+  where it is, and a section's ¶ turns it back into a row. Paste a draft (from Word, say) into a Dialogue box and
   each paragraph gets its own row; Undo at the bottom puts it back. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
   "From other scripts…" lists the files and links of every other script in the folder: pick one and it is copied in.
   The script list's Files button shows the files of every script, to browse.

@@ -177,9 +177,11 @@ and suggestions, keeps every version, and exports them for production.
   text box, adding, removing or moving a line of a numbered list renumbers the lines after it at once, so nothing is
   fixed by hand (today Enter gives the next number but the lines below keep their old ones). Mock-up first.
 
-- [ ] **AP-30** Turn a row into a section and back (asked by the user, first in the round): a row can become a
+- [x] **AP-30** Turn a row into a section and back (asked by the user, first in the round): a row can become a
   section heading where it is, and a section a row, without reaching for "+ Add section" at the bottom of a long
-  script. Mock-up 39.
+  script. Mock-up 39 with the suggested choices, the buttons grey like the other tools (the user). Built: a § row tool
+  under the flag and a ¶ beside a section's ↑ ↓ ×; the title is the dialogue as plain text, On screen and files stay
+  in a row under it; the row's take, flag and comments are put away as a delete would; each goes through the Undo bar.
 
 ## Phase 3: review
 

@@ -137,6 +137,46 @@ test('a delete can be undone, without any browser dialog', async ({ page }) => {
   expect(await readFile(page, SCRIPT)).toBe(example);
 });
 
+test('a row turns into a section where it is, and a section back into a row, with Undo (AP-30)', async ({ page }) => {
+  // Row 2 reads like a heading, with a mark and a line break, and nothing in its other columns.
+  const script = example.replace(/It needs three simple ingredients[^]*?icons-ingredients\.svg\n/, 'Part **two**:\nmaking sugar\n');
+  await setUp(page, '#/Episode%2003', { [SCRIPT]: script, 'Episode 03/assets/leaf-closeup.jpg': 'jpg' });
+  await page.getByLabel('Dialogue, row 2').hover();
+  await page.getByRole('button', { name: 'Turn row 2 into a section' }).click();
+  await expect(page.getByText('Row 2 is now a section.')).toBeVisible();
+  await expect(page.getByLabel('Section title')).toHaveCount(4);
+  await expect(page.getByLabel('Section title').nth(1)).toHaveValue('Part two: making sugar');
+  await expect(page.getByLabel('Dialogue, row 2')).toHaveValue(/Inside each cell/);
+  await saved(page);
+  let text = await readFile(page, SCRIPT);
+  expect(text).toContain('Files:\n- assets/leaf-closeup.jpg\n\n# Part two: making sugar\n\n# Inside the leaf\n');
+  expect(text).not.toContain('p8x2m');
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await saved(page);
+  text = await readFile(page, SCRIPT);
+  expect(text).toContain('## 2 <!-- id: p8x2m -->\nDialogue:\nPart **two**:\nmaking sugar\n');
+  expect(text).not.toContain('# Part two');
+
+  // A row with On screen and files keeps them in a row under the new section.
+  await page.getByLabel('Dialogue, row 1').hover();
+  await page.getByRole('button', { name: 'Turn row 1 into a section' }).click();
+  await expect(page.getByLabel('Section title').nth(1)).toHaveValue('Every leaf you have ever seen is running a tiny factory.');
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('');
+  await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
+  await page.getByRole('button', { name: 'Undo' }).click();
+
+  // A section turns back into a row, its title the dialogue.
+  await page.getByLabel('Section title').nth(2).hover();
+  await page.getByRole('button', { name: 'Turn section into a row' }).nth(2).click();
+  await expect(page.getByText('Section "Wrap-up" is now a row.')).toBeVisible();
+  await expect(page.getByLabel('Section title')).toHaveCount(2);
+  await expect(page.getByLabel('Dialogue, row 5')).toHaveValue('Wrap-up');
+  await saved(page);
+  text = await readFile(page, SCRIPT);
+  expect(text).not.toContain('# Wrap-up');
+  expect(text).toMatch(/## 5 <!-- id: [a-z0-9]{5} -->\nDialogue:\nWrap-up\n/);
+});
+
 test('images show a preview', async ({ page }) => {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"><rect width="80" height="40" fill="green"/></svg>';
   await setUp(page, '#/Episode%2003', { [SCRIPT]: example, 'Episode 03/assets/icons-ingredients.svg': svg });
