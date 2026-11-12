@@ -328,7 +328,7 @@ and suggestions, keeps every version, and exports them for production.
   Settings opens one with a Voice-over heading and a Microphone drop-down (Default first), kept in this browser.
   Before Chrome may use the mic only Default is listed, with why; an unplugged pick records with the default and
   says so.
-- [ ] **AU-4** A start cue and clean-up for takes (asked by the user). Agreed on board 31 (the user turned down a
+- [x] **AU-4** A start cue and clean-up for takes (asked by the user). Agreed on board 31 (the user turned down a
   3-2-1 countdown, then a pulsing mic): clicking a row's mic records at once while a red ring fills around it for one
   second, then it becomes ■, the cue to read. Each take is cropped: the silence before the first word and after the
   last (and the mouse click) goes, a quarter second kept either side, never in the middle. The webm stays whole; the

@@ -1,7 +1,7 @@
 # `src/screens/Settings.svelte`
 
 The Settings window (AU-3, mock-up 19), opened from ⋯ in the top bar. Drawn in the page (no browser dialog). Each
-kind of setting has its own small heading; the first is Voice-over, with the Microphone drop-down (`lib/mic.ts`); then Read time (AP-12, board 21), the speaking
+kind of setting has its own small heading; the first is Voice-over, with the Microphone drop-down (`lib/mic.ts`) and the three clean-up switches (AU-4, board 31, `lib/cleanup.svelte.ts`); then Read time (AP-12, board 21), the speaking
 speed with − and + (10 at a time) and "Use N", the takes' speed, when the script has takes and N isn't the speed already.
 A choice takes effect at once and is kept in this browser only.
 

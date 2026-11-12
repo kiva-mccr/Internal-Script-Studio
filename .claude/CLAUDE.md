@@ -81,4 +81,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Files on comments (RV-11) dropped from real Explorer or pasted from a real screenshot tool, and big files over
   real OneDrive: tests pass files through the file input and a made-up paste.
 - Files from other scripts (AS-1) over real OneDrive: a file that is only a placeholder ("online only") is unseen.
+- The start cue and clean-up (AU-4) with a real voice and mic: the crop and loudness were only tuned on made-up tones,
+  and Chrome's noise reduction switch was only seen being asked for.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.

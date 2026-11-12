@@ -4,7 +4,7 @@
   import { Player, plan } from '../lib/play.svelte';
   import { clock, speaking } from '../lib/readtime.svelte';
   import { askAccess, hasAccess } from '../lib/remember';
-  import { takesSpeed, VoiceOver } from '../lib/voice.svelte';
+  import { takeLength, takesSpeed, VoiceOver } from '../lib/voice.svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
@@ -94,7 +94,7 @@
     const steps = plan(script, voice.takes, speaking.wpm);
     const total = steps.reduce((sum, step) => sum + step.seconds, 0);
     if (!taken.length) return total ? clock(total) : '';
-    const seconds = taken.reduce((sum, row) => sum + voice.takes[row.id].seconds, 0);
+    const seconds = taken.reduce((sum, row) => sum + takeLength(voice.takes[row.id]), 0);
     return `${clock(seconds)}/${clock(total)}`;
   });
   // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
@@ -110,11 +110,13 @@
     if (from === undefined && player.started) return player.toggle();
     voice.stopPlaying();
     const steps = plan(script, voice.takes, speaking.wpm);
-    player.start(dir, steps, from === undefined ? 0 : Math.max(0, steps.findIndex((s) => s.id === from)));
+    player.start(dir, steps, from === undefined ? 0 : Math.max(0, steps.findIndex((s) => s.id === from)), voice.takes);
   }
   // Space pauses and Esc stops, unless you are typing (Space on a button is that button's).
   function playKeys(event: KeyboardEvent) {
     const el = event.target as HTMLElement;
+    // Esc while the ring fills round the mic throws the new take away (AU-4).
+    if (event.key === 'Escape' && voice.cue) return void voice.cancel();
     if (!player.started || el.closest?.('input, textarea, select')) return;
     if (event.key === 'Escape') player.stop();
     else if (event.key === ' ' && !el.closest?.('button, a')) {

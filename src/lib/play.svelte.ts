@@ -2,7 +2,7 @@
 // with no take waits in silence for its read time, so the timing stays true (the user's choice over skipping it).
 import { countWords } from './readtime.svelte';
 import { rows, type Script } from './script';
-import { takeFile, type Take } from './voice.svelte';
+import { Sound, takeFile, takeLength, type Take } from './voice.svelte';
 
 // One row's turn: how long it lasts, whether it has a take to hear, and when it starts (seconds from the top).
 export type Step = { id: string; seconds: number; take: boolean; start: number };
@@ -14,7 +14,7 @@ export function plan(script: Script, takes: Record<string, Take>, speed: number)
   let start = 0;
   for (const row of rows(script)) {
     const take = takes[row.id];
-    const seconds = take ? take.seconds : (countWords(row.dialogue) / speed) * 60;
+    const seconds = take ? takeLength(take) : (countWords(row.dialogue) / speed) * 60;
     if (!(seconds > 0)) continue;
     steps.push({ id: row.id, seconds, take: !!take, start });
     start += seconds;
@@ -31,8 +31,8 @@ export class Player {
   on = $state(false); // playing (not paused)
   elapsed = $state(0); // seconds into the step
   #dir: FileSystemDirectoryHandle | null = null;
-  #audio: HTMLAudioElement | null = null;
-  #url = '';
+  #takes: Record<string, Take> = {};
+  #sound: Sound | null = null;
   #timer: ReturnType<typeof setInterval> | undefined;
   #last = 0; // when the silent clock was last read (ms)
   #turn = 0; // goes up with every step and stop, so a take that loads late is dropped
@@ -44,10 +44,11 @@ export class Player {
   get time() { const step = this.steps[this.i]; return step ? step.start + Math.min(this.elapsed, step.seconds) : 0; }
   get at() { const step = this.steps[this.i]; return step ? Math.min(1, this.elapsed / step.seconds) : 0; }
 
-  async start(dir: FileSystemDirectoryHandle, steps: Step[], from = 0) {
+  async start(dir: FileSystemDirectoryHandle, steps: Step[], from = 0, takes: Record<string, Take> = {}) {
     this.stop();
     if (!steps[from]) return;
     this.#dir = dir;
+    this.#takes = takes;
     this.steps = steps;
     this.on = true;
     this.#timer = setInterval(() => this.#tick(), TICK);
@@ -59,8 +60,8 @@ export class Player {
     if (!this.started) return;
     this.on = !this.on;
     this.#last = performance.now();
-    if (this.on) this.#audio?.play().catch(() => this.#silent());
-    else this.#audio?.pause();
+    if (this.on) this.#sound?.play().catch(() => this.#silent());
+    else this.#sound?.pause();
   }
 
   stop() {
@@ -82,14 +83,13 @@ export class Player {
     this.#last = performance.now();
     if (!step.take) return;
     try {
-      const url = URL.createObjectURL(await takeFile(this.#dir, step.id));
-      if (turn !== this.#turn) return URL.revokeObjectURL(url);
-      const audio = new Audio(url);
-      audio.onended = () => turn === this.#turn && this.#go(i + 1);
-      audio.onerror = () => turn === this.#turn && this.#silent();
-      this.#audio = audio;
-      this.#url = url;
-      if (this.on) await audio.play();
+      const file = await takeFile(this.#dir, step.id);
+      if (turn !== this.#turn) return;
+      const sound = await Sound.open(file, this.#takes[step.id] ?? { by: '', at: 0, seconds: step.seconds, text: '' });
+      if (turn !== this.#turn) return sound.close();
+      sound.onended = () => turn === this.#turn && this.#go(i + 1);
+      this.#sound = sound;
+      if (this.on) await sound.play();
     } catch {
       // A take that isn't there (still syncing) or can't be played: its length passes in silence.
       if (turn === this.#turn) this.#silent();
@@ -102,21 +102,16 @@ export class Player {
   }
 
   #drop() {
-    if (this.#audio) {
-      this.#audio.onended = this.#audio.onerror = null;
-      this.#audio.pause();
-    }
-    this.#audio = null;
-    if (this.#url) URL.revokeObjectURL(this.#url);
-    this.#url = '';
+    this.#sound?.close();
+    this.#sound = null;
   }
 
   // A take ends when its sound does; a silent row when its time is up.
   #tick() {
     const step = this.steps[this.i];
     if (!step || !this.on) return;
-    if (this.#audio) {
-      this.elapsed = this.#audio.currentTime;
+    if (this.#sound) {
+      this.elapsed = this.#sound.time;
       return;
     }
     const now = performance.now();
