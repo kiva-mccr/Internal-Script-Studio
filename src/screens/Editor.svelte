@@ -10,7 +10,7 @@
   import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, reviewNote, sha256, type Version } from '../lib/history';
+  import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
   import Assets from './Assets.svelte';
   import Conflict from './Conflict.svelte';
@@ -358,12 +358,20 @@
 
   // Review status (RV-3): draft → in review → approved, or sent back to draft. Saved at once, with a History entry.
   const reviewStatus = $derived(script ? frontValue(script.front, 'status') || 'draft' : 'draft');
-  // The note sent with it for review (RV-8): read from History when Review opens while it is in review.
+  // Read from History when Review opens, and again after a status change: the note sent with it for review
+  // (RV-8, only while it is in review), and the version from when the last review ended (RV-4).
   let sent = $state<Version>();
-  $effect(() => {
-    if (mode !== 'review' || reviewStatus !== 'in review' || !dir) return void (sent = undefined);
-    listVersions(dir).then((versions) => (sent = reviewNote(versions))).catch(() => {});
-  });
+  let reviewedAt = $state<Version>();
+  let reading = 0; // only the newest read counts: an older one can finish later
+  function readReview() {
+    const n = ++reading;
+    if (mode !== 'review' || !dir) return void ((sent = undefined), (reviewedAt = undefined));
+    const inReview = reviewStatus === 'in review';
+    listVersions(dir)
+      .then((versions) => n === reading && ((sent = inReview ? reviewNote(versions) : undefined), (reviewedAt = reviewEnd(versions))))
+      .catch(() => {});
+  }
+  $effect(readReview);
   // A status change in progress: leaving waits for its History entry, or a quick switch of tab made a second entry
   // ("Changed the status") beside it.
   let changingStatus: Promise<void> = Promise.resolve();
@@ -379,6 +387,7 @@
     try {
       last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'review', text: onDisk, note, message });
       pendingSince = 0;
+      untrack(readReview); // the new entry: the review note, or the marks start again from here
     } catch {
       // History can't be written: the status itself is saved.
     }
@@ -613,7 +622,7 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {dir} {script} {notes} {flagged} me={name} {sent} onAdd={note} onApply={apply} />
+    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}

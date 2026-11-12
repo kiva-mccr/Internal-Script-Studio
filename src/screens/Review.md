@@ -9,6 +9,11 @@ suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / S
 ## Rules and pitfalls
 
 - Each card carries `data-id` (the comment's id): the list before Approve (RV-5) finds it by that.
+- What's changed (RV-4, mock-up 28): rows changed since `reviewedAt` (the last Sent back or Approved, from
+  `Editor.svelte`) get `.changed` and a "Changed"/"New" tag; removed rows a grey line after the row they followed.
+  On by default; "What's changed" off and "Show the edits" are kept per computer (`review-changes`, `review-edits`),
+  "Only changed rows" is not. Show the edits puts the old text in its own element above the cell, never inside it,
+  so quotes and highlights still match the cell. The highlights effect reruns on each toggle (the cells are redrawn).
 - Read only: editing happens in Write. Comments come from `Editor.svelte`, which reloads them every 5 s.
 - A selection counts only if it starts and ends inside one cell (`mouseup` on the cell).
 - Images & files shows names, as Write does, so a quote there is of the name.

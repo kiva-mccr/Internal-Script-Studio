@@ -73,6 +73,10 @@ Status: a first working version. What it does today:
   reviewers that they see at the top of Review, then Approve or Send back to writer; each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
+  **What's changed:** once a script has been sent back or approved, Review marks the rows changed since then (a blue
+  bar and "Changed" or "New"; a removed row stays as one struck-through grey line), so a reviewer rereads only those.
+  The bar above the script says how many; "Show the edits" puts the old text struck through above the new, and "Only
+  changed rows" folds the rest to one line. Untick "What's changed" to read without marks (remembered on your computer).
 - **Flags:** flag a row to come back to it (the flag under its number, shown when you point at the row), with an
   optional note such as "Needs a source". Step through flagged rows with ‹ › above the table and Clear each one.
   Review shows them, the list counts them ("2 flagged"), and they are listed before Approve. Flags never change the

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, reviewNote, summary, type Version } from '../../src/lib/history';
+import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sinceReview, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -93,5 +93,33 @@ describe('reviewNote', () => {
     expect(reviewNote([sent('a', 'Look at row 2'), sent('b')])).toBeUndefined();
     expect(reviewNote([sent('a', 'Look at row 2'), version(example, { id: 'b', kind: 'review', note: 'Sent back to writer' })])).toBeUndefined();
     expect(reviewNote([])).toBeUndefined();
+  });
+});
+
+describe('since the last review (RV-4)', () => {
+  it('finds when the last review ended: sent back or approved, not a send', () => {
+    const list = [
+      version(example, { id: 'a', kind: 'review', note: 'Approved, 2 still open' }),
+      version(example, { id: 'b', kind: 'review', note: 'Sent back to writer' }),
+      version(example, { id: 'c', kind: 'edit' }),
+      version(example, { id: 'd', kind: 'review', note: 'Sent for review' }),
+    ];
+    expect(reviewEnd(list)?.id).toBe('b');
+    expect(reviewEnd(list.slice(0, 1))?.id).toBe('a');
+    expect(reviewEnd(list.slice(2))).toBeUndefined();
+  });
+  it('lists changed and new rows with their old selves, and removed rows with where they were', () => {
+    const before = parseScript(example);
+    const after = parseScript(
+      edit('Slow push-in on a sunlit leaf.', 'Wide shot.')
+        .replace(/## 2 <!-- id: p8x2m -->[\s\S]*?(?=# Inside)/, '')
+        .replace('# Wrap-up', '## 6 <!-- id: new01 -->\nDialogue:\nA new line.\n\n# Wrap-up'),
+    );
+    const { changed, removed } = sinceReview(before, after);
+    expect([...changed.keys()]).toEqual(['k3f9a', 'new01']);
+    expect(changed.get('k3f9a')?.onScreen).toBe('Slow push-in on a sunlit leaf.');
+    expect(changed.get('new01')).toBeNull();
+    expect(removed.map((r) => [r.after, r.row.id])).toEqual([['k3f9a', 'p8x2m']]);
+    expect(sinceReview(before, before)).toEqual({ changed: new Map(), removed: [] });
   });
 });
