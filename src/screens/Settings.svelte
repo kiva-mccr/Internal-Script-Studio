@@ -53,7 +53,7 @@
       <label class="check"><input type="checkbox" checked={cleaning.crop} onchange={(e) => setCleaning({ crop: e.currentTarget.checked })} />
         <span>Crop the silence at the start and end<small>Keeps a quarter second either side, and drops the click of the mouse.</small></span></label>
       <label class="check"><input type="checkbox" checked={cleaning.noise} onchange={(e) => setCleaning({ noise: e.currentTarget.checked })} />
-        <span>Reduce background noise<small>Chrome's own noise reduction. A good mic in a quiet room may sound better without it.</small></span></label>
+        <span>Reduce background noise<small>Edge's and Chrome's own noise reduction. A good mic in a quiet room may sound better without it.</small></span></label>
       <label class="check"><input type="checkbox" checked={cleaning.level} onchange={(e) => setCleaning({ level: e.currentTarget.checked })} />
         <span>Make every take equally loud<small>So one row isn't louder than the next when the script plays or is joined into one file.</small></span></label>
       <p class="hint">The recording itself is kept whole, so turning these off later brings it all back. Takes recorded before

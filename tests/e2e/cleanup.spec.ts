@@ -5,7 +5,7 @@ import { readFile, setUp, writeFile } from './folder';
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 
 // The microphone is faked (AU-4): a "recording" is a real WAV of 0.3 s silence, 0.4 s of tone, 0.3 s silence, so the
-// crop has something to find. Whether Chrome's noise reduction was asked for is noted in window.noise.
+// crop has something to find. Whether the browser's noise reduction was asked for is noted in window.noise.
 async function open(page: Page) {
   await page.addInitScript(() => {
     const w = window as unknown as Record<string, unknown>;
