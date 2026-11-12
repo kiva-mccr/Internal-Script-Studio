@@ -306,8 +306,7 @@
         </div>
         <div class="mic-cell">
           <button class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}
-            onclick={() => mic(block.id)} aria-label={recording ? `Stop recording row ${n}` : take ? `Record row ${n} again` : `Record row ${n}`}
-            title={recording ? 'Stop' : take ? 'Record again' : 'Record'}>
+            onclick={() => mic(block.id)} aria-label={recording ? `Stop recording row ${n}` : take ? `Record row ${n} again` : `Record row ${n}`}>
             {#if recording && voice.cue}
               <svg class="ring" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" /></svg>{@render micIcon()}
             {:else if recording}■{:else}{@render micIcon()}{/if}

@@ -37,6 +37,8 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
 - Recording (AU-4): the mic records from the click; while `voice.cue` (the first second) a red ring fills round it and the
   line says "Getting ready…", then ■ and "● Recording". Esc then throws the take away (the Editor's keys). The ▶ shows the
   cropped length (`span`), its title how much was cut.
+- The mic has no `title` (no hover text) in any state: it covered the line being read (user asked twice). Its
+  name is only the `aria-label`. A test checks this.
 - The takes live in the Editor's `VoiceOver` (`lib/voice.svelte.ts`); a row with no id yet can't record.
 - Play the script (AU-2): the Editor's `Player` says which row is playing; that row is tinted (`.here`), scrolled
   to, and its take's bar fills (a row with no take shows a grey bar and "No take yet"). A row's number is a button
