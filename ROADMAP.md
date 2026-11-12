@@ -339,6 +339,9 @@ and suggestions, keeps every version, and exports them for production.
   Voice-over adds three switches, kept in this browser: crop the silence (on), reduce background noise (Chrome's
   own, on as today) and make every take equally loud (on); they apply to takes recorded from then on.
 
+- [ ] **AU-5** Quiet the hum in the pauses of a take (a noise gate between words; suggested while fixing AU-4).
+  Shelved by the user: "we can come back to that much later".
+
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
 
