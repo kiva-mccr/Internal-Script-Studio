@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  emptyRow, frontList, frontValue, parseScript, readFileRef, rows, setFrontValue, withAuthor, writeScript,
+  emptyRow, frontList, frontValue, paragraphs, parseScript, readFileRef, rows, setFrontValue, withAuthor, writeScript,
 } from '../../src/lib/script';
 
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
@@ -77,5 +77,16 @@ describe('readFileRef', () => {
     expect(readFileRef('[Zoom](https://x.com/z.mp4)')).toEqual({ kind: 'link', label: 'Zoom', target: 'https://x.com/z.mp4' });
     expect(readFileRef('https://x.com')).toMatchObject({ kind: 'link' });
     expect(readFileRef('Stock shot of a forest (to find)')).toMatchObject({ kind: 'words' });
+  });
+});
+
+describe('paragraphs (AP-13)', () => {
+  it('gives one line per paragraph, dropping blank lines and spaces around them', () => {
+    expect(paragraphs('First.\r\n\r\n  Second.  \nThird.\rFourth.\u2029Fifth.\n')).toEqual(['First.', 'Second.', 'Third.', 'Fourth.', 'Fifth.']);
+  });
+
+  it('gives one paragraph for one line, and none for blank text', () => {
+    expect(paragraphs('Just one line.')).toEqual(['Just one line.']);
+    expect(paragraphs(' \n\n ')).toEqual([]);
   });
 });

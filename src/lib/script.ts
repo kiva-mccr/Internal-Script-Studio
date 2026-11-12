@@ -106,6 +106,12 @@ export function emptyRow(script: Script): Row {
   return { type: 'row', id: newId(new Set(rows(script).map((row) => row.id))), dialogue: '', onScreen: '', files: [], note: '' };
 }
 
+// The paragraphs of pasted text, one per line, blank lines and spaces around them dropped (AP-13: a draft from
+// Word comes as one line per paragraph, sometimes with blank lines between).
+export function paragraphs(text: string): string[] {
+  return text.split(/\r\n|\r|\n|\u2029/).map((line) => line.trim()).filter(Boolean);
+}
+
 // Five lower-case letters and digits, unique in the script.
 export function newId(used: Set<string>): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

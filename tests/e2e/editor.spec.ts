@@ -346,3 +346,37 @@ test('a new section starts with a stand-in, goes after the box in use, and an em
   await saved(page);
   expect((await readFile(page, SCRIPT)).match(/^## /gm)).toHaveLength(7);
 });
+
+test('pasting several paragraphs into Dialogue makes a row for each; Undo puts it back (AP-13)', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openExample(page);
+  const paste = async (text: string) => {
+    await page.evaluate((t) => navigator.clipboard.writeText(t), text);
+    await page.keyboard.press('Control+V');
+  };
+  const row1 = 'Every leaf you have ever seen is running a tiny factory.';
+  // One line pastes as usual.
+  const first = page.getByLabel('Dialogue, row 1');
+  await first.click();
+  await first.press('End');
+  await paste(' Really.');
+  await expect(first).toHaveValue(`${row1} Really.`);
+  // A draft from Word in a new row: it takes the first paragraph, and each other one gets its own row below.
+  await page.getByRole('button', { name: 'Add a row below row 1' }).click();
+  await page.getByLabel('Dialogue, row 2').click();
+  await paste('Sunlight goes in.\r\n\r\n  Water comes up.\r\nSugar comes out.\r\n');
+  await expect(page.getByLabel('Dialogue, row 2')).toHaveValue('Sunlight goes in.');
+  await expect(page.getByLabel('Dialogue, row 3')).toHaveValue('Water comes up.');
+  await expect(page.getByLabel('Dialogue, row 4')).toHaveValue('Sugar comes out.');
+  await expect(page.getByLabel('Dialogue, row 5')).toHaveValue(/It needs three simple ingredients/);
+  await expect(page.getByLabel('Dialogue, row 4')).toBeFocused();
+  await expect(page.getByText('Pasted as 3 rows.')).toBeVisible();
+  await saved(page);
+  const text = await readFile(page, SCRIPT);
+  expect(text).toContain('Dialogue:\nSunlight goes in.\n');
+  expect(text.match(/^## /gm)).toHaveLength(8);
+  // Undo takes the new rows away and leaves the row pasted into as it was.
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByLabel('Dialogue, row 2')).toHaveValue('');
+  await expect(page.getByLabel('Dialogue, row 3')).toHaveValue(/It needs three simple ingredients/);
+});
