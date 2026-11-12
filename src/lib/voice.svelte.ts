@@ -251,6 +251,16 @@ export class VoiceOver {
     this.at = 0;
   }
 
+  // Dismiss "Outdated" (AU-8): the line was edited to match what the take says, so its text becomes the line as it
+  // reads now. Kept in the JSON, so everyone sees it, wpm counts the new words, and the next edit shows Outdated again.
+  async current(dir: FileSystemDirectoryHandle, id: string, text: string) {
+    const take = this.takes[id];
+    if (!take) return;
+    const next = { ...take, text };
+    await write(await dir.getDirectoryHandle(FOLDER), `row-${id}.json`, JSON.stringify(next));
+    this.takes = { ...this.takes, [id]: next };
+  }
+
   async remove(dir: FileSystemDirectoryHandle, id: string) {
     if (this.playing === id) this.stopPlaying();
     const voice = await dir.getDirectoryHandle(FOLDER);

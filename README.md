@@ -88,7 +88,8 @@ Status: a first working version. What it does today:
   script, never make a History version and never show in exports.
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
-  line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
+  line changes; its × hides it when the take already says the edited line (words a minute then counts the new words,
+  and the next edit shows Outdated again). Takes are kept in the script's `voice/` folder, so OneDrive shares them.
   The top bar shows the takes' length and the whole script's length beside the save status ("0:14/2:05").
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit. Its preview plays the
   file and lists the rows (click one to hear it from there); settings add half a second between takes, or silence
