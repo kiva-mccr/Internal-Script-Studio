@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { threads, type Note } from '../../src/lib/comments';
+import { flags, threads, type Note } from '../../src/lib/comments';
 
 const note = (id: string, kind: Note['kind'], when: string, extra: Partial<Note> = {}): Note => ({
   v: 1, id, kind, who: 'Ana', when: `2026-11-09T14:${when}Z`, ...extra,
@@ -35,5 +35,27 @@ describe('suggestions', () => {
       ['t', false, undefined],
       ['s', true, 'accepted'],
     ]);
+  });
+});
+
+describe('flags', () => {
+  it('the newest flag or unflag about a row counts, in row order, and only for rows still in the script', () => {
+    const found = flags([
+      note('a', 'flag', '00:00', { row: 'r2', text: '' }),
+      note('b', 'flag', '01:00', { row: 'r2', text: 'Check this fact', who: 'Sam' }),
+      note('c', 'flag', '00:30', { row: 'r1', text: 'Needs a source' }),
+      note('d', 'unflag', '02:00', { row: 'r3' }),
+      note('e', 'flag', '01:30', { row: 'r3', text: 'gone' }),
+      note('f', 'flag', '00:10', { row: 'deleted', text: 'x' }),
+      note('g', 'comment', '00:20', { row: 'r1', text: 'Not a flag' }),
+    ], ['r1', 'r2', 'r3']);
+    expect([...found.values()]).toEqual([
+      { row: 'r1', text: 'Needs a source', who: 'Ana', when: '2026-11-09T14:00:30Z' },
+      { row: 'r2', text: 'Check this fact', who: 'Sam', when: '2026-11-09T14:01:00Z' },
+    ]);
+  });
+
+  it('flags are not comments: they never show as threads', () => {
+    expect(threads([note('a', 'flag', '00:00', { row: 'r1', text: 'x' })])).toEqual([]);
   });
 });

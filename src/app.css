@@ -7,6 +7,8 @@
   --accent: #2a5bd7;
   --accent-dark: #1e47ae;
   --danger: #b42318;
+  --flag: #8a4b0b; /* flag text, on #fff7ed (AP-9) */
+  --flag-mark: #b45309; /* the flag itself */
   font-family: Inter, system-ui, sans-serif;
   color: var(--ink);
   background: var(--ground);

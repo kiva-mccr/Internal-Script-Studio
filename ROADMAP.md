@@ -80,11 +80,17 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-8** Citations (asked by the user): attach a source to what a row says or shows (title, author or
   publisher, link, date), numbered in the row and gathered into a Sources list at the end of the script; exports
   carry them (print, the video description). The format change (SF-1) and the look are agreed before building.
-- [ ] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
+  When built, a "Needs a source" flag (AP-9) clears itself once its row gets a source.
+- [x] **AP-9** Flags (asked by the user): a writer flags a row to come back to, with an optional note ("check this
   fact"); flagged rows are marked in the editor, counted in the list, and can be stepped through and cleared. Where
   a flag is stored (in `script.md` or `.studio/`) and the look are agreed before building. Refined (the user
   agreed): built together with AP-8, with a "needs a source" flag that clears itself when a citation is attached,
-  so fact-checking is a list to step through.
+  so fact-checking is a list to step through. Built as mock-up 22 (the user picked "Build now, as drawn", before
+  AP-8, with the suggested choices): flags are `flag` / `unflag` notes in `.studio/comments/`, never in script.md
+  (no History version, no clash, not in exports); the flag button under a row's number shows on hover and focus,
+  with an optional note and a "Needs a source" quick note; ‹ › above the table steps through them; Review shows them
+  without buttons; the list says "2 flagged"; they come first in the check before Approve. "Needs a source" clearing
+  itself waits for AP-8.
 - [x] **AP-10** Official versions (asked by the user): publish a named, numbered version (v1, v2 …) from History;
   History shows official versions and folds the small saves between them into one line until opened. Mock-up:
   board 7. Built as drawn (the user picked "Yes, as drawn", not also on Approved): a version of kind `official`
@@ -180,7 +186,7 @@ and suggestions, keeps every version, and exports them for production.
   Built as mock-up 20 (the user agreed, with both suggested choices): with something open, Approve opens a panel
   under it listing each open comment and suggestion and the missing files (one line); a line goes to it, Keep
   reviewing or Esc closes, Approve anyway approves and History says "Approved, N still open". Nothing open: Approve
-  approves at once, as before. Flags and sources join the list when AP-8 / AP-9 are built.
+  approves at once, as before. Flags joined the list with AP-9; sources join it when AP-8 is built.
 - [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
   made on it, so it is clear why a line changed.
 - [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so

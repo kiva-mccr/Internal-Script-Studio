@@ -1,7 +1,8 @@
 # `src/lib/comments.ts`
 
 Review: comments, replies and resolving, one JSON file each in `.studio/comments/` (docs/studio-folder.md),
-written once and never changed. Also gathers them into threads, and marks a comment's quote in its cell.
+written once and never changed. Also gathers them into threads, and marks a comment's quote in its cell. Flags on
+rows (AP-9) are kept here too (`flag`, `unflag`; `flags()` says which rows are flagged).
 
 - **Used by:** `screens/Editor.svelte`, `screens/Review.svelte`. **Tests:** `tests/unit/comments.test.ts`,
   `tests/e2e/review.spec.ts`.
@@ -15,3 +16,5 @@ written once and never changed. Also gathers them into threads, and marks a comm
 - A comment on a whole row has an empty `quote` (and `field` "dialogue").
 - A quote is marked where it is first found in the cell; one no longer there is "on text that has since changed".
 - A file that can't be read (half-synced) is skipped.
+- Flags: the newest `flag` or `unflag` about a row wins, by `when` (file names keep only seconds, so a flag and its
+  note written in the same second sort at random by name; a test caught this). Flags are not threads.

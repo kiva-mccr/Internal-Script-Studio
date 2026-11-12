@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { countMissing } from '../lib/assets';
+  import { flags, listNotes } from '../lib/comments';
+  import FlagIcon from './FlagIcon.svelte';
   import { createScript, findScript, listScripts, readScript, type ScriptInfo } from '../lib/folder';
   import { plan } from '../lib/play.svelte';
   import { clock, speaking } from '../lib/readtime.svelte';
-  import { parseScript, type Script } from '../lib/script';
+  import { parseScript, rows, type Script } from '../lib/script';
   import { readTakes, type Take } from '../lib/voice.svelte';
   import { routeHash } from '../lib/route';
   import { ago } from '../lib/when';
@@ -19,6 +21,7 @@
   let newName = $state('');
   let addError = $state('');
   let missing = $state<Record<string, number>>({}); // files missing from each script's folder (EX-6), by path
+  let flagCount = $state<Record<string, number>>({}); // flagged rows in each script (AP-9), by path
   // Each script and its takes, for its length (AP-12), by path. The length itself follows the speaking speed.
   let read = $state.raw<Record<string, { script: Script; takes: Record<string, Take> }>>({});
 
@@ -47,6 +50,7 @@
   // Counted after the list is shown, so a big folder doesn't hold it up. A script that can't be read shows nothing.
   async function countAll(list: ScriptInfo[]) {
     const next: Record<string, number> = {};
+    const flaggedNow: Record<string, number> = {};
     const scripts: typeof read = {};
     for (const info of list) {
       try {
@@ -56,11 +60,13 @@
         const key = info.path.join('/');
         scripts[key] = { script, takes: await readTakes(dir) };
         next[key] = await countMissing(dir, script);
+        flaggedNow[key] = flags(await listNotes(dir), rows(script).map((row) => row.id)).size;
       } catch {
         // Mid-sync: counted next time.
       }
     }
     missing = next;
+    flagCount = flaggedNow;
     read = scripts;
   }
 
@@ -119,7 +125,7 @@
         {#each scripts as script (script.path.join('/'))}
           {@const long = length(script.path)}
           <a class="row" href={routeHash(script.path)}>
-            <span class="title-cell"><span class="title">{script.title}</span>{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}</span>
+            <span class="title-cell"><span class="title">{script.title}</span>{#if flagCount[script.path.join('/')]}<span class="flagged"><FlagIcon size={12} />{flagCount[script.path.join('/')]} flagged</span>{/if}{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
             <span class="length" title={long ? (long.recorded ? 'Recorded voice-over, every row' : `Read time at ${speaking.wpm} words a minute`) : undefined}>
               {long?.text ?? ''}{#if long?.recorded}<svg role="img" aria-label="recorded" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>{/if}
@@ -145,6 +151,7 @@
   .row:hover { background: #fafafa; }
   .row:hover .title { color: var(--accent); }
   .title-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .flagged { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #fff7ed; color: var(--flag); font-size: 12px; font-weight: 500; }
   .missing { flex: none; padding: 2px 8px; border-radius: 999px; background: #fdf0ef; color: var(--danger); font-size: 12px; font-weight: 500; }
   .title { font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .length { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #3d3d3d; font-variant-numeric: tabular-nums; }

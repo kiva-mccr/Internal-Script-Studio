@@ -35,6 +35,9 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after
   `leave()`), then add a `review` History entry. The button names contain "Write" (Send back to writer), so tests
   pick the Write tab with `exact: true`.
+- Flags (AP-9): `flagged` comes from the comment notes (`flags()`), read every 5 s like comments; `flag` writes a
+  `flag` or `unflag` note. Before Approve they come first, as `flag:<row id>`, and `showLoose` takes them back to
+  Write, to that row's note.
 - Before Approve (RV-5): `loose` lists open comments and suggestions, then missing files, for the Header's panel;
   `showLoose` scrolls to and clicks that card in Review (`article[data-id]`), or opens Assets for the files.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).

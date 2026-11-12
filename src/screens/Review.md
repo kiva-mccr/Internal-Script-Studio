@@ -19,3 +19,4 @@ suggestions, with Undo. Approve / Send back (RV-3) are in `Header.svelte`.
 - A suggestion decided here stays in the open list with Undo until the screen is left (`recent`).
 - No browser dialogs: an empty comment shows "Write a comment first." in the form.
 - A section's read time (AP-12) sits at the right of its title, as in Write.
+- Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.

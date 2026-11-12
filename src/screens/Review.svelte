@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { threads, type Field, type Note, type Thread } from '../lib/comments';
+  import { threads, type Field, type Flag, type Note, type Thread } from '../lib/comments';
+  import FlagIcon from './FlagIcon.svelte';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { readFileRef, type Row, type Script } from '../lib/script';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
@@ -11,11 +12,13 @@
   let {
     script,
     notes,
+    flagged,
     onAdd,
     onApply,
   }: {
     script: Script;
     notes: Note[];
+    flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
@@ -156,6 +159,10 @@
             <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
               onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
           {/each}
+          {#if flagged.get(block.id)}
+            {@const flag = flagged.get(block.id)!}
+            <p class="flag-note" aria-label="Flag, row {n}"><FlagIcon size={13} /><span>{flag.text || 'Flagged'}</span><span class="by">{flag.who}</span></p>
+          {/if}
         </div>
       {/if}
     {/each}
@@ -252,6 +259,9 @@
   .time { font-size: 13px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
   .row { align-items: start; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   .row.active { background: #f7f9fe; }
+  .flag-note { grid-column: 2 / -1; display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px; border-radius: 8px;
+    background: #fff7ed; color: var(--flag); font-size: 13px; }
+  .flag-note .by { margin-left: auto; font-size: 12px; }
   .num { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--muted); padding-top: 3px; }
   .add { padding: 2px 6px; margin-left: -6px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 12px; opacity: 0; }
   .row:hover .add, .add:focus { opacity: 1; }
