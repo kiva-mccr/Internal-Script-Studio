@@ -100,8 +100,10 @@ and suggestions, keeps every version, and exports them for production.
   script, at a speaking speed the person sets. Later feeds the teleprompter (EX-2), SRT (EX-5) and storyboard
   timings (SB-1). The look is agreed before building. Also asked by the user: the script list shows each script's
   length, the read time or, where every row has a take, the recorded voice-over's length.
-- [ ] **AP-13** Paste a draft (suggested, the user agreed): pasting several paragraphs into Dialogue makes one row
-  for each paragraph (drafts written in Word).
+- [x] **AP-13** Paste a draft (suggested, the user agreed): pasting several paragraphs into Dialogue makes one row
+  for each paragraph (drafts written in Word). Built: each line of the pasted text is a paragraph (blank lines and
+  spaces around them dropped); the first goes where the cursor is, the others get new rows below, and what followed
+  the cursor ends the last one. One line pastes as usual. The Undo bar ("Pasted as n rows.") puts it back.
 - [ ] **AP-14** Keyboard flow (suggested, the user agreed): Tab between cells, Ctrl+Enter for a new row below,
   Alt+Up / Alt+Down to move a row, so writing never needs the mouse.
 - [ ] **AP-15** New script from a template (suggested, the user agreed): New script can start as a copy of a script

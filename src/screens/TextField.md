@@ -13,4 +13,5 @@ Ctrl+B, I, U and K work too.
   are not clickable in Write; they are in Review.
 - Changes go through `document.execCommand('insertText')`, so the browser's Ctrl+Z undoes them.
 - Toolbar buttons keep the focus (`mousedown` prevented), or the selection would be lost before the click.
+- Pasting two or more paragraphs calls `onparagraphs` instead of pasting (only Dialogue passes it, AP-13).
 - A link wraps the selection and selects `https://`, ready to type the address over (no browser dialog).

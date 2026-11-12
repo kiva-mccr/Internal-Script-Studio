@@ -18,6 +18,10 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   section's title it goes after that section's rows. A new section starts empty (grey "New section" placeholder)
   and takes the cursor (`focusIf`); an empty one is removed on blur, never while it has the cursor. The Editor
   leaves empty sections out of the file but not out of the page, so a save can't pull one from under the cursor.
+- Paste a draft (AP-13): two or more paragraphs pasted into Dialogue (`TextField`'s `onparagraphs`, split by
+  `paragraphs` in `lib/script.ts`) make rows (`pasteRows`); one line pastes as usual. It goes through the Undo bar
+  (`onDeleted`), not Ctrl+Z, so the row pasted into is copied for Undo, not kept by reference. New rows are set up
+  in full before going into `script.blocks`: changing the plain object afterwards would not show (Svelte's proxy).
 - Row tools are placed over the number column so they never make a row taller.
 - Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

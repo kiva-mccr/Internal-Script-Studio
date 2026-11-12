@@ -1,5 +1,6 @@
 <script lang="ts">
   import { clearMarks, renderMath, toHtml, toggle, type Mark } from '../lib/format';
+  import { paragraphs } from '../lib/script';
 
   // A Write cell (mock-up 8): while typing you see the marks (**bold**); elsewhere they show as formatting. Selecting
   // text shows a toolbar; Ctrl+B, I, U and K work too.
@@ -8,7 +9,12 @@
     label,
     placeholder,
     oninput,
-  }: { value: string; label: string; placeholder: string; oninput: () => void } = $props();
+    onparagraphs,
+  }: {
+    value: string; label: string; placeholder: string; oninput: () => void;
+    // Pasting two or more paragraphs hands them over, with the text before and after the selection (AP-13).
+    onparagraphs?: (lines: string[], head: string, tail: string) => void;
+  } = $props();
 
   let box = $state<HTMLTextAreaElement>();
   let focused = $state(false);
@@ -55,6 +61,13 @@
     look();
   }
 
+  function paste(e: ClipboardEvent) {
+    const lines = paragraphs(e.clipboardData?.getData('text/plain') ?? '');
+    if (!onparagraphs || !box || lines.length < 2) return;
+    e.preventDefault();
+    onparagraphs(lines, value.slice(0, box.selectionStart), value.slice(box.selectionEnd));
+  }
+
   function keydown(e: KeyboardEvent) {
     const mark = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey ? KEYS[e.key.toLowerCase()] : undefined;
     if (!mark) return;
@@ -72,7 +85,7 @@
       {/each}
     </div>
   {/if}
-  <textarea bind:this={box} bind:value aria-label={label} {placeholder} {oninput} onkeydown={keydown}
+  <textarea bind:this={box} bind:value aria-label={label} {placeholder} {oninput} onkeydown={keydown} onpaste={paste}
     onfocus={() => (focused = true)} onblur={() => ((focused = false), (selecting = false))}
     onmouseup={look} onkeyup={look} onselect={look}></textarea>
   <div class="shown" aria-hidden="true" use:math={html}>{@html html}</div>

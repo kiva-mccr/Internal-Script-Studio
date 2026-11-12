@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { clock } from '../lib/readtime';
   import { emptyRow, type Block, type Script } from '../lib/script';
   import type { Player } from '../lib/play.svelte';
@@ -7,8 +8,8 @@
   import FilesCell from './FilesCell.svelte';
   import TextField from './TextField.svelte';
 
-  // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, with the blocks as
-  // they were before, so the Editor can offer Undo. onNotice: a message for the person.
+  // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, or a paste made rows,
+  // with the blocks as they were before, so the Editor can offer Undo. onNotice: a message for the person.
   // voice: the rows' voice-over takes (AU-1), kept by the Editor; `name` signs a new take.
   // player: Play the script (AU-2), kept by the Editor; canPlay: a row's number plays from that row (onPlayFrom).
   let { script = $bindable(), dir, voice, player, canPlay, name, onChange, onDeleted, onNotice, onPlayFrom }: {
@@ -102,6 +103,31 @@
   function insertRow(at: number) {
     script.blocks.splice(at, 0, emptyRow(script));
     onChange();
+  }
+
+  // Several paragraphs pasted into a row's Dialogue (AP-13): the first goes where the cursor is, each other one gets
+  // its own row below, and what followed the cursor ends the last one, as in a word processor. Undo puts it back.
+  async function pasteRows(block: Block, lines: string[], head: string, tail: string) {
+    if (block.type !== 'row') return;
+    const before = script.blocks.map((b) => (b === block ? { ...b } : b));
+    const at = script.blocks.indexOf(block);
+    block.dialogue = head + lines[0];
+    // Two or more lines, so the last one is always a new row. Each id is picked once the row before is in.
+    const rest = lines.slice(1);
+    let id = '';
+    rest.forEach((line, k) => {
+      const row = { ...emptyRow(script), dialogue: k === rest.length - 1 ? line + tail : line };
+      script.blocks.splice(at + 1 + k, 0, row);
+      id = row.id;
+    });
+    const end = rest[rest.length - 1].length;
+    onDeleted(before, `Pasted as ${lines.length} rows.`);
+    onChange();
+    // The cursor goes to the end of what was pasted.
+    await tick();
+    const box = table?.querySelector<HTMLTextAreaElement>(`[data-row="${id}"] .dialogue textarea`);
+    box?.focus();
+    box?.setSelectionRange(end, end);
   }
 
   function remove(i: number) {
@@ -200,7 +226,8 @@
         {#if folded.has('dialogue')}{@render dot(block.dialogue !== '', 'Dialogue')}{:else}
         <div>
           {#if block.note}<p class="note">{block.note}</p>{/if}
-          <div class="dialogue"><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said" /></div>
+          <div class="dialogue"><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
+            onparagraphs={(lines, head, tail) => pasteRows(block, lines, head, tail)} /></div>
           {#if recording}
             <p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>
           {:else if take}

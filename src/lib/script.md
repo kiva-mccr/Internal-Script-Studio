@@ -1,7 +1,8 @@
 # `src/lib/script.ts`
 
 Reads `script.md` into sections and rows and writes it back (docs/script-format.md), plus the front matter helpers
-and how a Files line is read (a path, a link, or plain words).
+and how a Files line is read (a path, a link, or plain words). `paragraphs` splits pasted text into lines for
+Paste a draft (AP-13).
 
 - **Used by:** `lib/folder.ts`, `screens/Editor.svelte`, `screens/FilesCell.svelte`. **Tests:**
   `tests/unit/script.test.ts` (including: the example script is written back byte for byte).
