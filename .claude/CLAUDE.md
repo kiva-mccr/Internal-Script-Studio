@@ -51,7 +51,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done). The user prioritizes
+  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done). The user prioritizes
   what comes next; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
@@ -71,7 +71,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Fountain and Final Draft files opened in a real screenplay program: only the text and the XML were checked.
 - Voice-over takes (AU-1) and the joined WAV (EX-11) with a real microphone and real OneDrive: tests fake the
   recording (a WAV); decoding Chrome's real webm takes was never seen here.
-- Play the script (AU-2, AU-7) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
+- Play the script (AU-2, AU-7, AU-9) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
   shown time keeps up with real webm takes is unseen.
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.

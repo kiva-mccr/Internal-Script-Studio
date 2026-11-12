@@ -4,7 +4,7 @@ The Review screen (mock-up 4): the script to read, and open comments beside it. 
 Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
 suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / Send back (RV-3) are in `Header.svelte`.
 
-- **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`.
+- **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`, `play.spec.ts` (AU-9).
 
 ## Rules and pitfalls
 
@@ -33,4 +33,8 @@ suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / S
 - A section's read time (AP-12) sits at the right of its title, as in Write.
 - The note sent for review (RV-8) shows at the top (`sent`, read by `Editor.svelte` from History while the script is
   in review); Hide folds it to a "Sam's note" button until Review is left.
+- Takes and Play the script (AU-9, board 36): only to listen. The take line is `Take.svelte` with no `onCurrent` or
+  `onDrop` (no × on Outdated, no delete); no mic. The Editor's `Player` and `VoiceOver` are shared with Write, so
+  Play carries on across the switch. The number button is `.playfrom`, not `.from`: `.sent .from` is the note's line.
+  The row carries `data-play` for the page to follow it; `data-row` is the cells' (the highlights look them up).
 - Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.

@@ -3,7 +3,7 @@
 Play the script (AU-2, board 14): `plan` (the rows in order, each with how long it lasts and when it starts) and
 `Player` (plays a plan: the step, playing or paused, the time; start, toggle, stop).
 
-- **Used by:** `screens/Editor.svelte` (makes one), `screens/Write.svelte`. **Tests:** `tests/unit/play.test.ts`,
+- **Used by:** `screens/Editor.svelte` (makes one), `screens/Write.svelte`, `screens/Review.svelte` (AU-9). **Tests:** `tests/unit/play.test.ts`,
   `tests/e2e/play.spec.ts`.
 
 ## Rules and pitfalls

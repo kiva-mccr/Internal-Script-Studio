@@ -4,6 +4,9 @@
   import AttachBox from './AttachBox.svelte';
   import Attached from './Attached.svelte';
   import FlagIcon from './FlagIcon.svelte';
+  import Take from './Take.svelte';
+  import type { Player } from '../lib/play.svelte';
+  import type { VoiceOver } from '../lib/voice.svelte';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { parseScript, readFileRef, type Row, type Script } from '../lib/script';
   import { keep, recall } from '../lib/remember';
@@ -21,8 +24,13 @@
     me,
     sent,
     reviewedAt,
+    voice,
+    player,
+    canPlay,
     onAdd,
     onApply,
+    onPlayFrom,
+    onNotice,
   }: {
     dir: FileSystemDirectoryHandle; // the script's folder: files on comments (RV-11) are read from it
     script: Script;
@@ -35,6 +43,12 @@
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
+    // Takes and Play the script (AU-9), kept by the Editor as for Write, only listened to here.
+    voice: VoiceOver;
+    player: Player;
+    canPlay: boolean; // a row's number plays from that row (onPlayFrom)
+    onPlayFrom: (id: string) => void;
+    onNotice: (message: string) => void;
   } = $props();
 
   const FIELDS: [Field, string][] = [['dialogue', 'Dialogue'], ['on_screen', 'On screen'], ['files', 'Images & files']];
@@ -116,6 +130,20 @@
   const text = (row: Row, field: Field) =>
     field === 'files' ? row.files.map((f) => readFileRef(f).label).join('\n') : field === 'on_screen' ? row.onScreen : row.dialogue;
   let table = $state<HTMLElement>();
+
+  // Listening (AU-9): a take's ▶ plays it alone, or pauses and carries on the script while it plays that row.
+  async function play(id: string) {
+    if (player.row === id) return player.toggle();
+    await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, OneDrive may still be syncing."));
+  }
+
+  // The page follows the row being played, as in Write.
+  $effect(() => {
+    const row = player.row && table?.querySelector(`[data-play="${player.row}"]`);
+    if (!row) return;
+    const { top, bottom } = row.getBoundingClientRect();
+    if (top < 140 || bottom > innerHeight) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
 
   // What's changed since the last review (RV-4, mock-up 28). On unless this person turned it off; Show the edits is
   // remembered too, Only changed rows is not.
@@ -288,10 +316,19 @@
       {:else if !folds.skip.has(block.id)}
         {@const n = numbers.get(block.id)}
         {@const was = marks?.changed.get(block.id)}
+        {@const take = voice.takes[block.id]}
+        {@const here = player.row === block.id}
+        {@const sounding = voice.playing === block.id || (here && player.on)}
         <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}
-          class:changed={was !== undefined}>
+          class:changed={was !== undefined} class:here data-play={block.id}>
           <div class="num">
-            <span>{n}</span>
+            {#if canPlay && here && player.on}
+              <button class="playfrom" aria-label="Pause at row {n}" title="Pause" onclick={() => player.toggle()}>❚❚</button>
+            {:else if canPlay}
+              <button class="playfrom" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}><span class="n">{n}</span><span class="go" aria-hidden="true">▶</span></button>
+            {:else}
+              <span>{n}</span>
+            {/if}
             {#if was !== undefined}<span class="tag">{was ? 'Changed' : 'New'}</span>{/if}
             <button class="add" aria-label="Comment on row {n}" title="Comment on this row"
               onclick={() => start({ row: block.id, field: 'dialogue', quote: '' })}>Comment</button>
@@ -302,11 +339,30 @@
               <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
                 onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
             {/snippet}
-            {#if showEdits && was && text(was, field) !== text(block, field)}
-              <!-- Show the edits (RV-4): the old text struck through above the new, as in History. -->
-              <div class="edited"><p class="was {field}" aria-label="{name} before, row {n}">{@html toHtml(text(was, field))}</p>{@render cell()}</div>
+            {#snippet content()}
+              {#if showEdits && was && text(was, field) !== text(block, field)}
+                <!-- Show the edits (RV-4): the old text struck through above the new, as in History. -->
+                <div class="edited"><p class="was {field}" aria-label="{name} before, row {n}">{@html toHtml(text(was, field))}</p>{@render cell()}</div>
+              {:else}
+                {@render cell()}
+              {/if}
+            {/snippet}
+            {#if field === 'dialogue' && (take || here)}
+              <!-- The take under the dialogue, as in Write but only to listen (AU-9). -->
+              <div class="spoken">
+                {@render content()}
+                {#if take}
+                  <Take {take} dialogue={block.dialogue} n={n ?? 0} {sounding} at={here ? player.at : voice.playing === block.id ? voice.at : 0}
+                    onPlay={() => play(block.id)} />
+                {:else}
+                  <p class="waiting" role="status">
+                    <span class="bar"><span style:width="{player.at * 100}%"></span></span>
+                    No take yet · waiting its read time, {clock(player.steps[player.i].seconds)}
+                  </p>
+                {/if}
+              </div>
             {:else}
-              {@render cell()}
+              {@render content()}
             {/if}
           {/each}
           {#if flagged.get(block.id)}
@@ -490,6 +546,17 @@
   .time { font-size: 13px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
   .row { align-items: start; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   .row.active { background: #f7f9fe; }
+  /* Play the script (AU-9, as in Write): the row being played is tinted; its number turns into ▶ under the mouse. */
+  .row.here { border-radius: 8px; background: #eef2fb; }
+  .playfrom { margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; }
+  .playfrom:hover { background: #f0f0f0; color: var(--accent); }
+  .playfrom .go, .row:hover .playfrom .n { display: none; }
+  .row:hover .playfrom .go { display: inline; color: var(--accent); }
+  .row.here .playfrom { color: var(--accent); }
+  .spoken { min-width: 0; }
+  .waiting { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+  .bar { flex: 0 1 72px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .bar span { display: block; height: 100%; background: #8a8a8a; }
   /* What's changed (RV-4): a blue bar at the row's edge, a grey one for a removed row. */
   .changes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 16px; padding: 4px 8px 4px 4px; border-radius: 8px; background: #eef2fb; font-size: 14px; }
   .changes.off { background: #f2f2f2; }

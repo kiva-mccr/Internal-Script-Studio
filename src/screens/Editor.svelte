@@ -106,9 +106,9 @@
     const seconds = taken.reduce((sum, row) => sum + takeLength(voice.takes[row.id]), 0);
     return `${clock(seconds)}/${clock(total)}`;
   });
-  // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
+  // Play the script (AU-2): the rows in order with their takes. In Write and Review (AU-9), once a row has a take.
   const player = new Player();
-  const canPlay = $derived(mode === 'write' && !clash && taken.length > 0);
+  const canPlay = $derived((mode === 'write' || mode === 'review') && !clash && taken.length > 0);
   $effect(() => {
     if (!canPlay || voice.recording || voice.playing) untrack(() => player.stop());
   });
@@ -633,7 +633,7 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} onAdd={note} onApply={apply} />
+    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
