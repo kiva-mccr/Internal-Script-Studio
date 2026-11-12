@@ -40,7 +40,12 @@ Status: a first working version. What it does today:
   numbers, notes and files are kept as Fountain notes. The title page carries the version and status.
 - **Final Draft:** downloads the script as an `.fdx` file for Final Draft, Fade In and WriterDuet, laid out the same
   way; the row number, its note and its files are a plain line above each row.
-- **Teleprompter:** reads the dialogue full screen, scrolling at the speed you set (words a minute). Space starts
+- **Read time:** each section shows how long its dialogue takes to read aloud, and the top bar the whole script
+  ("2:05"; with takes, "3 of 4 · 0:14/2:05", where rows with a take count their take). The speaking speed is set in
+  ⋯ > Settings (150 words a minute to start, kept in this browser); once you have takes it offers their average speed.
+  The script list shows each script's length: the read time, or the recorded voice-over's length (with a mic) once
+  every row has a take.
+- **Teleprompter:** reads the dialogue full screen, scrolling at the speaking speed (words a minute, the same as read time). Space starts
   and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read
   (Whisper runs in the browser; the first time it downloads about 75 MB, and no sound leaves the computer). Words
@@ -56,7 +61,7 @@ Status: a first working version. What it does today:
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
-  The top bar shows how many rows have a take and their total length ("3 of 4 · 0:14").
+  The top bar shows how many rows have a take, their length, and the whole script's length ("3 of 4 · 0:14/2:05").
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
   ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). If it's unplugged, the
   take is recorded with the default microphone and the page says so.

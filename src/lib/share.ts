@@ -1,6 +1,6 @@
 // Copy for Teams (EX-10): a short message about the script, as formatted text (Teams keeps the bold and the links)
 // and as plain text for anywhere else. A snapshot: it says what was true when it was copied.
-import { clock, countWords, SPEED } from './readtime';
+import { clock, scriptWords, speaking } from './readtime.svelte';
 import type { Script } from './script';
 
 export type Facts = {
@@ -16,11 +16,10 @@ export type Facts = {
 
 export type Shared = { html: string; text: string };
 
-// The rows and the read-aloud time of a script's Dialogue.
+// The rows and the read-aloud time of a script's Dialogue, at the speaking speed (AP-12).
 export function measure(script: Script): { rows: number; seconds: number } {
   const rows = script.blocks.filter((b) => b.type === 'row');
-  const words = rows.reduce((sum, row) => sum + countWords(row.dialogue), 0);
-  return { rows: rows.length, seconds: (words / SPEED) * 60 };
+  return { rows: rows.length, seconds: (scriptWords(script) / speaking.wpm) * 60 };
 }
 
 export function share(facts: Facts, script: Script, now = Date.now()): Shared {

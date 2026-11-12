@@ -13,8 +13,8 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
-    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
+    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
@@ -141,7 +141,7 @@
         </button>
         {#if play.time}<button class="outline stop" aria-label="Stop playing" title="Stop" onclick={onStop}>■</button>{/if}
       {/if}
-      {#if voiceText}<span class="voice" title="Voice-over: rows recorded, and their length">{voiceText}</span>{/if}
+      {#if voiceText}<span class="voice" title={voiceText.includes('of') ? 'Voice-over: rows recorded and their length / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
       <span class="more" bind:this={exportEl}>
         <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
           onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export / Share</button>
@@ -179,7 +179,7 @@
   {/if}
 </header>
 
-{#if settings}<Settings onClose={() => (settings = false)} />{/if}
+{#if settings}<Settings {voiceWpm} onClose={() => (settings = false)} />{/if}
 
 <style>
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }

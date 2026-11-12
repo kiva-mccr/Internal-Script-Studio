@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { clock } from '../lib/readtime';
+  import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
@@ -19,6 +19,7 @@
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
 
+  const words = $derived(sectionWords(script)); // each section's read time (AP-12)
   const numbers = $derived.by(() => {
     const map = new Map<Block, number>();
     let n = 0;
@@ -229,6 +230,7 @@
       <div class="section" data-block={i}>
         <input class="section-title" bind:value={block.title} oninput={onChange} onblur={() => left(block)}
           use:focusIf={fresh === block} placeholder="New section" aria-label="Section title" />
+        {#if words.get(block)}<span class="time" title="{words.get(block)} words at {speaking.wpm} words a minute">{clock((words.get(block)! / speaking.wpm) * 60)}</span>{/if}
         <span class="tools">
           <button aria-label="Move section up" title="Move up" onclick={() => move(i, -1)}>↑</button>
           <button aria-label="Move section down" title="Move down" onclick={() => move(i, 1)}>↓</button>
@@ -370,6 +372,7 @@
   .section-title { flex: 1; border: 0; padding: 4px 0; font: inherit; font-size: 18px; font-weight: 600; background: none; }
   .section-title:focus { outline: none; background: #f7f9ff; }
   .section .tools { flex-wrap: nowrap; }
+  .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .note { margin: 0 0 8px; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
   .adds { display: flex; gap: 8px; margin-top: 12px; }
 </style>

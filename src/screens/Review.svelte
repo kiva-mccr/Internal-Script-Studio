@@ -3,6 +3,7 @@
   import { threads, type Field, type Note, type Thread } from '../lib/comments';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { readFileRef, type Row, type Script } from '../lib/script';
+  import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { ago } from '../lib/when';
 
   // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
@@ -38,6 +39,7 @@
   const open = $derived(all.filter((t) => !t.resolved));
   const shown = $derived(all.filter((t) => !t.resolved || recent.includes(t.comment.id)));
   const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+  const words = $derived(sectionWords(script)); // each section's read time (AP-12)
   const numbers = $derived(
     new Map(script.blocks.filter((b): b is Row => b.type === 'row').map((row, i) => [row.id, i + 1])),
   );
@@ -140,7 +142,7 @@
     <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
     {#each script.blocks as block, i (i)}
       {#if block.type === 'section'}
-        <h3 class="section">{block.title}</h3>
+        <h3 class="section"><span>{block.title}</span>{#if words.get(block)}<span class="time" title="{words.get(block)} words at {speaking.wpm} words a minute">{clock((words.get(block)! / speaking.wpm) * 60)}</span>{/if}</h3>
       {:else}
         {@const n = numbers.get(block.id)}
         <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}>
@@ -246,7 +248,8 @@
   .grid { display: grid; grid-template-columns: 56px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.7fr); gap: 20px; padding: 0 12px; }
   .head { position: sticky; top: 0; z-index: 1; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px;
     font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .section { margin: 0; padding: 28px 12px 8px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--line); }
+  .section { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding: 28px 12px 8px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--line); }
+  .time { font-size: 13px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
   .row { align-items: start; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   .row.active { background: #f7f9fe; }
   .num { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--muted); padding-top: 3px; }

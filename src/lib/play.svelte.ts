@@ -1,6 +1,6 @@
 // Play the script (AU-2, mock-up 14): the rows in order, each for as long as its take, with the take's sound. A row
 // with no take waits in silence for its read time, so the timing stays true (the user's choice over skipping it).
-import { countWords } from './readtime';
+import { countWords } from './readtime.svelte';
 import { rows, type Script } from './script';
 import { takeFile, type Take } from './voice.svelte';
 

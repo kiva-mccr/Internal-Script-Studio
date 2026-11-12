@@ -2,7 +2,7 @@
 // as voice/row-<id>.webm, beside voice/row-<id>.json (who, when, how long). By the row's id, so moving a row keeps
 // its take. OneDrive shares them like any asset; nothing is uploaded anywhere else.
 import { chosenMic, openMic } from './mic';
-import { countWords } from './readtime';
+import { countWords } from './readtime.svelte';
 
 // text: the dialogue as it was read, so a take whose line has changed since shows as outdated (asked by the user).
 export type Take = { by: string; at: number; seconds: number; text: string };
@@ -52,6 +52,38 @@ export async function takeFile(dir: FileSystemDirectoryHandle, id: string): Prom
   return (await (await dir.getDirectoryHandle(FOLDER)).getFileHandle(`row-${id}.webm`)).getFile();
 }
 
+// The takes in a script's folder, by row id (the script list reads them too, for each script's length).
+export async function readTakes(dir: FileSystemDirectoryHandle): Promise<Record<string, Take>> {
+  const takes: Record<string, Take> = {};
+  try {
+    const voice = await dir.getDirectoryHandle(FOLDER);
+    for await (const [name, handle] of voice.entries()) {
+      const id = name.match(/^row-(.+)\.json$/)?.[1];
+      if (!id || handle.kind !== 'file') continue;
+      try {
+        const take = JSON.parse(await (await (handle as FileSystemFileHandle).getFile()).text());
+        if (typeof take.seconds === 'number') takes[id] = { by: String(take.by ?? ''), at: Number(take.at) || 0, seconds: take.seconds, text: String(take.text ?? '') };
+      } catch {
+        // Half-synced: read next time.
+      }
+    }
+  } catch {
+    // No voice folder yet.
+  }
+  return takes;
+}
+
+// The takes' speed together, in words a minute (Settings offers it as the speaking speed, AP-12). 0 with none.
+export function takesSpeed(takes: Record<string, Take>): number {
+  let words = 0;
+  let seconds = 0;
+  for (const take of Object.values(takes)) {
+    const n = countWords(take.text);
+    if (n && take.seconds > 0) (words += n), (seconds += take.seconds);
+  }
+  return seconds ? Math.round((words / seconds) * 60) : 0;
+}
+
 // The takes in a script's folder, by row id. Kept as state: the Editor makes one, Write and the top bar read it.
 export class VoiceOver {
   takes = $state<Record<string, Take>>({});
@@ -63,22 +95,7 @@ export class VoiceOver {
   #audio: HTMLAudioElement | null = null;
 
   async load(dir: FileSystemDirectoryHandle) {
-    const next: Record<string, Take> = {};
-    try {
-      const voice = await dir.getDirectoryHandle(FOLDER);
-      for await (const [name, handle] of voice.entries()) {
-        const id = name.match(/^row-(.+)\.json$/)?.[1];
-        if (!id || handle.kind !== 'file') continue;
-        try {
-          const take = JSON.parse(await (await (handle as FileSystemFileHandle).getFile()).text());
-          if (typeof take.seconds === 'number') next[id] = { by: String(take.by ?? ''), at: Number(take.at) || 0, seconds: take.seconds, text: String(take.text ?? '') };
-        } catch {
-          // Half-synced: read next time.
-        }
-      }
-    } catch {
-      // No voice folder yet.
-    }
+    const next = await readTakes(dir);
     if (JSON.stringify(next) !== JSON.stringify(this.takes)) this.takes = next;
   }
 

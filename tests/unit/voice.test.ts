@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { outdated, wpm } from '../../src/lib/voice.svelte';
+import { outdated, takesSpeed, wpm } from '../../src/lib/voice.svelte';
 
 describe('wpm', () => {
   const take = (text: string, seconds: number) => ({ by: 'Sam', at: 0, seconds, text });
@@ -26,5 +26,16 @@ describe('outdated', () => {
   });
   it('is true once the line has changed', () => {
     expect(outdated(take, 'Every leaf you see.')).toBe(true);
+  });
+});
+
+describe('takesSpeed', () => {
+  const take = (text: string, seconds: number) => ({ by: 'Sam', at: 0, seconds, text });
+  it('is all the takes\' words over all their time', () => {
+    expect(takesSpeed({ a: take('one two three four five', 2), b: take('one two three four five six seven', 4) })).toBe(120);
+  });
+  it('is 0 with no takes, and skips a take with no words', () => {
+    expect(takesSpeed({})).toBe(0);
+    expect(takesSpeed({ a: take('', 3), b: take('one two', 1) })).toBe(120);
   });
 });
