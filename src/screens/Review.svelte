@@ -13,12 +13,14 @@
     script,
     notes,
     flagged,
+    me,
     onAdd,
     onApply,
   }: {
     script: Script;
     notes: Note[];
     flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
+    me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
@@ -37,11 +39,48 @@
   let showResolved = $state(false);
   let box = $state<HTMLTextAreaElement>();
 
-  const all = $derived(threads(notes));
   let recent = $state<string[]>([]); // decided here just now: kept in place, with Undo (mock-up 4)
-  const open = $derived(all.filter((t) => !t.resolved));
+  let gone = $state<string[]>([]); // deleted here just now: kept in place as "… deleted. Undo" (RV-7, mock-up 24)
+  // Deleted ones are kept only while they are in `gone`.
+  const all = $derived(
+    threads(notes, true)
+      .filter((t) => !t.deleted || gone.includes(t.comment.id))
+      .map((t) => ({ ...t, replies: t.replies.filter((r) => !r.deleted || gone.includes(r.id)) })),
+  );
+  const live = $derived(all.filter((t) => !t.deleted));
+  const open = $derived(live.filter((t) => !t.resolved));
   const shown = $derived(all.filter((t) => !t.resolved || recent.includes(t.comment.id)));
   const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+
+  // Editing your own (RV-7): one comment, suggestion or reply at a time, in place.
+  let editing = $state('');
+  let edit = $state('');
+  let editMissing = $state('');
+  const mine = (n: Note, t: Thread) => n.who === me && !t.resolved;
+
+  function startEdit(n: Note) {
+    editing = n.id;
+    edit = (n.kind === 'suggestion' ? n.replace : n.text) ?? '';
+    editMissing = '';
+  }
+
+  async function saveEdit(e: SubmitEvent, n: Note) {
+    e.preventDefault();
+    const suggestion = n.kind === 'suggestion';
+    const now = suggestion ? edit : edit.trim();
+    if (!now.trim()) return void (editMissing = 'Write something first, or Delete it.');
+    if (suggestion && now === n.quote) return void (editMissing = 'Change the text first.');
+    if (now === (suggestion ? n.replace : n.text)) return void (editing = '');
+    if (await onAdd(suggestion ? { kind: 'edit', about: n.id, replace: now } : { kind: 'edit', about: n.id, text: now })) editing = '';
+  }
+
+  async function remove(n: Note) {
+    if (await onAdd({ kind: 'delete', about: n.id })) (gone = [...gone, n.id]), (editing = '');
+  }
+
+  async function restore(n: Note) {
+    if (await onAdd({ kind: 'undelete', about: n.id })) gone = gone.filter((id) => id !== n.id);
+  }
   const words = $derived(sectionWords(script)); // each section's read time (AP-12)
   const numbers = $derived(
     new Map(script.blocks.filter((b): b is Row => b.type === 'row').map((row, i) => [row.id, i + 1])),
@@ -206,20 +245,35 @@
 
 {#snippet card(t: Thread)}
   {@const suggestion = t.comment.kind === 'suggestion'}
+  {#if t.deleted}
+    <p class="card deleted" data-id={t.comment.id}>{suggestion ? 'Suggestion' : 'Comment'} deleted. <button class="link inline" onclick={() => restore(t.comment)}>Undo</button></p>
+  {:else}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
   <article class="card" data-id={t.comment.id} class:active={t.comment.id === active} class:done={t.resolved} aria-label="{t.comment.kind === 'suggestion' ? 'Suggestion' : 'Comment'} by {t.comment.who}"
     onclick={() => (active = t.comment.id)}>
-    <div class="who"><span><strong>{t.comment.who}</strong> {suggestion ? 'suggested' : 'commented'} · {where(t)}</span><span>{ago(Date.parse(t.comment.when))}</span></div>
+    <div class="who"><span><strong>{t.comment.who}</strong> {suggestion ? 'suggested' : 'commented'} · {where(t)}</span><span>{@render time(t.comment)}</span></div>
     {#if changed(t) && !t.decision}<p class="quiet">On text that has since changed: “{t.comment.quote}”</p>{/if}
-    {#if suggestion}
+    {#if editing === t.comment.id}
+      {#if t.comment.quote}<blockquote>{t.comment.quote}</blockquote>{/if}
+      {@render editor(t.comment, suggestion ? 'Replace with' : 'Edit comment')}
+    {:else if suggestion}
       <p class="text">Replace “<span class="old">{t.comment.quote}</span>” with “<span class="new">{t.comment.replace}</span>”.</p>
     {:else}
       <p class="text">{t.comment.text}</p>
     {/if}
     {#each t.replies as r (r.id)}
-      <div class="reply"><div class="who"><strong>{r.who}</strong><span>{ago(Date.parse(r.when))}</span></div><p class="text">{r.text}</p></div>
+      {#if r.deleted}
+        <p class="reply quiet">Reply deleted. <button class="link inline" onclick={() => restore(r)}>Undo</button></p>
+      {:else}
+        <div class="reply">
+          <div class="who"><strong>{r.who}</strong><span class="when">{@render time(r)}{#if mine(r, t) && editing !== r.id}<button class="link inline" onclick={() => startEdit(r)}>Edit</button><button class="link inline" onclick={() => remove(r)}>Delete</button>{/if}</span></div>
+          {#if editing === r.id}{@render editor(r, 'Edit reply')}{:else}<p class="text">{r.text}</p>{/if}
+        </div>
+      {/if}
     {/each}
-    {#if replying === t.comment.id}
+    {#if editing === t.comment.id}
+      <!-- Its own edit box is open above: no other actions until Save or Cancel. -->
+    {:else if replying === t.comment.id}
       <form class="reply-form" onsubmit={(e) => sendReply(e, t)}>
         <textarea bind:value={reply} aria-label="Reply" rows="2"></textarea>
         <div class="actions">
@@ -236,15 +290,45 @@
           <button class="primary small" onclick={() => decide(t, true)}>Accept</button>
           <button class="outline" onclick={() => decide(t, false)}>Reject</button>
           <button class="link" onclick={() => ((replying = t.comment.id), (reply = ''))}>Reply</button>
+          {@render own(t)}
         {:else if !t.resolved}
           <button class="outline" onclick={() => ((replying = t.comment.id), (reply = ''))}>Reply</button>
           <button class="link" onclick={() => onAdd({ kind: 'resolve', about: t.comment.id })}>Resolve</button>
+          {@render own(t)}
         {:else}
           <button class="link" onclick={() => onAdd({ kind: 'reopen', about: t.comment.id })}>Reopen</button>
         {/if}
       </div>
     {/if}
   </article>
+  {/if}
+{/snippet}
+
+{#snippet own(t: Thread)}
+  {#if mine(t.comment, t) && editing !== t.comment.id}
+    <span class="own">
+      <button class="link compact" onclick={() => startEdit(t.comment)}>Edit</button>
+      <button class="link compact" onclick={() => remove(t.comment)}>Delete</button>
+    </span>
+  {/if}
+{/snippet}
+
+{#snippet time(n: Note)}
+  {ago(Date.parse(n.when))}{#if n.edited}<span title="Edited {ago(Date.parse(n.edited))}"> · edited</span>{/if}
+{/snippet}
+
+<!-- The edit box (RV-7): in place, Save and Cancel; Esc cancels. -->
+{#snippet editor(n: Note, name: string)}
+  <form class="reply-form" novalidate onsubmit={(e) => saveEdit(e, n)}>
+    <!-- svelte-ignore a11y_autofocus -->
+    <textarea bind:value={edit} oninput={() => (editMissing = '')} onkeydown={(e) => e.key === 'Escape' && (editing = '')}
+      aria-label={name} rows={n.kind === 'reply' ? 2 : 3} autofocus></textarea>
+    {#if editMissing}<p class="missing" role="alert">{editMissing}</p>{/if}
+    <div class="actions">
+      <button class="primary small" type="submit">Save</button>
+      <button class="link" type="button" onclick={() => (editing = '')}>Cancel</button>
+    </div>
+  </form>
 {/snippet}
 
 <style>
@@ -293,7 +377,12 @@
   blockquote { margin: 0; padding-left: 10px; border-left: 3px solid #e0b100; font-size: 14px; color: #3d3d3d; }
   textarea { font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; resize: vertical; }
   .reply-form { display: flex; flex-direction: column; gap: 8px; }
-  .actions { display: flex; gap: 8px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .own { display: flex; margin-left: auto; }
+  .compact { padding: 0 6px; }
+  .when { display: inline-flex; align-items: center; gap: 2px; }
+  .inline { min-height: 28px; padding: 0 6px; font-size: 13px; }
+  .deleted { flex-direction: row; align-items: center; margin: 0; padding: 10px 16px; border-style: dashed; font-size: 13px; color: var(--muted); }
   .small { min-height: 40px; padding: 0 16px; font-size: 14px; }
   .missing { margin: 0; font-size: 13px; color: var(--danger); }
   .quiet { margin: 0; font-size: 13px; color: var(--muted); }

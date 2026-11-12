@@ -2,7 +2,7 @@
 
 The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell, or use
 Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
-suggestions, with Undo. Approve / Send back (RV-3) are in `Header.svelte`.
+suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / Send back (RV-3) are in `Header.svelte`.
 
 - **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`.
 
@@ -18,5 +18,8 @@ suggestions, with Undo. Approve / Send back (RV-3) are in `Header.svelte`.
   only works if the quote is there as typed (not across formatting marks); otherwise a message, nothing changed.
 - A suggestion decided here stays in the open list with Undo until the screen is left (`recent`).
 - No browser dialogs: an empty comment shows "Write a comment first." in the form.
+- Edit and Delete show only when `who` is `me` (the name in Settings) and the thread is open. A deleted one stays
+  in place as "… deleted. Undo" while its id is in `gone`, which empties when Review is left. While a card's own
+  edit box is open its other actions are hidden (the aside is narrow; they wrapped).
 - A section's read time (AP-12) sits at the right of its title, as in Write.
 - Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.
