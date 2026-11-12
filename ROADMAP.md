@@ -194,8 +194,13 @@ and suggestions, keeps every version, and exports them for production.
   approves at once, as before. Flags joined the list with AP-9; sources join it when AP-8 is built.
 - [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
   made on it, so it is clear why a line changed.
-- [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
-  an edit is a new note that replaces the old one. Mock-up first.
+- [x] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
+  an edit is a new note that replaces the old one. Mock-up: board 24, built as drawn ("Looks perfect", every
+  suggestion taken): Edit and Delete only on what you wrote (comments, replies, suggestions), only while it is open
+  (not resolved, accepted or rejected); Edit opens the box in place (Save, Cancel, Esc); an edited one shows
+  "edited" after its time, the old text kept in its file but not shown; Delete has no dialog, the card becomes
+  "… deleted. Undo" until Review is left, and a deleted comment takes its replies. Kept as `edit`, `delete` and
+  `undelete` notes; only the author's count. Files on comments (RV-11) are to show in the same edit box.
 - [ ] **RV-8** A note with Send for review (asked by the user): a box to tell the reviewers what to look for; shown
   to them in Review and kept in History with the status change. The user's design note: the same style as the
   check before Approve (RV-5, board 20), a small panel that opens under the button, with the note box in it. Mock-up first.

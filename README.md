@@ -60,7 +60,8 @@ Status: a first working version. What it does today:
   last, open comments and voice-over progress. It is a snapshot of when you copied it, and doesn't update.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
-  back). The Review tab shows how many are open. Send for review (in Write), then Approve or Send back to writer; each step
+  back). Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
+  has Undo). The Review tab shows how many are open. Send for review (in Write), then Approve or Send back to writer; each step
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
 - **Flags:** flag a row to come back to it (the flag under its number, shown when you point at the row), with an

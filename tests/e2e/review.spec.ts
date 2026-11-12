@@ -192,3 +192,67 @@ test('Approve lists what is still open first, jumps to it, and never blocks (RV-
   await page.getByRole('button', { name: 'History' }).click();
   await expect(page.getByRole('navigation', { name: 'Versions' }).getByRole('button').nth(0)).toContainText('Approved, 2 still open');
 });
+
+test('edit and delete your own comment, reply and suggestion, with Undo; never someone else’s (RV-7)', async ({ page }) => {
+  const rowId = example.match(/## 1 <!-- id: (\w+) -->/)![1];
+  const ana = { v: 1, id: 'ana00000', kind: 'comment', who: 'Ana', when: '2026-11-09T10:00:00Z', row: rowId, field: 'on_screen', quote: 'sunlit', text: 'Real leaf?' };
+  await openReview(page, { [`${COMMENTS}/20261109T100000Z_ana00000.json`]: JSON.stringify(ana) });
+  const anaCard = page.getByRole('article', { name: 'Comment by Ana' });
+  await expect(anaCard.getByRole('button', { name: 'Edit' })).toHaveCount(0);
+  await expect(anaCard.getByRole('button', { name: 'Delete' })).toHaveCount(0);
+
+  // Your reply on Ana's comment.
+  await anaCard.getByRole('button', { name: 'Reply' }).click();
+  await anaCard.getByLabel('Reply').fill('Yse.');
+  await anaCard.getByRole('button', { name: 'Reply' }).click();
+  await anaCard.getByRole('button', { name: 'Edit' }).click();
+  await expect(anaCard.getByLabel('Edit reply')).toHaveValue('Yse.');
+  await anaCard.getByLabel('Edit reply').fill('Yes.');
+  await anaCard.getByRole('button', { name: 'Save' }).click();
+  await expect(anaCard).toContainText('Yes.');
+  await expect(anaCard).toContainText('edited');
+  await anaCard.getByRole('button', { name: 'Delete' }).click();
+  await expect(anaCard).toContainText('Reply deleted.');
+  await anaCard.getByRole('button', { name: 'Undo' }).click();
+  await expect(anaCard).toContainText('Yes.');
+
+  // Your comment: an empty edit is refused, Esc cancels, Delete leaves Undo, and the open count follows.
+  await page.getByRole('button', { name: 'Comment on row 3' }).click();
+  await page.getByLabel('Comment', { exact: true }).fill('Too fsat?');
+  await page.getByRole('form', { name: 'New comment' }).getByRole('button', { name: 'Add comment' }).click();
+  const mine = page.getByRole('article', { name: 'Comment by Sam' });
+  await mine.getByRole('button', { name: 'Edit' }).click();
+  await mine.getByLabel('Edit comment').fill(' ');
+  await mine.getByRole('button', { name: 'Save' }).click();
+  await expect(mine.getByRole('alert')).toHaveText('Write something first, or Delete it.');
+  await mine.getByLabel('Edit comment').press('Escape');
+  await expect(mine).toContainText('Too fsat?');
+  await mine.getByRole('button', { name: 'Edit' }).click();
+  await mine.getByLabel('Edit comment').fill('Too fast?');
+  await mine.getByRole('button', { name: 'Save' }).click();
+  await expect(mine).toContainText('Too fast?');
+  await expect(page.getByRole('heading', { name: 'Open · 2' })).toBeVisible();
+  await mine.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.getByText('Comment deleted.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Open · 1' })).toBeVisible();
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(mine).toContainText('Too fast?');
+
+  // Your suggestion: Edit changes the new words; once accepted, Edit and Delete go away.
+  await suggestOn(page, 'Dialogue, row 3', 'catch', 'grab');
+  const suggestion = page.getByRole('article', { name: 'Suggestion by Sam' });
+  await suggestion.getByRole('button', { name: 'Edit' }).click();
+  await suggestion.getByLabel('Replace with').fill('absorb');
+  await suggestion.getByRole('button', { name: 'Save' }).click();
+  await expect(suggestion).toContainText('Replace “catch” with “absorb”.');
+  await suggestion.getByRole('button', { name: 'Accept' }).click();
+  await expect(page.getByLabel('Dialogue, row 3')).toContainText('chloroplasts absorb the light');
+  await expect(suggestion.getByRole('button', { name: 'Edit' })).toHaveCount(0);
+
+  // Each change is a new file; nothing was rewritten.
+  const files = await Promise.all((await listFiles(page, COMMENTS)).map(async (f) => JSON.parse(await readFile(page, `${COMMENTS}/${f}`))));
+  expect(files.filter((f) => f.kind === 'edit').map((f) => f.text ?? f.replace).sort()).toEqual(['Too fast?', 'Yes.', 'absorb']);
+  expect(files.filter((f) => f.kind === 'delete')).toHaveLength(2);
+  expect(files.filter((f) => f.kind === 'undelete')).toHaveLength(2);
+  expect(files.find((f) => f.kind === 'reply').text).toBe('Yse.');
+});

@@ -141,6 +141,9 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
   `quote`).
 - What happens to it later is a new file, never an edit: `resolve`, `reopen`, `accept` or `reject`, each with
   `"about": "<id>"`, `who` and `when`. The newest one counts.
+- Its author can change it the same way (RV-7): `edit` (with the new `text`, or `replace` for a suggestion),
+  `delete` or `undelete`, about a comment, suggestion or reply. The newest counts, and one by anyone other than
+  the author is ignored. A deleted comment's replies are hidden with it.
 - `row` and `field` say where it belongs (`dialogue`, `on_screen` or `files`); the row id keeps it attached when
   rows move. If its quote is no longer in the row, it shows as "on text that has since changed".
 
