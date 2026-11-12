@@ -259,8 +259,11 @@ and suggestions, keeps every version, and exports them for production.
   silence for its read time (the teleprompter's speed); a row with no take and no dialogue is skipped; an outdated
   take still plays; no gap between rows. A row's number plays from that row; Space pauses and Esc stops when not
   typing. Offered once a row has a take.
-- [ ] **AU-3** Pick the microphone (asked by the user): choose which microphone to record with, in the app, and
-  remember it in this browser.
+- [x] **AU-3** Pick the microphone (asked by the user): choose which microphone to record with, in the app, and
+  remember it in this browser. Mock-up: board 19; the user asked for a Settings window to grow into, so ⋯ >
+  Settings opens one with a Voice-over heading and a Microphone drop-down (Default first), kept in this browser.
+  Before Chrome may use the mic only Default is listed, with why; an unplugged pick records with the default and
+  says so.
 
 ## Last (the user's order: these wait until everything above is done)
 

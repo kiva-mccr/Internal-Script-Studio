@@ -31,7 +31,7 @@ Status: a first working version. What it does today:
   saves between them folded away until you open them.
 - **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
-  Voice-over; **the ⋯ menu** holds Teleprompter.
+  Voice-over; **the ⋯ menu** holds Teleprompter and Settings.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
 - **Fountain:** downloads the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
@@ -56,6 +56,8 @@ Status: a first working version. What it does today:
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
   The top bar shows how many rows have a take and their total length ("3 of 4 · 0:14").
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
+  ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). If it's unplugged, the
+  take is recorded with the default microphone and the page says so.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
   for its read time. Click a row's number to play from there; pause with the same button or Space, stop with ■ or

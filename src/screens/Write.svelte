@@ -4,6 +4,7 @@
   import { emptyRow, type Block, type Script } from '../lib/script';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
+  import { chosenMic } from '../lib/mic';
   import { outdated, wpm, type VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
   import TextField from './TextField.svelte';
@@ -64,8 +65,9 @@
       if (voice.recording === id) await voice.stop(dir, name, lineOf(id));
       else {
         if (voice.recording) await voice.stop(dir, name, lineOf(voice.recording));
-        await voice.start(id);
+        const fellBack = await voice.start(id);
         now = Date.now();
+        if (fellBack) onNotice(`${chosenMic().name || 'The microphone picked in Settings'} isn't plugged in, so this take is recorded with the default microphone.`);
       }
     } catch (e) {
       const blocked = e instanceof DOMException && (e.name === 'NotAllowedError' || e.name === 'NotFoundError');
