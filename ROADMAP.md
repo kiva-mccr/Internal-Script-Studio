@@ -177,6 +177,10 @@ and suggestions, keeps every version, and exports them for production.
   text box, adding, removing or moving a line of a numbered list renumbers the lines after it at once, so nothing is
   fixed by hand (today Enter gives the next number but the lines below keep their old ones). Mock-up first.
 
+- [ ] **AP-30** Turn a row into a section and back (asked by the user, first in the round): a row can become a
+  section heading where it is, and a section a row, without reaching for "+ Add section" at the bottom of a long
+  script. Mock-up 39.
+
 ## Phase 3: review
 
 - [x] **RV-1** Comments on a row or a selection, reply, resolve.
