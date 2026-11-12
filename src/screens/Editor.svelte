@@ -58,6 +58,15 @@
     if (fileLines) untrack(checkFiles);
   });
   let prompting = $state(false); // the teleprompter is open (EX-2)
+  let promptFrom = $state(0); // the block it opens at (AU-7)
+  let cursorBlock = -1; // the block the cursor was last in, in Write
+  // The teleprompter opens at the block the cursor was last in, or else the first one on screen (AU-7). The cursor's
+  // block counts even once scrolled away: ⋯ is at the top of the page, so reaching it scrolls the page back up.
+  function whereAmI() {
+    if (cursorBlock >= 0) return cursorBlock;
+    const first = [...document.querySelectorAll<HTMLElement>('[data-block]')].find((el) => el.getBoundingClientRect().top >= 0);
+    return first ? Number(first.dataset.block) : 0;
+  }
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
   // Flagged rows (AP-9), in row order; kept with the comments.
@@ -578,10 +587,10 @@
 </script>
 
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
-<svelte:document onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
+<svelte:document onfocusin={(e) => { const at = (e.target as HTMLElement).closest?.<HTMLElement>('[data-block]'); if (at) cursorBlock = Number(at.dataset.block); }} onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
 
 {#if prompting && script}
-  <Teleprompter {script} onClose={() => (prompting = false)} />
+  <Teleprompter {script} from={promptFrom} onClose={() => (prompting = false)} />
 {/if}
 
 {#if printing && script && dir}
@@ -610,7 +619,7 @@
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
 
 <div class="page">
 <main>

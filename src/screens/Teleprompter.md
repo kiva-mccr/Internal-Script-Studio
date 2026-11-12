@@ -17,6 +17,10 @@ voice (EX-8, `lib/listen.ts`, `lib/follow.ts`): the marker follows the words hea
 - Scrolling by hand: any scroll it didn't make itself (more than 2 px from the last one it set) moves `read` to the
   word now at the marker.
 - Rows with no dialogue have no line. Lines already read are dimmed.
+- It opens at the first line from block `from` on (AU-7; the Editor works out where you were), so the lines before
+  count as read and Follow my voice listens from there (`heardAt` starts at `read`). ⤒ From the top sets `read` to 0
+  and clears the voice's marks; it is greyed while already at the top. At the top the scroll isn't 0 (the section
+  heading's margin), so tests compare the line with the marker.
 - Its choices (size, mirror, cues) are kept with `recall`/`keep`. The speed is the speaking speed shared with read time
   (AP-12, `speaking` in `lib/readtime.svelte.ts`), so ↑ ↓ here change Settings' speed too.
 - It asks for full screen; a refusal (tests, some browsers) is ignored. In full screen the first Esc is the

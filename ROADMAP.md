@@ -349,9 +349,12 @@ and suggestions, keeps every version, and exports them for production.
 
 - [ ] **AU-6** Quiet the hum in the pauses of a take (a noise gate between words; suggested while fixing AU-4).
   Shelved by the user: "we can come back to that much later".
-- [ ] **AU-7** Start playback from any point (asked by the user): Play the script and the teleprompter start from a
-  chosen row instead of the top. Play can already start from a row by clicking its number, but nothing shows it until
-  the mouse is on the number, and the teleprompter always opens at the top. Mock-up first: board 34.
+- [x] **AU-7** Start playback from any point (asked by the user): Play the script and the teleprompter start from a
+  chosen row instead of the top. Agreed on board 34 ("Looks good"): a row's number turns into ▶ "Play from here" while
+  the mouse is anywhere on the row (it could already be clicked, but nothing showed it), and the row playing shows ❚❚;
+  the top bar's Play still starts from the top; Play still needs a take. The teleprompter opens at the row the cursor
+  was last in (else the first row on screen, in practice the top: ⋯ is at the top of the page), with "⤒ From the
+  top" in its bar; Follow my voice listens from there.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.

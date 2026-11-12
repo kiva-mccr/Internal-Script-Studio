@@ -289,7 +289,11 @@
       <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && current === block.id} data-row={block.id} data-block={i}>
         <div class="num">
           {#if canPlay}
-            <button class="from" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}>{n}</button>
+            {#if here && player.on}
+              <button class="from" aria-label="Pause at row {n}" title="Pause" onclick={() => player.toggle()}>❚❚</button>
+            {:else}
+              <button class="from" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}><span class="n">{n}</span><span class="go" aria-hidden="true">▶</span></button>
+            {/if}
           {:else}
             <span>{n}</span>
           {/if}
@@ -398,6 +402,10 @@
   .row.here { border-radius: 8px; background: #eef2fb; }
   .from { margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; }
   .from:hover { background: #f0f0f0; color: var(--accent); }
+  /* The number turns into ▶ while the mouse is anywhere on the row (AU-7), so playing from here can be found. */
+  .from .go, .row:hover .from .n { display: none; }
+  .row:hover .from .go { display: inline; color: var(--accent); }
+  .row.here .from { color: var(--accent); }
   .num { position: relative; font-size: 13px; color: var(--muted); padding-top: 3px; }
   /* Row tools sit over the gutter below the number, so they never make a row taller. */
   .num .tools { position: absolute; top: 24px; left: -6px; display: grid; grid-template-columns: 28px 28px; }

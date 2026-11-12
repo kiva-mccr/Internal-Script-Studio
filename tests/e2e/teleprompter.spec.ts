@@ -139,3 +139,37 @@ test('Follow my voice: a blocked microphone or a failed download says what to do
   await expect(box).not.toBeChecked();
   await expect(prompter.getByRole('button', { name: 'Start' })).toBeVisible();
 });
+
+test('opens at the row the cursor is in; From the top goes back (AU-7)', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', { 'Episode 03/script.md': example });
+  await page.getByLabel('Dialogue, row 3').click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('button', { name: 'Teleprompter' }).click();
+  const prompter = page.getByRole('dialog', { name: 'Teleprompter' });
+  // Rows 1 and 2 count as read, and row 3 sits at the marker.
+  await expect(prompter.locator('.past')).toHaveCount(2);
+  await expect(prompter.locator('.line').nth(2)).not.toHaveClass(/past/);
+  const atMarker = async (n: number) => {
+    const marker = await prompter.locator('.marker').boundingBox();
+    const line = await prompter.locator('.line').nth(n).boundingBox();
+    return Math.abs(line!.y - marker!.y);
+  };
+  await expect.poll(() => atMarker(2)).toBeLessThan(5);
+  await prompter.getByRole('button', { name: '⤒ From the top' }).click();
+  await expect(prompter.locator('.past')).toHaveCount(0);
+  await expect.poll(() => atMarker(0)).toBeLessThan(5);
+  await expect(prompter.getByRole('button', { name: '⤒ From the top' })).toBeDisabled();
+});
+
+test('the row the cursor was in still counts after scrolling back up to ⋯ (AU-7)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 500 });
+  await setUp(page, '#/Episode%2003', { 'Episode 03/script.md': example });
+  await page.getByLabel('Dialogue, row 4').click();
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur()); // clicking away keeps the place
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('button', { name: 'Teleprompter' }).click();
+  const prompter = page.getByRole('dialog', { name: 'Teleprompter' });
+  await expect(prompter.locator('.past')).toHaveCount(3); // rows 1 to 3 come before row 4
+  await expect(prompter.locator('.line').nth(3)).not.toHaveClass(/past/);
+});

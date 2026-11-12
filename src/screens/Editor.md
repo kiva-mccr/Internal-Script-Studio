@@ -70,6 +70,9 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   Write plays from that row. It is offered only in Write with at least one take (`canPlay`), and stops when that
   ends, when a recording or a single take starts, and when the teleprompter opens. Space pauses and Esc stops, but
   not from a text field (and Space on a button stays that button's, or Play would toggle twice).
+- The teleprompter opens at the block the cursor was last in (`cursorBlock`, from `focusin` on `[data-block]`), else
+  the first one on screen (AU-7, `whereAmI`). The cursor's block counts even off screen: ⋯ is at the top of the page
+  (the top bar is sticky only while playing), so reaching it scrolls back up and "on screen" would always be the top.
 - The planning panel (`Planning.svelte`, AP-24) sits beside `main` in a flex row (`.page`), on Write and Review only;
   it reads and saves plan.md itself, apart from the script's saving and History.
 - `review` (a shared link, RV-10) only sets the first tab; nothing is left to save at that point, so no `leave()`.

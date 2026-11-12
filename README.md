@@ -59,7 +59,8 @@ Status: a first working version. What it does today:
   The script list shows each script's length: the read time, or the recorded voice-over's length (with a mic) once
   every row has a take.
 - **Teleprompter:** reads the dialogue full screen, scrolling at the speaking speed (words a minute, the same as read time). Space starts
-  and pauses, ↑ and ↓ change the speed, Esc leaves. Mirror flips it for a teleprompter glass; On-screen cues show
+  and pauses, ↑ and ↓ change the speed, Esc leaves. It opens at the row your cursor was last in (else the top); ⤒ From the top
+  goes back to the start. Mirror flips it for a teleprompter glass; On-screen cues show
   the On screen column small. Follow my voice listens through the microphone and keeps up with you as you read
   (Moonshine speech recognition runs in the browser, on the graphics card when there is one; the first time it
   downloads about 100 MB, and no sound leaves the computer). It moves smoothly at your pace and doesn't skip ahead on look-alike
@@ -102,7 +103,7 @@ Status: a first working version. What it does today:
   kept whole, so turning crop or loudness off brings it back.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
-  for its read time. Click a row's number to play from there; pause with the same button or Space, stop with ■ or
+  for its read time. With the mouse on a row, its number becomes ▶: click it to play from there (the row playing shows ❚❚); pause with the same button or Space, stop with ■ or
   Esc.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
