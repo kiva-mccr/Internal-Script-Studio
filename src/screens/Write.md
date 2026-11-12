@@ -13,6 +13,11 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   (`onDeleted`), which shows the Undo bar.
 - The column headings are `position: sticky`: no scrolling box (`overflow`) may wrap the table, or they stick to
   it instead of the window. A narrow window scrolls the page sideways instead.
+- Add section (AP-22) goes after the box in use: the button keeps the cursor on a click (`mousedown`
+  preventDefault) so `document.activeElement` still says where, through `data-block` (the block's index). From a
+  section's title it goes after that section's rows. A new section starts empty (grey "New section" placeholder)
+  and takes the cursor (`focusIf`); an empty one is removed on blur, never while it has the cursor. The Editor
+  leaves empty sections out of the file but not out of the page, so a save can't pull one from under the cursor.
 - Row tools are placed over the number column so they never make a row taller.
 - Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).

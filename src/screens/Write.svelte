@@ -113,10 +113,34 @@
     onChange();
   }
 
+  // A new section goes right after the box the cursor is in (after a section's rows, from its title), or at the
+  // end when no box is in use (AP-22). It starts empty, with "New section" as grey stand-in text, and takes the cursor.
+  let fresh = $state<Block | null>(null);
   function addSection() {
-    script.blocks.push({ type: 'section', title: 'New section', note: '' }, emptyRow(script));
+    const box = document.activeElement?.closest<HTMLElement>('[data-block]');
+    let at = script.blocks.length;
+    if (box && table?.contains(box)) {
+      at = Number(box.dataset.block) + 1;
+      if (script.blocks[at - 1].type === 'section') while (at < script.blocks.length && script.blocks[at].type === 'row') at++;
+    }
+    const section: Block = { type: 'section', title: '', note: '' };
+    // Rows already following it belong to it; otherwise it gets an empty row to write in.
+    script.blocks.splice(at, 0, ...(script.blocks[at]?.type === 'row' ? [section] : [section, emptyRow(script)]));
+    fresh = script.blocks[at];
     onChange();
   }
+
+  // An emptied section goes only once the cursor leaves its title, never while still typing in it (AP-22).
+  function left(block: Block) {
+    if (block.type !== 'section' || block.title.trim() || block.note) return;
+    const i = script.blocks.indexOf(block);
+    if (i >= 0) script.blocks.splice(i, 1);
+    onChange();
+  }
+
+  const focusIf = (node: HTMLInputElement, on: boolean) => {
+    if (on) { node.focus(); fresh = null; }
+  };
 </script>
 
 {#if script.intro}<p class="note">{script.intro}</p>{/if}
@@ -137,8 +161,9 @@
   </div>
   {#each script.blocks as block, i (block)}
     {#if block.type === 'section'}
-      <div class="section">
-        <input class="section-title" bind:value={block.title} oninput={onChange} aria-label="Section title" />
+      <div class="section" data-block={i}>
+        <input class="section-title" bind:value={block.title} oninput={onChange} onblur={() => left(block)}
+          use:focusIf={fresh === block} placeholder="New section" aria-label="Section title" />
         <span class="tools">
           <button aria-label="Move section up" title="Move up" onclick={() => move(i, -1)}>↑</button>
           <button aria-label="Move section down" title="Move down" onclick={() => move(i, 1)}>↓</button>
@@ -151,7 +176,7 @@
       {@const recording = voice.recording === block.id}
       {@const here = player.row === block.id}
       {@const sounding = voice.playing === block.id || (here && player.on)}
-      <div class="row grid" style:grid-template-columns={columns} class:here data-row={block.id}>
+      <div class="row grid" style:grid-template-columns={columns} class:here data-row={block.id} data-block={i}>
         <div class="num">
           {#if canPlay}
             <button class="from" aria-label="Play from row {n}" title="Play from here" onclick={() => onPlayFrom(block.id)}>{n}</button>
@@ -210,7 +235,8 @@
   {/each}
   <div class="adds">
     <button class="link" onclick={() => insertRow(script.blocks.length)}>+ Add row</button>
-    <button class="link" onclick={addSection}>+ Add section</button>
+    <!-- Keeps the cursor in its box on a click, so the section knows where to go. -->
+    <button class="link" onmousedown={(e) => e.preventDefault()} onclick={addSection}>+ Add section</button>
   </div>
 </div>
 

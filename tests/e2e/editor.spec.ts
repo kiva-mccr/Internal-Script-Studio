@@ -309,3 +309,40 @@ test("a save that fails with access still there says Couldn't save and tries aga
   await saved(page);
   expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the second try.\n');
 });
+
+test('a new section starts with a stand-in, goes after the box in use, and an emptied one goes only on leaving it (AP-22)', async ({ page }) => {
+  await openExample(page);
+  const titles = page.getByLabel('Section title');
+  // No box in use: at the end, empty with a grey stand-in, and the cursor in it.
+  await page.getByRole('button', { name: '+ Add section' }).click();
+  await expect(titles).toHaveCount(4);
+  await expect(titles.nth(3)).toHaveValue('');
+  await expect(titles.nth(3)).toHaveAttribute('placeholder', 'New section');
+  await expect(titles.nth(3)).toBeFocused();
+  await expect(page.getByLabel('Dialogue, row 6')).toBeVisible();
+  // Still in it while empty: it stays, even after a save.
+  await saved(page);
+  await expect(titles).toHaveCount(4);
+  expect(await readFile(page, SCRIPT)).not.toMatch(/^# *$/m);
+  // Leaving it removes it.
+  await page.getByLabel('Dialogue, row 1').click();
+  await expect(titles).toHaveCount(3);
+  // In row 1's dialogue: right after row 1, taking the rows that follow (no extra row).
+  await page.getByRole('button', { name: '+ Add section' }).click();
+  await expect(titles).toHaveCount(4);
+  await page.keyboard.type('Why leaves are green');
+  await saved(page);
+  const text = await readFile(page, SCRIPT);
+  expect(text.indexOf('# Why leaves are green')).toBeGreaterThan(text.indexOf('## 1 '));
+  expect(text.indexOf('# Why leaves are green')).toBeLessThan(text.indexOf('## 2 '));
+  expect(text.match(/^## /gm)).toHaveLength(6);
+  // In a section's title: after that section's rows, just before the next section.
+  await titles.nth(2).click();
+  await page.getByRole('button', { name: '+ Add section' }).click();
+  await page.keyboard.type('Recap');
+  await expect.poll(() => titles.evaluateAll((all) => all.map((t) => (t as HTMLInputElement).value)))
+    .toEqual(['Intro', 'Why leaves are green', 'Inside the leaf', 'Recap', 'Wrap-up']);
+  // With a section next instead of rows, it gets an empty row to write in.
+  await saved(page);
+  expect((await readFile(page, SCRIPT)).match(/^## /gm)).toHaveLength(7);
+});
