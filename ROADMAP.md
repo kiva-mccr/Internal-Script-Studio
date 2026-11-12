@@ -165,8 +165,12 @@ and suggestions, keeps every version, and exports them for production.
   "Approved", "Sent back to writer"). Anyone can press them (roles on trust).
 - [ ] **RV-4** Changed since last review (suggested, the user agreed): Review marks the rows edited since the
   script was last sent for review or approved, so a reviewer rereads only those. The look is agreed before building.
-- [ ] **RV-5** A check before Approve (suggested, the user agreed): Approve shows what is still open (comments,
+- [x] **RV-5** A check before Approve (suggested, the user agreed): Approve shows what is still open (comments,
   suggestions, and once built, flags and rows without a source) as a warning in the page, never a block.
+  Built as mock-up 20 (the user agreed, with both suggested choices): with something open, Approve opens a panel
+  under it listing each open comment and suggestion and the missing files (one line); a line goes to it, Keep
+  reviewing or Esc closes, Approve anyway approves and History says "Approved, N still open". Nothing open: Approve
+  approves at once, as before. Flags and sources join the list when AP-8 / AP-9 are built.
 - [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
   made on it, so it is clear why a line changed.
 - [ ] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so

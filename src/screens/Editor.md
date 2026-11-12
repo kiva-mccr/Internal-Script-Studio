@@ -35,6 +35,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after
   `leave()`), then add a `review` History entry. The button names contain "Write" (Send back to writer), so tests
   pick the Write tab with `exact: true`.
+- Before Approve (RV-5): `loose` lists open comments and suggestions, then missing files, for the Header's panel;
+  `showLoose` scrolls to and clicks that card in Review (`article[data-id]`), or opens Assets for the files.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).
 - With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
 - Split up (cleanup asked by the user): the header and Print's choices are `Header.svelte`, the rows are

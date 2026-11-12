@@ -132,9 +132,13 @@ test('rejecting keeps the original; a suggestion on changed text is not applied'
   await expect(card.getByRole('button', { name: 'Accept' })).toBeVisible();
 });
 
+// The example's four files, so none is missing and nothing is left open before Approve.
+const ALL_FILES = Object.fromEntries(['leaf-closeup.jpg', 'icons-ingredients.svg', 'storyboard-p4.pdf', 'glucose-model.png'].map((f) => [`Episode 03/assets/${f}`, 'x']));
+
 test('approve, send for review again, and send back to the writer; each is in History', async ({ page }) => {
-  await openReview(page); // the example is "in review"
-  await page.getByRole('button', { name: 'Approve' }).click();
+  await openReview(page, ALL_FILES); // the example is "in review"
+  await page.getByRole('button', { name: 'Approve' }).click(); // nothing open: approved at once
+  await expect(page.getByRole('region', { name: 'Still open' })).toHaveCount(0);
   await expect(page.getByText('Approved', { exact: true })).toBeVisible();
   await expect.poll(() => readFile(page, SCRIPT)).toContain('status: approved\n');
   await page.getByRole('button', { name: 'Send for review' }).click();
@@ -150,4 +154,39 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect(versions.nth(0)).toContainText('Sent back to writer');
   await expect(versions.nth(1)).toContainText('Sent for review');
   await expect(versions.nth(2)).toContainText('Approved');
+});
+
+test('Approve lists what is still open first, jumps to it, and never blocks (RV-5)', async ({ page }) => {
+  const rowId = example.match(/## 1 <!-- id: (\w+) -->/)![1];
+  const ana = { v: 1, id: 'ana00000', kind: 'comment', who: 'Ana', when: '2026-11-09T10:00:00Z', row: rowId, field: 'on_screen', quote: 'sunlit', text: 'Morning light?' };
+  await openReview(page, { [`${COMMENTS}/20261109T100000Z_ana00000.json`]: JSON.stringify(ana) }); // the four files are missing
+  await page.getByRole('button', { name: 'Approve' }).click();
+  const panel = page.getByRole('region', { name: 'Still open' });
+  await expect(panel).toContainText('2 things are still open');
+  await expect(panel.getByRole('button').nth(0)).toContainText('Comment · Ana · row 1Morning light?');
+  await expect(panel.getByRole('button').nth(1)).toContainText('4 files missingleaf-closeup.jpg, icons-ingredients.svg');
+  // A line jumps to that comment, and the panel closes.
+  await panel.getByRole('button', { name: /Comment · Ana/ }).click();
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Comment by Ana' })).toHaveClass(/active/);
+  // Keep reviewing and Esc close it; nothing changes.
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await panel.getByRole('button', { name: 'Keep reviewing' }).click();
+  await expect(panel).toHaveCount(0);
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  expect(await readFile(page, SCRIPT)).toContain('status: in review\n');
+  // The missing files line opens Assets.
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await panel.getByRole('button', { name: /files missing/ }).click();
+  await expect(page.getByRole('region', { name: 'Assets' })).toBeVisible();
+  // Approve anyway approves, and History says how much was left open.
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await page.getByRole('button', { name: 'Approve' }).click();
+  await panel.getByRole('button', { name: 'Approve anyway' }).click();
+  await expect(page.getByText('Approved', { exact: true })).toBeVisible();
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('status: approved\n');
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(page.getByRole('navigation', { name: 'Versions' }).getByRole('button').nth(0)).toContainText('Approved, 2 still open');
 });
