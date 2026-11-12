@@ -12,6 +12,7 @@ export type Version = {
   when: string; // 2026-11-09T14:41:00Z
   kind: Kind;
   note: string;
+  message?: string; // the note for the reviewers, with "Sent for review" (RV-8); absent when none was written
   sha256: string;
   text: string;
 };
@@ -48,10 +49,16 @@ export async function listVersions(dir: FileSystemDirectoryHandle): Promise<Vers
   return versions.sort((a, b) => (a.when !== b.when ? (a.when < b.when ? -1 : 1) : depthOf(a) - depthOf(b)));
 }
 
+// The note sent with the script for review (RV-8): from the newest review change, if that was a send with a note.
+export function reviewNote(versions: Version[]): Version | undefined {
+  const newest = versions.findLast((v) => v.kind === 'review');
+  return newest?.note === 'Sent for review' && newest.message ? newest : undefined;
+}
+
 // Writes a new version file and returns it.
 export async function addVersion(
   dir: FileSystemDirectoryHandle,
-  entry: { parents: string[]; who: string; kind: Kind; text: string; note?: string },
+  entry: { parents: string[]; who: string; kind: Kind; text: string; note?: string; message?: string },
   now = new Date(),
 ): Promise<Version> {
   const version: Version = {
@@ -62,6 +69,7 @@ export async function addVersion(
     when: now.toISOString().replace(/\.\d+Z$/, 'Z'),
     kind: entry.kind,
     note: entry.note ?? '',
+    ...(entry.message ? { message: entry.message } : {}),
     sha256: await sha256(entry.text),
     text: entry.text,
   };

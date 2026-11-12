@@ -10,6 +10,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 
 ## Rules and pitfalls
 
+- A status change (`setStatus`) is awaited by `leave()`: a tab switched before its History entry was written made a
+  second entry, "Changed the status", beside it (found building RV-8, failed once in CI).
 - A save leaves empty sections out of the file, on a copy: never out of `script`, or a section emptied while its
   title still has the cursor would vanish under it (AP-22; `Write.svelte` removes it on blur).
 - No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.

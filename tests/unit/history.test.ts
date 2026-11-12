@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, summary, type Version } from '../../src/lib/history';
+import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, reviewNote, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -83,5 +83,15 @@ describe('heads and ancestor', () => {
   it('finds the newest version both were made from', () => {
     expect(ancestor([a, b, c, d], c, d)?.id).toBe('b');
     expect(ancestor([a, d], a, d)).toBeUndefined();
+  });
+});
+
+describe('reviewNote', () => {
+  const sent = (id: string, message?: string) => version(example, { id, kind: 'review', note: 'Sent for review', message });
+  it('is the note of the newest send for review, if it has one', () => {
+    expect(reviewNote([sent('a', 'Look at row 2'), version(example, { id: 'b' })])?.message).toBe('Look at row 2');
+    expect(reviewNote([sent('a', 'Look at row 2'), sent('b')])).toBeUndefined();
+    expect(reviewNote([sent('a', 'Look at row 2'), version(example, { id: 'b', kind: 'review', note: 'Sent back to writer' })])).toBeUndefined();
+    expect(reviewNote([])).toBeUndefined();
   });
 });

@@ -64,7 +64,8 @@ Status: a first working version. What it does today:
   back). Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
   50 MB each; bigger things go in OneDrive as a link). Images show a small preview, other files a chip; clicking
-  opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), then Approve or Send back to writer; each step
+  opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the
+  reviewers that they see at the top of Review, then Approve or Send back to writer; each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
 - **Flags:** flag a row to come back to it (the flag under its number, shown when you point at the row), with an

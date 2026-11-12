@@ -201,9 +201,13 @@ and suggestions, keeps every version, and exports them for production.
   "edited" after its time, the old text kept in its file but not shown; Delete has no dialog, the card becomes
   "… deleted. Undo" until Review is left, and a deleted comment takes its replies. Kept as `edit`, `delete` and
   `undelete` notes; only the author's count. Files on comments (RV-11) are to show in the same edit box.
-- [ ] **RV-8** A note with Send for review (asked by the user): a box to tell the reviewers what to look for; shown
+- [x] **RV-8** A note with Send for review (asked by the user): a box to tell the reviewers what to look for; shown
   to them in Review and kept in History with the status change. The user's design note: the same style as the
-  check before Approve (RV-5, board 20), a small panel that opens under the button, with the note box in it. Mock-up first.
+  check before Approve (RV-5, board 20), a small panel that opens under the button, with the note box in it.
+  Built as mock-up 26 (the user agreed, with all suggested choices): Send for review always opens the panel; the note
+  is optional; Cancel or Esc closes it and keeps what was typed. Reviewers see it at the top of Review while it is in
+  review (Hide folds it to "Sam's note"); History shows it under "Sent for review", in that entry's `message`. Not on
+  Send back to writer for now.
 - [ ] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
   next official version (AP-10), or keeps the current version when nothing has changed since it. Mock-up first.
 - [x] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the

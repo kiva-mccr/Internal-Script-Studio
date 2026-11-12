@@ -21,6 +21,9 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
 - Approve with something still open (`loose`: comments, suggestions, missing files) opens a panel under it, like the
   menus (mock-up 20, RV-5): each line goes to that item (`onLoose`), Keep reviewing or Esc closes, Approve anyway
   approves with the History note "Approved, N still open". It warns and never blocks; nothing open approves at once.
+- Send for review opens a panel under it with a note for the reviewers (RV-8, mock-up 26), like Approve's: optional,
+  focused on opening; Cancel or Esc closes it and keeps the note (`sendNote`) until sent or the page is left. Its
+  region and its button are both named "Send for review": tests pick the button inside the region.
 - Send for review shows only in Write (asked by the user); Review has Send back to writer and Approve, and History
   and Assets show neither. Tests that send for review go to Write first.
 - It only shows and asks: switching tabs, the status and printing are done by `Editor.svelte` (`onMode`,
