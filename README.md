@@ -26,6 +26,11 @@ Status: a first working version. What it does today:
   and Edge do this after a tab sits in the background a while), the status says so: click Allow editing and what
   you typed is saved. Choosing "Allow on every visit" in the browser's question keeps this from coming back. The ‹ beside a column heading folds that column away (say,
   to give the dialogue the whole width early on); › brings it back. The browser remembers which are folded.
+- **Planning:** the Planning tab on the right edge of Write and Review opens a panel beside the script for learning
+  goals, an outline and notes. Bullets, numbered lists and tick boxes (click ☐ again to tick it), plus the same
+  formatting as the cells; Enter carries a list on. It is kept in `plan.md` beside the script, saves on its own and
+  shows others' saves, but is not part of the script: no History versions and not in any export. The browser
+  remembers whether it is open.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small

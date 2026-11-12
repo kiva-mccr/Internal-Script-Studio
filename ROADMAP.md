@@ -157,8 +157,13 @@ and suggestions, keeps every version, and exports them for production.
   click can ask again, so the retries never worked. Mock-up 18, option A: the status says "Not saved: the browser
   needs your OK to edit the folder" with an Allow editing button; once allowed, what was typed meanwhile is saved.
   Also shown by the 5 s check and on coming back to the tab. Other failed saves still retry.
-- [ ] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
+- [x] **AP-24** A planning panel (asked by the user): a fold-out panel at the side of Write, opened by a small arrow
   labelled "Planning", for notes, outlining and the script's learning goals. Kept with the script. Mock-up first.
+  Built as mock-up 23 with the suggested choices (the user: "Love it"): `plan.md` beside script.md, saved 1.5 s
+  after typing and checked every 5 s like the script, two saves at once keep both (theirs' new lines after yours);
+  no History versions, not in exports. A tab on the right edge of Write and Review; the 380 px panel pushes the
+  columns narrower (in Review at 1280 px the comments then move under the script). One text box with the cells'
+  formatting plus bullets, numbers and tick boxes; open or closed is remembered by the browser.
 - [ ] **AP-26** Opens without wifi (asked by the user; explore first): keep the whole app in the browser (a service
   worker caching its files) so it opens and works offline. The scripts are already on the computer through the synced
   folder; OneDrive catches up once back online. To explore: how an update reaches people (a new version on the next

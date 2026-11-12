@@ -51,7 +51,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24, RV-7, EX-12, RV-11, RV-8, EX-9, RV-4, AS-1.
+  AP-9 (done), AP-24 (done), RV-7, EX-12, RV-11, RV-8, EX-9, RV-4, AS-1.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
@@ -75,4 +75,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
 - Pick the microphone (AU-3) with real microphones: tests fake the list and the recording; an unplugged mic is unseen.
+- The planning panel (AP-24) with two real computers: saves at once are only simulated by writing plan.md in tests.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.
