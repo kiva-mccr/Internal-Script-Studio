@@ -329,10 +329,11 @@
   const flag = (row: string, text: string | null) => note(text === null ? { kind: 'unflag', row } : { kind: 'flag', row, text });
 
   // A comment, reply, resolve or reopen, in this person's name. Returns false if it couldn't be written.
-  async function note(entry: Omit<Note, 'v' | 'id' | 'when' | 'who'>): Promise<boolean> {
+  // `files` are new files attached to it (RV-11).
+  async function note(entry: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files: File[] = []): Promise<boolean> {
     if (!dir) return false;
     try {
-      await addNote(dir, { ...entry, who: name });
+      await addNote(dir, { ...entry, who: name }, undefined, files);
       notes = await listNotes(dir);
       return true;
     } catch {
@@ -628,7 +629,7 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {script} {notes} {flagged} me={name} onAdd={note} onApply={apply} />
+    <Review {dir} {script} {notes} {flagged} me={name} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}

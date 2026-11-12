@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { IMAGE } from './Attached.svelte';
   import { addAsset, assetFile } from '../lib/folder';
   import { readFileRef } from '../lib/script';
 
@@ -15,7 +16,6 @@
     onNotice: (message: string) => void;
   } = $props();
 
-  const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i;
 
   let adding = $state(false);
   // Thumbnails: image files in the script's folder, by path, as short-lived blob URLs. Linked images use their link.

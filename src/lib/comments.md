@@ -19,5 +19,10 @@ rows (AP-9) are kept here too (`flag`, `unflag`; `flags()` says which rows are f
 - Edit, delete and undelete (RV-7) count only when `who` is the author's. `threads()` returns copies with the
   newest text and `edited` (the time of the last edit); deleted ones are left out unless `withDeleted` (Review's
   Undo). `edited` and `deleted` are worked out, never written to a file.
+- Files on comments (RV-11): `addNote(dir, entry, now, attach)` copies the new files into
+  `.studio/files/<note id>/` before writing the note, so a note never names a file that isn't there, and appends
+  them to `entry.files`. Two with the same name in one note become "image.png" and "image 2.png" (pasted screenshots
+  are all "image.png"). An edit's `files` is the whole new list; an edit without `files` keeps them. Files are never
+  deleted. Note `safeName` strips leading dots, so the extension is cleaned separately.
 - Flags: the newest `flag` or `unflag` about a row wins, by `when` (file names keep only seconds, so a flag and its
   note written in the same second sort at random by name; a test caught this). Flags are not threads.

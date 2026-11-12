@@ -1,6 +1,8 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { threads, type Field, type Flag, type Note, type Thread } from '../lib/comments';
+  import { threads, type Attachment, type Field, type Flag, type Note, type Thread } from '../lib/comments';
+  import AttachBox from './AttachBox.svelte';
+  import Attached from './Attached.svelte';
   import FlagIcon from './FlagIcon.svelte';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { readFileRef, type Row, type Script } from '../lib/script';
@@ -10,6 +12,7 @@
   // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
   // change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
   let {
+    dir,
     script,
     notes,
     flagged,
@@ -17,11 +20,13 @@
     onAdd,
     onApply,
   }: {
+    dir: FileSystemDirectoryHandle; // the script's folder: files on comments (RV-11) are read from it
     script: Script;
     notes: Note[];
     flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
     me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
-    onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>) => Promise<boolean>;
+    // `files`: new files to attach to it (RV-11).
+    onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
   } = $props();
@@ -31,10 +36,12 @@
 
   let target = $state<{ row: string; field: Field; quote: string } | null>(null);
   let draft = $state('');
+  let draftFiles = $state<File[]>([]);
   let draftMissing = $state('');
   let suggesting = $state(false);
   let replying = $state('');
   let reply = $state('');
+  let replyFiles = $state<File[]>([]);
   let active = $state('');
   let showResolved = $state(false);
   let box = $state<HTMLTextAreaElement>();
@@ -55,12 +62,16 @@
   // Editing your own (RV-7): one comment, suggestion or reply at a time, in place.
   let editing = $state('');
   let edit = $state('');
+  let editKept = $state<Attachment[]>([]); // files the edited one keeps (RV-11)
+  let editFiles = $state<File[]>([]); // and new ones
   let editMissing = $state('');
   const mine = (n: Note, t: Thread) => n.who === me && !t.resolved;
 
   function startEdit(n: Note) {
     editing = n.id;
     edit = (n.kind === 'suggestion' ? n.replace : n.text) ?? '';
+    editKept = n.files ?? [];
+    editFiles = [];
     editMissing = '';
   }
 
@@ -68,10 +79,18 @@
     e.preventDefault();
     const suggestion = n.kind === 'suggestion';
     const now = suggestion ? edit : edit.trim();
-    if (!now.trim()) return void (editMissing = 'Write something first, or Delete it.');
-    if (suggestion && now === n.quote) return void (editMissing = 'Change the text first.');
-    if (now === (suggestion ? n.replace : n.text)) return void (editing = '');
-    if (await onAdd(suggestion ? { kind: 'edit', about: n.id, replace: now } : { kind: 'edit', about: n.id, text: now })) editing = '';
+    if (suggestion) {
+      if (!now.trim()) return void (editMissing = 'Write something first, or Delete it.');
+      if (now === n.quote) return void (editMissing = 'Change the text first.');
+      if (now === n.replace) return void (editing = '');
+      if (await onAdd({ kind: 'edit', about: n.id, replace: now })) editing = '';
+      return;
+    }
+    const filesChanged = editFiles.length > 0 || editKept.length !== (n.files ?? []).length;
+    if (!now && !editKept.length && !editFiles.length) return void (editMissing = 'Write something first, or Delete it.');
+    if (now === n.text && !filesChanged) return void (editing = '');
+    const entry = { kind: 'edit' as const, about: n.id, text: now, ...(filesChanged ? { files: editKept } : {}) };
+    if (await onAdd(entry, editFiles)) editing = '';
   }
 
   async function remove(n: Note) {
@@ -132,6 +151,7 @@
   function start(t: { row: string; field: Field; quote: string }) {
     target = t;
     draft = '';
+    draftFiles = [];
     draftMissing = '';
     suggesting = false;
     queueMicrotask(() => box?.focus());
@@ -141,6 +161,7 @@
   function suggest(on: boolean) {
     suggesting = on;
     draft = on ? target!.quote : '';
+    draftFiles = []; // a suggestion is only words
     draftMissing = '';
     queueMicrotask(() => box?.focus());
   }
@@ -154,8 +175,8 @@
       if (await onAdd({ kind: 'suggestion', row, field, quote, replace: draft })) target = null;
       return;
     }
-    if (!draft.trim()) return void ((draftMissing = 'Write a comment first.'), box?.focus());
-    if (await onAdd({ kind: 'comment', row, field, quote, text: draft.trim() })) target = null;
+    if (!draft.trim() && !draftFiles.length) return void ((draftMissing = 'Write a comment first.'), box?.focus());
+    if (await onAdd({ kind: 'comment', row, field, quote, text: draft.trim() }, draftFiles)) target = null;
   }
 
   async function decide(t: Thread, accept: boolean) {
@@ -173,8 +194,8 @@
 
   async function sendReply(e: SubmitEvent, t: Thread) {
     e.preventDefault();
-    if (!reply.trim()) return;
-    if (await onAdd({ kind: 'reply', about: t.comment.id, text: reply.trim() })) (replying = ''), (reply = '');
+    if (!reply.trim() && !replyFiles.length) return;
+    if (await onAdd({ kind: 'reply', about: t.comment.id, text: reply.trim() }, replyFiles)) (replying = ''), (reply = ''), (replyFiles = []);
   }
 </script>
 
@@ -218,12 +239,20 @@
           </div>
         {/if}
         {#if target.quote}<blockquote>{target.quote}</blockquote>{/if}
-        <textarea bind:this={box} bind:value={draft} oninput={() => (draftMissing = '')} aria-label={suggesting ? 'Replace with' : 'Comment'} rows="3"></textarea>
-        {#if draftMissing}<p class="missing" role="alert">{draftMissing}</p>{/if}
-        <div class="actions">
+        {#snippet typing()}
+          <textarea bind:this={box} bind:value={draft} oninput={() => (draftMissing = '')} aria-label={suggesting ? 'Replace with' : 'Comment'} rows="3"></textarea>
+          {#if draftMissing}<p class="missing" role="alert">{draftMissing}</p>{/if}
+        {/snippet}
+        {#snippet buttons()}
           <button class="primary small" type="submit">{suggesting ? 'Add suggestion' : 'Add comment'}</button>
           <button class="link" type="button" onclick={() => (target = null)}>Cancel</button>
-        </div>
+        {/snippet}
+        {#if suggesting}
+          {@render typing()}
+          <div class="actions">{@render buttons()}</div>
+        {:else}
+          <AttachBox {dir} bind:files={draftFiles} actions={buttons}>{@render typing()}</AttachBox>
+        {/if}
       </form>
     {/if}
 
@@ -259,7 +288,8 @@
     {:else if suggestion}
       <p class="text">Replace “<span class="old">{t.comment.quote}</span>” with “<span class="new">{t.comment.replace}</span>”.</p>
     {:else}
-      <p class="text">{t.comment.text}</p>
+      {#if t.comment.text}<p class="text">{t.comment.text}</p>{/if}
+      {#if t.comment.files?.length}<Attached {dir} files={t.comment.files} />{/if}
     {/if}
     {#each t.replies as r (r.id)}
       {#if r.deleted}
@@ -267,7 +297,7 @@
       {:else}
         <div class="reply">
           <div class="who"><strong>{r.who}</strong><span class="when">{@render time(r)}{#if mine(r, t) && editing !== r.id}<button class="link inline" onclick={() => startEdit(r)}>Edit</button><button class="link inline" onclick={() => remove(r)}>Delete</button>{/if}</span></div>
-          {#if editing === r.id}{@render editor(r, 'Edit reply')}{:else}<p class="text">{r.text}</p>{/if}
+          {#if editing === r.id}{@render editor(r, 'Edit reply')}{:else}{#if r.text}<p class="text">{r.text}</p>{/if}{#if r.files?.length}<Attached {dir} files={r.files} />{/if}{/if}
         </div>
       {/if}
     {/each}
@@ -275,11 +305,11 @@
       <!-- Its own edit box is open above: no other actions until Save or Cancel. -->
     {:else if replying === t.comment.id}
       <form class="reply-form" onsubmit={(e) => sendReply(e, t)}>
-        <textarea bind:value={reply} aria-label="Reply" rows="2"></textarea>
-        <div class="actions">
+        {#snippet buttons()}
           <button class="primary small" type="submit">Reply</button>
           <button class="link" type="button" onclick={() => (replying = '')}>Cancel</button>
-        </div>
+        {/snippet}
+        <AttachBox {dir} bind:files={replyFiles} actions={buttons}><textarea bind:value={reply} aria-label="Reply" rows="2"></textarea></AttachBox>
       </form>
     {:else}
       <div class="actions">
@@ -289,10 +319,10 @@
         {:else if suggestion}
           <button class="primary small" onclick={() => decide(t, true)}>Accept</button>
           <button class="outline" onclick={() => decide(t, false)}>Reject</button>
-          <button class="link" onclick={() => ((replying = t.comment.id), (reply = ''))}>Reply</button>
+          <button class="link" onclick={() => ((replying = t.comment.id), (reply = ''), (replyFiles = []))}>Reply</button>
           {@render own(t)}
         {:else if !t.resolved}
-          <button class="outline" onclick={() => ((replying = t.comment.id), (reply = ''))}>Reply</button>
+          <button class="outline" onclick={() => ((replying = t.comment.id), (reply = ''), (replyFiles = []))}>Reply</button>
           <button class="link" onclick={() => onAdd({ kind: 'resolve', about: t.comment.id })}>Resolve</button>
           {@render own(t)}
         {:else}
@@ -320,14 +350,23 @@
 <!-- The edit box (RV-7): in place, Save and Cancel; Esc cancels. -->
 {#snippet editor(n: Note, name: string)}
   <form class="reply-form" novalidate onsubmit={(e) => saveEdit(e, n)}>
-    <!-- svelte-ignore a11y_autofocus -->
-    <textarea bind:value={edit} oninput={() => (editMissing = '')} onkeydown={(e) => e.key === 'Escape' && (editing = '')}
-      aria-label={name} rows={n.kind === 'reply' ? 2 : 3} autofocus></textarea>
-    {#if editMissing}<p class="missing" role="alert">{editMissing}</p>{/if}
-    <div class="actions">
+    {#snippet typing()}
+      <!-- svelte-ignore a11y_autofocus -->
+      <textarea bind:value={edit} oninput={() => (editMissing = '')} onkeydown={(e) => e.key === 'Escape' && (editing = '')}
+        aria-label={name} rows={n.kind === 'reply' ? 2 : 3} autofocus></textarea>
+      {#if editMissing}<p class="missing" role="alert">{editMissing}</p>{/if}
+    {/snippet}
+    {#snippet buttons()}
       <button class="primary small" type="submit">Save</button>
       <button class="link" type="button" onclick={() => (editing = '')}>Cancel</button>
-    </div>
+    {/snippet}
+    {#if n.kind === 'suggestion'}
+      {@render typing()}
+      <div class="actions">{@render buttons()}</div>
+    {:else}
+      <!-- Editing can take files off or add new ones (RV-11, with RV-7). -->
+      <AttachBox {dir} bind:files={editFiles} bind:kept={editKept} actions={buttons}>{@render typing()}</AttachBox>
+    {/if}
   </form>
 {/snippet}
 

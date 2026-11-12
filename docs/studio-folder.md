@@ -11,6 +11,7 @@ Episode 03 - How Photosynthesis Works/
     versions/   one file per history entry
     comments/   one file per comment, reply, or change to one
     editing/    one file per person who has the script open
+    files/      files attached to comments, one folder per comment or reply
 ```
 
 ## The one rule: new files, never edits
@@ -144,6 +145,10 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
 - Its author can change it the same way (RV-7): `edit` (with the new `text`, or `replace` for a suggestion),
   `delete` or `undelete`, about a comment, suggestion or reply. The newest counts, and one by anyone other than
   the author is ignored. A deleted comment's replies are hidden with it.
+- A comment or reply can carry files (RV-11): `"files": [{ "name": "leaf.jpg", "path":
+  ".studio/files/c4d5e6f7/leaf.jpg", "size": 2400000 }]`. The files are copied first into `.studio/files/<its id>/`,
+  written once and never deleted (not even when it is resolved or deleted). An `edit` with `files` replaces the
+  list: the ones it keeps keep their paths, and new ones go in `.studio/files/<the edit's id>/`. Up to 50 MB each.
 - `row` and `field` say where it belongs (`dialogue`, `on_screen` or `files`); the row id keeps it attached when
   rows move. If its quote is no longer in the row, it shows as "on text that has since changed".
 
