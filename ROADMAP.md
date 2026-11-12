@@ -338,7 +338,9 @@ and suggestions, keeps every version, and exports them for production.
   own, on as today) and make every take equally loud (on); they apply to takes recorded from then on.
 - [ ] **AU-5** Mark the default mic (asked by the user): in Settings > Voice-over, drop the separate "Default" entry
   from the Microphone list and show "(default)" on the right of the row of the mic that is the computer's default.
-  Mock-up: board 33.
+  Agreed on board 33: our own small drop-down (the browser's can't right-align), "(default)" on the computer's default
+  mic and moving with it; never picked or picking that row follows the default, any other row sticks to that mic;
+  before Chrome may use the mic one row "Computer's microphone (default)"; an unplugged pick stays, "(unplugged)".
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
