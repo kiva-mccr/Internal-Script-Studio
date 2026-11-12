@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { join, wav } from '../../src/lib/voiceexport';
+import { join, lineUp, wav } from '../../src/lib/voiceexport';
 
 describe('join', () => {
   const clips = [{ row: 1, samples: new Float32Array([0.1, 0.2]) }, { row: 3, samples: new Float32Array([0.3]) }];
@@ -8,6 +8,15 @@ describe('join', () => {
   });
   it('leaves a silence between clips, not after the last', () => {
     expect([...join(clips, 4, 0.5)].map((v) => +v.toFixed(1))).toEqual([0.1, 0.2, 0, 0, 0.3]);
+  });
+});
+
+describe('lineUp', () => {
+  const clips = [{ row: 2, samples: new Float32Array([0.5]) }];
+  it('leaves rows with no take out, unless asked for silence', () => {
+    expect(lineUp(clips, [1, 9, 0.5, 0], 2, false)).toBe(clips);
+    const lined = lineUp(clips, [1, 9, 0.5, 0], 2, true);
+    expect(lined.map((c) => [c.row, c.samples.length, !!c.silent])).toEqual([[1, 2, true], [2, 1, false], [3, 1, true]]);
   });
 });
 

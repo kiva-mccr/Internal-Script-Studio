@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { marks, toFountain } from '../../src/lib/fountain';
+import { marks, speakerName, toFountain } from '../../src/lib/fountain';
 import { parseScript } from '../../src/lib/script';
 
 describe('toFountain', () => {
@@ -30,5 +30,21 @@ describe('forced action', () => {
   it('marks lines Fountain would misread', () => {
     const script = parseScript('# A\n\n## 1 <!-- id: a1 -->\nOn screen: INT. LAB - DAY\nWIDE SHOT\nCut to:\n');
     expect(toFountain(script, 'T', 'Draft', 'Nov 1, 2026')).toContain('[[Row 1]] !INT. LAB - DAY\n!WIDE SHOT\nCut to:');
+  });
+});
+
+describe('settings (EX-9)', () => {
+  const script = parseScript(example);
+  const how = { speaker: 'Host', scenes: false, numbers: false, files: false };
+  const out = toFountain(script, 'T', 'Draft', 'Nov 1, 2026', how);
+  it('names the speaker in capitals, makes sections Fountain sections, and leaves numbers and files out', () => {
+    expect(out).toContain('# Intro\n\nSlow push-in on a sunlit leaf.\n\nHOST\nEvery leaf');
+    expect(out).not.toContain('[[Row');
+    expect(out).not.toContain('[[Files');
+    expect(out).not.toMatch(/\n\n\n/);
+  });
+  it('falls back to NARRATOR for an empty name', () => {
+    expect(speakerName('  ')).toBe('NARRATOR');
+    expect(speakerName('dr. lee\n')).toBe('DR. LEE');
   });
 });

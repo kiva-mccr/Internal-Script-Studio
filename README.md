@@ -38,13 +38,18 @@ Status: a first working version. What it does today:
 - **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
   Voice-over; **the ⋯ menu** holds Teleprompter and Settings.
+- **Export screen:** each export opens a screen in place of the script, with the formats on the left, a preview of
+  the result in the middle (it follows the settings as you change them) and the settings on the right, with Print…
+  or Save. Settings are remembered on this computer. Back to the script (or Esc) returns.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or lined space for notes at the end, and set the text size.
-- **Fountain:** downloads the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
+- **Fountain:** saves the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
   Sections become scene headings, the dialogue is spoken by NARRATOR, the On screen column is the action, and row
-  numbers, notes and files are kept as Fountain notes. The title page carries the version and status.
-- **Final Draft:** downloads the script as an `.fdx` file for Final Draft, Fade In and WriterDuet, laid out the same
-  way; the row number, its note and its files are a plain line above each row.
+  numbers, notes and files are kept as Fountain notes. The title page carries the version and status. Settings: the
+  speaker's name, sections as scene headings or Fountain sections, and row numbers and files as notes or left out.
+- **Final Draft:** saves the script as an `.fdx` file for Final Draft, Fade In and WriterDuet, laid out the same
+  way; the row number, its note and its files are a plain line above each row. Settings: the speaker's name,
+  sections as scene headings or plain lines, and the row numbers and files line.
 - **Read time:** each section shows how long its dialogue takes to read aloud, and the top bar the whole script
   ("2:05"; with takes, "3 of 4 · 0:14/2:05", where rows with a take count their take). The speaking speed is set in
   ⋯ > Settings (150 words a minute to start, kept in this browser); once you have takes it offers their average speed.
@@ -76,7 +81,9 @@ Status: a first working version. What it does today:
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
   The top bar shows how many rows have a take, their length, and the whole script's length ("3 of 4 · 0:14/2:05").
-  Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit.
+  Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit. Its preview plays the
+  file and lists the rows (click one to hear it from there); settings add half a second between takes, or silence
+  for rows with no take (as long as their read time).
   ⋯ > Settings picks the microphone takes are recorded with (remembered in this browser). If it's unplugged, the
   take is recorded with the default microphone and the page says so.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays

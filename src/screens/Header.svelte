@@ -1,25 +1,23 @@
 <script lang="ts" module>
-  // Print's choices: a Notes column on each row, a Notes space at the end, and the text size in %.
-  export type PrintChoices = { column: boolean; lines: boolean; scale: number };
   // Something still open, listed before Approve (RV-5): a comment or suggestion (its id), or missing files (id '').
   export type Loose = { id: string; head: string; text: string };
 </script>
 
 <script lang="ts">
   import { editingText } from '../lib/editing';
-  import { keep, recall } from '../lib/remember';
+  import type { Format } from './Export.svelte';
   import type { Shared } from '../lib/share';
   import { shareLink } from '../lib/route';
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onPrompt, onExport, onShare, onPlay, onStop }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
-    onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
-    onExport: (to: 'fountain' | 'fdx' | 'voice') => void; onShare: () => Promise<Shared>;
+    onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void;
+    onExport: (to: Format) => void; onShare: () => Promise<Shared>;
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
@@ -27,10 +25,10 @@
   // What was just copied, said in the menu for a moment before it closes.
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
-  // Fountain, Final Draft and later exports) and ⋯ (Teleprompter). 'print': Print's choices, under Export.
+  // Fountain, Final Draft and later exports, each opening the export screen, EX-9) and ⋯ (Teleprompter).
   // 'approve': what is still open, before approving (RV-5, mock-up 20). It warns and never blocks.
   // 'send': a note for the reviewers, before sending (RV-8, mock-up 26). Optional; kept while the page is open.
-  let menu = $state<'' | 'more' | 'export' | 'print' | 'approve' | 'send'>('');
+  let menu = $state<'' | 'more' | 'export' | 'approve' | 'send'>('');
   let sendNote = $state('');
   let sendEl = $state<HTMLElement>();
   let settings = $state(false); // the Settings window (AU-3), opened from ⋯
@@ -49,11 +47,6 @@
     onStatus('in review', 'Sent for review', sendNote.trim());
     sendNote = '';
   }
-  // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
-  let printColumn = $state(!!recall('print-notes'));
-  let printLines = $state(!!recall('print-lines'));
-  let printScale = $state(Number(recall('print-scale')) || 100); // %, the printed text size
-
   async function copyLink() {
     await copy('link', () => navigator.clipboard.writeText(shareLink(location.href)));
   }
@@ -74,14 +67,6 @@
       copied = 'failed';
     }
     setTimeout(() => ((copied = ''), (menu = '')), copied === 'failed' ? 2500 : 1200);
-  }
-
-  function print() {
-    menu = '';
-    keep('print-notes', printColumn ? '1' : '');
-    keep('print-lines', printLines ? '1' : '');
-    keep('print-scale', String(printScale));
-    onPrint({ column: printColumn, lines: printLines, scale: printScale });
   }
 
   // A click outside the menu or Esc closes it.
@@ -164,8 +149,8 @@
       {/if}
       {#if voiceText}<span class="voice" title={voiceText.includes('of') ? 'Voice-over: rows recorded and their length / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
       <span class="more" bind:this={exportEl}>
-        <button class="outline" aria-expanded={menu === 'export' || menu === 'print'}
-          onclick={() => (menu = menu === 'export' || menu === 'print' ? '' : 'export')}>Export / Share</button>
+        <button class="outline" aria-expanded={menu === 'export'}
+          onclick={() => (menu = menu === 'export' ? '' : 'export')}>Export / Share</button>
         {#if menu === 'export'}
           <div class="menu">
             <span class="group">Share</span>
@@ -173,17 +158,10 @@
             <button onclick={copyTeams}>{copied === 'teams' ? 'Copied, paste it in Teams' : 'Copy for Teams'}</button>
             {#if copied === 'failed'}<span class="failed" role="alert">Couldn't copy. Try again.</span>{/if}
             <span class="group rule">Export</span>
-            <button onclick={() => (menu = 'print')}>Print…</button>
+            <button onclick={() => ((menu = ''), onExport('print'))}>Print…</button>
             <button onclick={() => ((menu = ''), onExport('fountain'))}>Fountain (.fountain)</button>
             <button onclick={() => ((menu = ''), onExport('fdx'))}>Final Draft (.fdx)</button>
             <button onclick={() => ((menu = ''), onExport('voice'))}>Voice-over (.wav)</button>
-          </div>
-        {:else if menu === 'print'}
-          <div class="menu print-menu">
-            <label><input type="checkbox" bind:checked={printColumn} /> Notes column on each row</label>
-            <label><input type="checkbox" bind:checked={printLines} /> Notes space at the end</label>
-            <label class="scale">Text size <input type="range" min="60" max="140" step="5" bind:value={printScale} /> <span>{printScale}%</span></label>
-            <button class="dark" onclick={print}>Print</button>
           </div>
         {/if}
       </span>
@@ -245,7 +223,6 @@
   .group { margin: 4px 12px 2px; font-size: 12px; color: var(--muted); }
   .group.rule { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
   .failed { padding: 4px 12px; font-size: 13px; color: var(--danger); }
-  .print-menu { gap: 10px; padding: 12px; }
   .approve-menu { width: 380px; gap: 12px; padding: 16px; white-space: normal; }
   .approve-menu p { margin: 0; }
   .lead { font-weight: 600; }
@@ -259,7 +236,4 @@
   .loose b { font-weight: 600; }
   .loose span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
   .actions { display: flex; justify-content: flex-end; gap: 8px; }
-  .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
-  .scale input { flex: 1; min-width: 120px; }
-  .scale span { min-width: 40px; text-align: right; color: var(--muted); }
 </style>

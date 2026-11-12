@@ -2,23 +2,25 @@
 // Laid out as Fountain is (EX-3): sections become scene headings, each row's On screen is action and its Dialogue
 // is spoken by NARRATOR. The row number, its note and its files go in a General paragraph above the row, since
 // Final Draft's own notes are pinned to character positions and easy to get wrong.
-import { SPEAKER } from './fountain';
+import { SCREENPLAY, speakerName, type Screenplay } from './fountain';
 import { frontList, type Script } from './script';
 
 // `stand`: the version and status ("v3 · Approved"). `date`: "Nov 10, 2026". Both go on the title page.
-export function toFdx(script: Script, title: string, stand: string, date: string): string {
+// `how`: the export screen's settings (EX-9). With `scenes` off a section is a General paragraph.
+export function toFdx(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY): string {
   const body: string[] = [];
   if (script.intro.trim()) body.push(...paragraphs('Action', script.intro));
   let n = 0;
   for (const block of script.blocks) {
     if (block.type === 'section') {
-      body.push(paragraph('Scene Heading', runs(oneLine(block.title).toUpperCase())));
+      body.push(how.scenes ? paragraph('Scene Heading', runs(oneLine(block.title).toUpperCase())) : paragraph('General', runs(oneLine(block.title))));
       continue;
     }
-    const about = [`Row ${++n}`, block.note.trim() && oneLine(block.note), block.files.length && `Files: ${block.files.map(oneLine).join(', ')}`];
-    body.push(paragraph('General', runs(about.filter(Boolean).join(' · '))));
+    n++;
+    const about = [how.numbers && `Row ${n}`, block.note.trim() && oneLine(block.note), how.files && block.files.length && `Files: ${block.files.map(oneLine).join(', ')}`];
+    if (about.some(Boolean)) body.push(paragraph('General', runs(about.filter(Boolean).join(' · '))));
     if (block.onScreen.trim()) body.push(...paragraphs('Action', block.onScreen));
-    if (block.dialogue.trim()) body.push(paragraph('Character', runs(SPEAKER)), ...paragraphs('Dialogue', block.dialogue));
+    if (block.dialogue.trim()) body.push(paragraph('Character', runs(speakerName(how.speaker))), ...paragraphs('Dialogue', block.dialogue));
   }
   const authors = frontList(script.front, 'authors');
   const front = [title.trim() && oneLine(title), authors.length && 'Written by', authors.length && authors.join(', '), '', `${stand} · ${date}`];

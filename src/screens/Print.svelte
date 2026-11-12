@@ -8,8 +8,10 @@
   // For notes during production (asked by the user): column, a blank Notes column on each row; lines, a lined Notes
   // space after the last row. scale: the text size, 1 = as drawn (asked by the user).
   // onReady: called once images and equations are in, so the print window shows the whole page.
-  let { script, dir, title, version, column, lines, scale, onReady }: {
-    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: boolean; scale: number; onReady: () => void;
+  // onScreen: drawn on screen as the export screen's preview (EX-9), never printed.
+  let { script, dir, title, version, column, lines, scale, onScreen = false, onReady = () => {} }: {
+    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: boolean; scale: number;
+    onScreen?: boolean; onReady?: () => void;
   } = $props();
 
   const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i;
@@ -58,11 +60,11 @@
 </script>
 
 <svelte:head>
-  {@html `<style>@page { margin: 14mm 12mm 16mm; @bottom-left { content: "${footer}"; font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; }
-    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; } }</style>`}
+  {#if !onScreen}{@html `<style>@page { margin: 14mm 12mm 16mm; @bottom-left { content: "${footer}"; font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; } }</style>`}{/if}
 </svelte:head>
 
-<div class="print-view" bind:this={page} style:font-size="{10 * scale}pt">
+<div class="sheet" class:print-view={!onScreen} bind:this={page} style:font-size="{10 * scale}pt">
   <div class="top">
     <div>
       <h1>{title}</h1>
@@ -114,7 +116,7 @@
   /* On screen the print version is never seen; when printing, it is all that is seen. */
   @media screen { .print-view { display: none; } }
   @media print { :global(#app > :not(.print-view)) { display: none !important; } }
-  .print-view { font: 10pt/1.5 Inter, system-ui, sans-serif; color: #141414; }
+  .sheet { font: 10pt/1.5 Inter, system-ui, sans-serif; color: #141414; }
   .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 8px; border-bottom: 1.5px solid #141414; }
   /* Sizes in em, so the text size choice scales them all. */
   h1 { margin: 0; font-size: 1.6em; font-weight: 600; }
@@ -144,5 +146,5 @@
   .lines { break-inside: avoid; padding-top: 18px; }
   h2 { margin: 0; font-size: 1.1em; font-weight: 600; }
   .line { height: 9mm; border-bottom: 1px solid #cfcfcf; }
-  .print-view :global(a) { color: inherit; }
+  .sheet :global(a) { color: inherit; }
 </style>
