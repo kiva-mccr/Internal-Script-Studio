@@ -5,6 +5,10 @@
   import Editor from './screens/Editor.svelte';
   import List from './screens/List.svelte';
   import Setup from './screens/Setup.svelte';
+  import { versionLabel, versionTip, type Version } from './lib/version';
+
+  const REPO = 'https://github.com/kiva-mccr/p2p-script-studio';
+  const version: Version | null = __VERSION__; // set at build time (vite.config.ts)
 
   let route = $state<string[]>([]);
   let review = $state(false); // a shared link: the script opens on Review (RV-10)
@@ -57,11 +61,14 @@
   {/if}
 {/if}
 
-<!-- The code, in the bottom corner of every screen (asked by the user). -->
-<a class="repo" href="https://github.com/kiva-mccr/p2p-script-studio" target="_blank" rel="noopener">GitHub</a>
+<!-- The live version and the code, in the bottom corners of every screen (asked by the user). -->
+<a class="corner version" href={version ? `${REPO}/pull/${version.pr}` : REPO} title={versionTip(version)} target="_blank" rel="noopener">{versionLabel(version)}</a>
+<a class="corner repo" href={REPO} target="_blank" rel="noopener">GitHub</a>
 
 <style>
-  .repo { position: fixed; right: 12px; bottom: 6px; z-index: 5; padding: 4px 8px; border-radius: 6px; background: var(--ground);
+  .corner { position: fixed; bottom: 6px; z-index: 5; padding: 4px 8px; border-radius: 6px; background: var(--ground);
     font-size: 12px; color: var(--muted); text-decoration: none; }
-  .repo:hover { color: var(--accent); }
+  .corner:hover { color: var(--accent); }
+  .repo { right: 12px; }
+  .version { left: 12px; }
 </style>

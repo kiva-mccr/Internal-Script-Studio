@@ -17,4 +17,6 @@ test('a link opens the script it names, after set-up', async ({ page }) => {
 test('a small link to the code sits in the corner', async ({ page }) => {
   await setUp(page);
   await expect(page.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/kiva-mccr/p2p-script-studio');
+  // Not the live site's build, so the version in the other corner says so (AP-28).
+  await expect(page.getByRole('link', { name: 'dev' })).toHaveAttribute('href', 'https://github.com/kiva-mccr/p2p-script-studio');
 });

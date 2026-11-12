@@ -17,7 +17,7 @@ describe('openMic', () => {
     expect(get.mock.calls[0][0].audio.deviceId).toEqual({ exact: 'yeti' });
   });
 
-  it("turns Chrome's noise reduction off when Settings says so (AU-4)", async () => {
+  it("turns the browser's noise reduction off when Settings says so (AU-4)", async () => {
     const get = vi.fn().mockResolvedValue(stream);
     await openMic('', get);
     await openMic('yeti', get, false);

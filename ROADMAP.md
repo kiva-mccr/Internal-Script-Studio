@@ -266,6 +266,8 @@ and suggestions, keeps every version, and exports them for production.
   The user tried it: "much better", but it skipped ahead on repeated "The …" sentences, jumped instead of gliding,
   and the scroll bar did nothing. Polished: a far place needs 4 words and two hearings in a row; the marker follows
   a line fitted to the last 4 s heard, smoothly; the page behind loses its scroll bar, the teleprompter shows its own.
+- [ ] **EX-13** A speed limit for Follow my voice (asked by the user): while following, the teleprompter never moves
+  faster than the words a minute set for playing it, so a mishearing or a jump ahead can't race the text away.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the
@@ -342,8 +344,16 @@ and suggestions, keeps every version, and exports them for production.
   mic and moving with it; never picked or picking that row follows the default, any other row sticks to that mic;
   before Chrome may use the mic one row "Computer's microphone (default)"; an unplugged pick stays, "(unplugged)".
 
+- [ ] **AU-6** Quiet the hum in the pauses of a take (a noise gate between words; suggested while fixing AU-4).
+  Shelved by the user: "we can come back to that much later".
+
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
+- [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
+  request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
+  and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
+  GitHub, hover shows its title and when it went live; set at build time (docs-only merges don't rebuild); "dev"
+  when run locally. Built so: deploy.yml sets LIVE_BUILD and vite.config.ts reads the merge commit's number and title.
 
 ## Last (the user's order: these wait until everything above is done)
 

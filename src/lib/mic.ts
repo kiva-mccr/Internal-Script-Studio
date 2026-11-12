@@ -30,7 +30,7 @@ export async function listMics(): Promise<Mic[]> {
 
 // The stream from the chosen mic. If it is unplugged (or gone), the default records instead and `fellBack` says so,
 // so the take is never lost. Any other error (blocked, no mic at all) is thrown as it is.
-// noise: Chrome's own noise reduction (Settings > Voice-over, AU-4).
+// noise: the browser's own noise reduction, in Edge and Chrome alike (Settings > Voice-over, AU-4).
 export async function openMic(id: string, get: GetStream, noise = true): Promise<{ stream: MediaStream; fellBack: boolean }> {
   const AUDIO = { echoCancellation: true, noiseSuppression: noise };
   if (!id) return { stream: await get({ audio: AUDIO }), fellBack: false };

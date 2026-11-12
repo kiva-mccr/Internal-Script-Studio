@@ -10,7 +10,8 @@ then the screen the link names (`lib/route.ts`): the list for `#/`, a script for
 - Colours come from the variables in `app.css`, never copied into a component.
 - The link's `#/…` is never touched by the first-time screen, so a link still opens its script after set-up.
 - A small GitHub link sits in the bottom right corner of every screen (asked by the user), clear of the messages
-  at the bottom centre.
+  at the bottom centre. Its mirror in the bottom left is the live version, "PR #N" (AP-28, `lib/version.ts`): it
+  opens that pull request, and "dev" for any build that isn't the live site's.
 - The editor is keyed by the script's path, so following a link to another script starts it fresh.
 - A link ending in `?review` (a shared link, RV-10) opens the script on Review. The mark is taken out of the address
   with `history.replaceState` (no hashchange), so a reload after moving to Write stays in Write.

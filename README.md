@@ -97,7 +97,7 @@ Status: a first working version. What it does today:
   Clicking the mic records at once: a red ring fills round it for a second, then it turns into ■, your cue to read
   (Esc while the ring fills throws the new take away). The silence before your first word and after your last, and
   the click of the mouse, are cropped off; hover a take's ▶ to see how much. Settings > Voice-over switches the
-  clean-up: crop the silence, Chrome's noise reduction, and making every take equally loud. The recording itself is
+  clean-up: crop the silence, the browser's noise reduction, and making every take equally loud. The recording itself is
   kept whole, so turning crop or loudness off brings it back.
 - **Play the script:** once a row has a take, ▶ Play in the top bar goes through the script line by line and plays
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
@@ -110,7 +110,9 @@ Status: a first working version. What it does today:
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
   side for you to pick.
 
-Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom corner).
+Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom-right corner). The bottom-left corner shows the live version, "PR #62" for
+example: after a refresh it tells you whether a new version is live, hovering shows what that version added and when,
+and clicking opens it on GitHub.
 
 ## For developers
 
