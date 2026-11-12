@@ -51,7 +51,8 @@ Status: a first working version. What it does today:
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
   back). The Review tab shows how many are open. Send for review, then Approve or Send back to writer; each step
-  is noted in History, and the list shows the status.
+  is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
+  Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.

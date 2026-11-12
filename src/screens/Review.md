@@ -8,6 +8,7 @@ suggestions, with Undo. Approve / Send back (RV-3) are in `Header.svelte`.
 
 ## Rules and pitfalls
 
+- Each card carries `data-id` (the comment's id): the list before Approve (RV-5) finds it by that.
 - Read only: editing happens in Write. Comments come from `Editor.svelte`, which reloads them every 5 s.
 - A selection counts only if it starts and ends inside one cell (`mouseup` on the cell).
 - Images & files shows names, as Write does, so a quote there is of the name.

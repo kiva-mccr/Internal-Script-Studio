@@ -198,7 +198,7 @@
 {#snippet card(t: Thread)}
   {@const suggestion = t.comment.kind === 'suggestion'}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-  <article class="card" class:active={t.comment.id === active} class:done={t.resolved} aria-label="{t.comment.kind === 'suggestion' ? 'Suggestion' : 'Comment'} by {t.comment.who}"
+  <article class="card" data-id={t.comment.id} class:active={t.comment.id === active} class:done={t.resolved} aria-label="{t.comment.kind === 'suggestion' ? 'Suggestion' : 'Comment'} by {t.comment.who}"
     onclick={() => (active = t.comment.id)}>
     <div class="who"><span><strong>{t.comment.who}</strong> {suggestion ? 'suggested' : 'commented'} · {where(t)}</span><span>{ago(Date.parse(t.comment.when))}</span></div>
     {#if changed(t) && !t.decision}<p class="quiet">On text that has since changed: “{t.comment.quote}”</p>{/if}

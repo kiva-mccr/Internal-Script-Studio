@@ -18,6 +18,9 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
   counts while the Editor saves and reads History. The text itself is `lib/share.ts`.
 - A new export goes in the Export menu, and `onExport` grows a new `to`.
 
+- Approve with something still open (`loose`: comments, suggestions, missing files) opens a panel under it, like the
+  menus (mock-up 20, RV-5): each line goes to that item (`onLoose`), Keep reviewing or Esc closes, Approve anyway
+  approves with the History note "Approved, N still open". It warns and never blocks; nothing open approves at once.
 - It only shows and asks: switching tabs, the status and printing are done by `Editor.svelte` (`onMode`,
   `onStatus`, `onPrompt`, `onPrint`, `onExport`, `onPlay`, `onStop`), which saves what is waiting first.
 - The button names contain "Write" (Send back to writer), so tests pick the Write tab with `exact: true`.

@@ -1,6 +1,8 @@
 <script lang="ts" module>
   // Print's choices: a Notes column on each row, a Notes space at the end, and the text size in %.
   export type PrintChoices = { column: boolean; lines: boolean; scale: number };
+  // Something still open, listed before Approve (RV-5): a comment or suggestion (its id), or missing files (id '').
+  export type Loose = { id: string; head: string; text: string };
 </script>
 
 <script lang="ts">
@@ -11,11 +13,11 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
-    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
+    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
-    status: keyof typeof statusText; onAllow: () => void; onMode: (to: Mode) => void;
+    status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string) => void; onPrompt: () => void; onPrint: (choices: PrintChoices) => void;
     onExport: (to: 'fountain' | 'fdx' | 'voice') => void; onShare: () => Promise<Shared>;
   } = $props();
@@ -26,10 +28,19 @@
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
   // Fountain, Final Draft and later exports) and ⋯ (Teleprompter). 'print': Print's choices, under Export.
-  let menu = $state<'' | 'more' | 'export' | 'print'>('');
+  // 'approve': what is still open, before approving (RV-5, mock-up 20). It warns and never blocks.
+  let menu = $state<'' | 'more' | 'export' | 'print' | 'approve'>('');
   let settings = $state(false); // the Settings window (AU-3), opened from ⋯
   let moreEl = $state<HTMLElement>();
   let exportEl = $state<HTMLElement>();
+  let approveEl = $state<HTMLElement>();
+
+  // Approve at once when nothing is open; otherwise list what is (mock-up 20), and History says how much was left.
+  function approve(anyway = false) {
+    if (loose.length && !anyway) return void (menu = menu === 'approve' ? '' : 'approve');
+    menu = '';
+    onStatus('approved', loose.length ? `Approved, ${loose.length} still open` : 'Approved');
+  }
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
   let printColumn = $state(!!recall('print-notes'));
   let printLines = $state(!!recall('print-lines'));
@@ -68,7 +79,7 @@
   // A click outside the menu or Esc closes it.
   function away(event: Event) {
     const inside = (el?: HTMLElement) => el?.contains(event.target as Node);
-    if (menu && !inside(moreEl) && !inside(exportEl)) menu = '';
+    if (menu && !inside(moreEl) && !inside(exportEl) && !inside(approveEl)) menu = '';
   }
 </script>
 
@@ -101,7 +112,24 @@
       {/if}
       {#if reviewStatus === 'in review' && mode === 'review'}
         <button class="outline" onclick={() => onStatus('draft', 'Sent back to writer')}>Send back to writer</button>
-        <button class="dark" onclick={() => onStatus('approved', 'Approved')}>Approve</button>
+        <span class="more" bind:this={approveEl}>
+          <button class="dark" aria-expanded={loose.length ? menu === 'approve' : undefined} onclick={() => approve()}>Approve</button>
+          {#if menu === 'approve'}
+            <div class="menu approve-menu" role="region" aria-label="Still open">
+              <p class="lead">{loose.length} {loose.length === 1 ? 'thing is' : 'things are'} still open</p>
+              <div class="loose">
+                {#each loose as item (item.id)}
+                  <button onclick={() => ((menu = ''), onLoose(item.id))}><b>{item.head}</b><span>{item.text}</span></button>
+                {/each}
+              </div>
+              <p class="quiet">You can still approve. They stay open in Review.</p>
+              <div class="actions">
+                <button class="outline" onclick={() => (menu = '')}>Keep reviewing</button>
+                <button class="dark" onclick={() => approve(true)}>Approve anyway</button>
+              </div>
+            </div>
+          {/if}
+        </span>
       {:else if reviewStatus !== 'in review'}
         <button class="outline" onclick={() => onStatus('in review', 'Sent for review')}>Send for review</button>
       {/if}
@@ -197,6 +225,17 @@
   .group.rule { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
   .failed { padding: 4px 12px; font-size: 13px; color: var(--danger); }
   .print-menu { gap: 10px; padding: 12px; }
+  .approve-menu { width: 380px; gap: 12px; padding: 16px; white-space: normal; }
+  .approve-menu p { margin: 0; }
+  .lead { font-weight: 600; }
+  .quiet { font-size: 13px; color: var(--muted); }
+  .loose { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
+  .loose button { display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 6px;
+    background: none; color: var(--ink); font-size: 13px; text-align: left; }
+  .loose button:hover { background: #f2f2f2; }
+  .loose b { font-weight: 600; }
+  .loose span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; }
   .print-menu label { display: flex; align-items: center; gap: 8px; min-height: 32px; white-space: nowrap; }
   .scale input { flex: 1; min-width: 120px; }
   .scale span { min-width: 40px; text-align: right; color: var(--muted); }

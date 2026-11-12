@@ -17,7 +17,7 @@
   import { merge, type Merged, type Side } from '../lib/merge';
   import Assets from './Assets.svelte';
   import Conflict from './Conflict.svelte';
-  import Header, { type PrintChoices } from './Header.svelte';
+  import Header, { type Loose, type PrintChoices } from './Header.svelte';
   import History from './History.svelte';
   import Print from './Print.svelte';
   import Teleprompter from './Teleprompter.svelte';
@@ -60,6 +60,19 @@
   let prompting = $state(false); // the teleprompter is open (EX-2)
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
   const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
+  // What is still open, shown before Approve (RV-5, mock-up 20): open comments and suggestions, then missing files.
+  const loose = $derived.by(() => {
+    const numbers = new Map(script ? rows(script).map((row, i) => [row.id, i + 1]) : []);
+    const items: Loose[] = threads(notes).filter((t) => !t.resolved).map((t) => {
+      const n = numbers.get(t.comment.row ?? '');
+      const suggestion = t.comment.kind === 'suggestion';
+      return { id: t.comment.id, head: `${suggestion ? 'Suggestion' : 'Comment'} · ${t.comment.who} · ${n ? `row ${n}` : 'a deleted row'}`,
+        text: suggestion ? `“${t.comment.replace}”` : t.comment.text ?? '' };
+    });
+    const lost = lostFiles.size;
+    if (lost) items.push({ id: '', head: `${lost} ${lost === 1 ? 'file' : 'files'} missing`, text: [...lostFiles].map((f) => f.split('/').pop()).join(', ') });
+    return items;
+  });
   let last: Version | null = null; // the newest history entry this page knows of
   let started: Promise<void> = Promise.resolve(); // History found or started on opening (sets `last`)
   let pendingSince = 0; // when the first save not yet in History was made
@@ -432,6 +445,14 @@
     if ([...lost].join('\n') !== [...lostFiles].join('\n')) lostFiles = lost;
   }
 
+  // From the list before Approve (RV-5): to that comment in Review, or to the Assets tab for missing files.
+  async function showLoose(id: string) {
+    if (!id) return (mode = 'assets'), checkFiles();
+    const card = document.querySelector<HTMLElement>(`article[data-id="${id}"]`);
+    card?.scrollIntoView({ block: 'center' });
+    card?.click(); // marks it, and its quote, as the one being read
+  }
+
   // From the Assets tab: back to Write, at that row.
   async function jump(row: number) {
     mode = 'write';
@@ -549,10 +570,10 @@
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
 <svelte:document onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
 
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />
 
 {#if prompting && script}
   <Teleprompter {script} onClose={() => (prompting = false)} />
