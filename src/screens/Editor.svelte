@@ -2,9 +2,9 @@
   import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { assetList, missingFiles } from '../lib/assets';
   import { Player, plan } from '../lib/play.svelte';
-  import { clock, SPEED } from '../lib/readtime';
-  import { askAccess, hasAccess, recall } from '../lib/remember';
-  import { VoiceOver } from '../lib/voice.svelte';
+  import { clock, speaking } from '../lib/readtime.svelte';
+  import { askAccess, hasAccess } from '../lib/remember';
+  import { takesSpeed, VoiceOver } from '../lib/voice.svelte';
   import { join, readClips, wav } from '../lib/voiceexport';
   import { findScript, readScript, safeName, writeScriptFile } from '../lib/folder';
   import { toFdx } from '../lib/fdx';
@@ -83,27 +83,30 @@
   let editors = $state<string[]>([]); // other people with this script open
   // Voice-over takes (AU-1): read with the script and with the 5 s check, so others' takes appear.
   const voice = new VoiceOver();
+  // The top bar's length (AP-12): "1 of 6 · 0:04/13:42", the takes so far and the whole script (takes, plus read
+  // time for rows with none, as Play times it). With no take yet, only the whole: "13:42".
+  const taken = $derived(script ? rows(script).filter((row) => voice.takes[row.id]) : []);
   const voiceText = $derived.by(() => {
     if (!script) return '';
-    const rowsNow = script.blocks.filter((b) => b.type === 'row');
-    const taken = rowsNow.filter((b) => voice.takes[b.id]);
-    if (!taken.length) return '';
-    const seconds = taken.reduce((sum, b) => sum + voice.takes[b.id].seconds, 0);
-    return `${taken.length} of ${rowsNow.length} · ${clock(seconds)}`; // short, so the bar stays on one line (AP-16)
+    const steps = plan(script, voice.takes, speaking.wpm);
+    const total = steps.reduce((sum, step) => sum + step.seconds, 0);
+    if (!taken.length) return total ? clock(total) : '';
+    const seconds = taken.reduce((sum, row) => sum + voice.takes[row.id].seconds, 0);
+    return `${taken.length} of ${rows(script).length} · ${clock(seconds)}/${clock(total)}`; // short, so the bar stays on one line (AP-16)
   });
   // Play the script (AU-2): the rows in order with their takes. Only in Write, and only once a row has a take.
   const player = new Player();
-  const canPlay = $derived(mode === 'write' && !clash && !!voiceText);
+  const canPlay = $derived(mode === 'write' && !clash && taken.length > 0);
   $effect(() => {
     if (!canPlay || voice.recording || voice.playing) untrack(() => player.stop());
   });
   // From the top, from a row (its number in Write), or pause and carry on. Rows with no take last their read time
-  // at the teleprompter's speed.
+  // at the speaking speed (Settings, shared with the teleprompter).
   function play(from?: string) {
     if (!script || !dir) return;
     if (from === undefined && player.started) return player.toggle();
     voice.stopPlaying();
-    const steps = plan(script, voice.takes, Number(recall('prompter-speed')) || SPEED);
+    const steps = plan(script, voice.takes, speaking.wpm);
     player.start(dir, steps, from === undefined ? 0 : Math.max(0, steps.findIndex((s) => s.id === from)));
   }
   // Space pauses and Esc stops, unless you are typing (Space on a button is that button's).
@@ -570,7 +573,7 @@
 <svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
 <svelte:document onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
 
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} {editors} {reviewStatus} {status}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
   onAllow={allow} onStatus={setStatus} onLoose={showLoose} onPrint={print} onExport={exportAs} onShare={shareNow} onPrompt={() => (status === 'waiting' && save(), player.stop(), (prompting = true))} />

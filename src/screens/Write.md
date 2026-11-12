@@ -39,3 +39,4 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   to, and its take's bar fills (a row with no take shows a grey bar and "No take yet"). A row's number is a button
   ("Play from row n") only while there is something to play (`canPlay`). A row's own ▶ pauses the script when it
   is the row being played, so its name is "Pause row n" then: tests tell it from the top bar's "Pause the script".
+- A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.

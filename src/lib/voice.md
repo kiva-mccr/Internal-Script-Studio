@@ -1,7 +1,7 @@
 # `src/lib/voice.svelte.ts`
 
 Voice-over per line (AU-1, board 13): `record` (the microphone through MediaRecorder), `VoiceOver` (the takes by row
-id as state, with start, stop, play, remove and load), `wpm`, `outdated` and `takeFile` (a take's sound, also for Play the script, `lib/play.svelte.ts`).
+id as state, with start, stop, play, remove and load), `readTakes` (a folder's takes, also for the script list's lengths), `takesSpeed` (all takes' words a minute, offered in Settings), `wpm`, `outdated` and `takeFile` (a take's sound, also for Play the script, `lib/play.svelte.ts`).
 
 - **Used by:** `screens/Editor.svelte` (makes one), `screens/Write.svelte`, `lib/play.svelte.ts`. **Tests:** `tests/unit/voice.test.ts`,
   `tests/e2e/voice.spec.ts`.

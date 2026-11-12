@@ -99,7 +99,7 @@ test('the save status sits beside the title, and the bar stays on one line at 12
   });
   await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
-  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:14');
+  await expect(page.locator('header .voice')).toHaveText('1 of 5 · 0:14/0:35');
   await expect(page.locator('header .crumbs').getByRole('status')).toHaveText('Saved');
   const middles = await page.locator('header > *, header .right > *').evaluateAll((els) =>
     els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));

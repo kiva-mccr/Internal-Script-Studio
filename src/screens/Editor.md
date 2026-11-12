@@ -53,6 +53,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Missing files (`lostFiles`) are worked out here, not in `Assets.svelte`, so the tab's count shows in every tab. They
   are checked when the Files lines change (`untrack`, or every keystroke would re-check), when the tab opens and with
   the 5 s check. `jump` goes back to Write and focuses that row's Dialogue.
+- The top bar's length (`voiceText`, AP-12) is Play's total: takes, plus read time for rows with none. Play is
+  offered from the rows with a take (`taken`), not from that text, which shows with no take too.
 - `voice` (a `VoiceOver`) holds the voice-over takes for Write and the top bar's total; it is read at open and with
   the 5 s check (not while recording), so someone else's take appears.
 - `player` (a `Player`, `lib/play.svelte.ts`) plays the script (AU-2): the top bar's Play, and a row's number in

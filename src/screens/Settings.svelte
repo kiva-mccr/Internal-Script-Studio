@@ -1,9 +1,11 @@
 <script lang="ts">
   // Settings (AU-3, mock-up 19): a window in the page, opened from ⋯. Each kind of setting has its own small heading,
-  // so more can be added later; Voice-over (the microphone) is the first. A choice takes effect at once.
+  // so more can be added later: Voice-over (the microphone), then Read time (the speaking speed, AP-12). A choice
+  // takes effect at once. voiceWpm: the script's takes' speed together, offered as the speed (0 with no takes).
   import { chooseMic, chosenMic, listMics, type Mic } from '../lib/mic';
+  import { setSpeed, speaking } from '../lib/readtime.svelte';
 
-  let { onClose }: { onClose: () => void } = $props();
+  let { voiceWpm = 0, onClose }: { voiceWpm?: number; onClose: () => void } = $props();
 
   let mics = $state<Mic[]>([]);
   let mic = $state(chosenMic());
@@ -46,6 +48,20 @@
           Used for every take you record. Default follows the computer's sound settings.
         {/if}
       </p>
+      <h3 class="next">Read time</h3>
+      <label for="speed">Speaking speed</label>
+      <div class="speed">
+        <button class="step" aria-label="Slower" onclick={() => setSpeed(speaking.wpm - 10)}>−</button>
+        <input id="speed" type="number" min="60" max="400" step="5" value={speaking.wpm}
+          onchange={(e) => { setSpeed(Number(e.currentTarget.value)); e.currentTarget.value = String(speaking.wpm); }} />
+        <button class="step" aria-label="Faster" onclick={() => setSpeed(speaking.wpm + 10)}>+</button>
+        <span>words a minute</span>
+      </div>
+      <p class="hint">150 is a calm speaking speed. The teleprompter uses this speed too.</p>
+      {#if voiceWpm && voiceWpm !== speaking.wpm}
+        <p class="hint takes">Your takes average {voiceWpm} words a minute.
+          <button class="outline use" onclick={() => setSpeed(voiceWpm)}>Use {voiceWpm}</button></p>
+      {/if}
     </div>
     <div class="foot">
       <span>Kept in this browser only.</span>
@@ -68,6 +84,14 @@
   label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
   select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff;
     color: var(--ink); font: inherit; font-size: 14px; }
+  .next { margin-top: 24px; }
+  .speed { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #3d3d3d; }
+  .step { min-width: 44px; min-height: 44px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; font-size: 16px; }
+  .step:hover { background: #f2f2f2; }
+  #speed { width: 90px; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #d0d0d0; border-radius: 8px;
+    font: inherit; font-size: 14px; }
+  .takes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #3d3d3d; }
+  .use { min-height: 36px; padding: 0 12px; font-size: 13px; }
   .hint { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
   .foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-top: 1px solid #eee;
     font-size: 12px; color: var(--muted); }

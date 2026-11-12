@@ -50,8 +50,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: the round of 8 quick wins is done (RV-5 last); the user prioritizes the rest of the roadmap. "Last" in ROADMAP.md
-  (AS-1, EX-5, CC-1) waits until everything else is done.
+- Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
+  AP-9, AP-24, RV-7, EX-12, RV-11, RV-8, EX-9, RV-4, AS-1.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps

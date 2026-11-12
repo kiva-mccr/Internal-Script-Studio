@@ -3,7 +3,7 @@
   import { clearMarks, plain, toHtml } from '../lib/format';
   import { follow, normal } from '../lib/follow';
   import { listen, type ListenError, type Listening } from '../lib/listen';
-  import { clock, countWords, SPEED } from '../lib/readtime';
+  import { clock, countWords, setSpeed, speaking } from '../lib/readtime.svelte';
   import { keep, recall } from '../lib/remember';
   import type { Script } from '../lib/script';
 
@@ -11,7 +11,7 @@
   // speed in words a minute, or following the voice of whoever reads it (EX-8). onClose: back to the script.
   let { script, onClose }: { script: Script; onClose: () => void } = $props();
 
-  let speed = $state(Number(recall('prompter-speed')) || SPEED); // words a minute
+  const speed = $derived(speaking.wpm); // words a minute, shared with read time (AP-12)
   let size = $state(Number(recall('prompter-size')) || 44); // px
   let mirror = $state(!!recall('prompter-mirror')); // flipped left to right, for a teleprompter glass
   let cues = $state(!!recall('prompter-cues')); // the On screen column, small, as cues
@@ -67,7 +67,6 @@
     keep('prompter-mirror', mirror ? '1' : '');
     tick().then(place);
   });
-  $effect(() => keep('prompter-speed', String(speed)));
 
   // Each word gets a span, so the words already said can be greyed out one by one (asked by the user).
   const wordEls: HTMLElement[] = [];
@@ -151,7 +150,7 @@
     frame = requestAnimationFrame(step);
   }
 
-  const faster = (by: number) => (speed = Math.min(400, Math.max(60, speed + by)));
+  const faster = (by: number) => setSpeed(speed + by);
   const bigger = (by: number) => (size = Math.min(96, Math.max(24, size + by)));
 
   // Follow my voice: the marker glides to where the voice was last heard, a little each frame.

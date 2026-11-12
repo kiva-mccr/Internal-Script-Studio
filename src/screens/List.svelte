@@ -2,7 +2,10 @@
   import { onMount } from 'svelte';
   import { countMissing } from '../lib/assets';
   import { createScript, findScript, listScripts, readScript, type ScriptInfo } from '../lib/folder';
-  import { parseScript } from '../lib/script';
+  import { plan } from '../lib/play.svelte';
+  import { clock, speaking } from '../lib/readtime.svelte';
+  import { parseScript, type Script } from '../lib/script';
+  import { readTakes, type Take } from '../lib/voice.svelte';
   import { routeHash } from '../lib/route';
   import { ago } from '../lib/when';
 
@@ -16,6 +19,18 @@
   let newName = $state('');
   let addError = $state('');
   let missing = $state<Record<string, number>>({}); // files missing from each script's folder (EX-6), by path
+  // Each script and its takes, for its length (AP-12), by path. The length itself follows the speaking speed.
+  let read = $state.raw<Record<string, { script: Script; takes: Record<string, Take> }>>({});
+
+  // The script's length as Play times it: each take, and read time for the rows with none. Recorded once every
+  // row has a take.
+  function length(path: string[]): { text: string; recorded: boolean } | null {
+    const one = read[path.join('/')];
+    if (!one) return null;
+    const steps = plan(one.script, one.takes, speaking.wpm);
+    const seconds = steps.reduce((sum, step) => sum + step.seconds, 0);
+    return seconds ? { text: clock(seconds), recorded: steps.every((step) => step.take) } : null;
+  }
 
   async function load() {
     try {
@@ -32,15 +47,21 @@
   // Counted after the list is shown, so a big folder doesn't hold it up. A script that can't be read shows nothing.
   async function countAll(list: ScriptInfo[]) {
     const next: Record<string, number> = {};
+    const scripts: typeof read = {};
     for (const info of list) {
       try {
         const dir = await findScript(folder, info.path);
-        if (dir) next[info.path.join('/')] = await countMissing(dir, parseScript(await readScript(dir)));
+        if (!dir) continue;
+        const script = parseScript(await readScript(dir));
+        const key = info.path.join('/');
+        scripts[key] = { script, takes: await readTakes(dir) };
+        next[key] = await countMissing(dir, script);
       } catch {
         // Mid-sync: counted next time.
       }
     }
     missing = next;
+    read = scripts;
   }
 
   async function create(event: SubmitEvent) {
@@ -94,11 +115,15 @@
   {:else if scripts}
     <div class="scroll">
       <div class="table">
-        <div class="head"><span>Script</span><span>Status</span><span>Last edited</span></div>
+        <div class="head"><span>Script</span><span>Status</span><span>Length</span><span>Last edited</span></div>
         {#each scripts as script (script.path.join('/'))}
+          {@const long = length(script.path)}
           <a class="row" href={routeHash(script.path)}>
             <span class="title-cell"><span class="title">{script.title}</span>{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
+            <span class="length" title={long ? (long.recorded ? 'Recorded voice-over, every row' : `Read time at ${speaking.wpm} words a minute`) : undefined}>
+              {long?.text ?? ''}{#if long?.recorded}<svg role="img" aria-label="recorded" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>{/if}
+            </span>
             <span class="when">{script.who ? `${script.who} · ` : ''}{ago(script.edited)}</span>
           </a>
         {/each}
@@ -114,7 +139,7 @@
   main { max-width: 880px; margin: 0 auto; padding: 40px 16px; }
   .scroll { overflow-x: auto; }
   .table { min-width: 600px; }
-  .head, .row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1.2fr) minmax(0, 1.6fr); gap: 16px; padding: 0 12px; }
+  .head, .row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.5fr); gap: 16px; padding: 0 12px; }
   .head { padding-bottom: 10px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); }
   .row { align-items: center; min-height: 56px; border-bottom: 1px solid #f0f0f0; color: var(--ink); text-decoration: none; }
   .row:hover { background: #fafafa; }
@@ -122,6 +147,8 @@
   .title-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .missing { flex: none; padding: 2px 8px; border-radius: 999px; background: #fdf0ef; color: var(--danger); font-size: 12px; font-weight: 500; }
   .title { font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .length { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #3d3d3d; font-variant-numeric: tabular-nums; }
+  .length svg { color: var(--accent); }
   .status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #3d3d3d; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #b8b8b8; }
   .dot.in-review { background: #e08a1e; }

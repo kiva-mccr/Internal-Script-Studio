@@ -96,10 +96,16 @@ and suggestions, keeps every version, and exports them for production.
   when not being typed in. Mock-up: board 8. Built as drawn (the user: "perf"), before RV-2: the toolbar appears
   over selected text; Review and History show formatting too. Equations use KaTeX, loaded only when a script has
   one. Comment quotes are marked with the browser's highlights, so a quote can cross formatting.
-- [ ] **AP-12** Read time (suggested, the user agreed): the word count as minutes, for each section and the whole
+- [x] **AP-12** Read time (suggested, the user agreed): the word count as minutes, for each section and the whole
   script, at a speaking speed the person sets. Later feeds the teleprompter (EX-2), SRT (EX-5) and storyboard
   timings (SB-1). The look is agreed before building. Also asked by the user: the script list shows each script's
   length, the read time or, where every row has a take, the recorded voice-over's length.
+  Mock-up: board 21, agreed with the extras and one change (the user: top bar "1 of 6 · 0:04/13:42"). Built: each
+  section's read time at the right of its title (Write and Review), dialogue only; the top bar shows the whole
+  length, "0:25", or with takes "1 of 6 · 0:04/0:25" (the whole is takes plus read time for the rest, as Play times
+  it). Settings > Read time sets the speaking speed (− +, 60 to 400, kept in this browser), the same speed as the
+  teleprompter, Play and Copy for Teams, and offers "Use N", the takes' average speed. The script list's Length
+  column: read time, or the recorded length with a mic once every row has a take.
 - [x] **AP-13** Paste a draft (suggested, the user agreed): pasting several paragraphs into Dialogue makes one row
   for each paragraph (drafts written in Word). Built: each line of the pasted text is a paragraph (blank lines and
   spaces around them dropped); the first goes where the cursor is, the others get new rows below, and what followed
