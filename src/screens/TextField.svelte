@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clearMarks, continueList, renderMath, showLists, toggleList, toHtml, toggle, type List, type Mark } from '../lib/format';
+  import { changed, clearMarks, continueList, renderMath, renumber, showLists, toggleList, toHtml, toggle, unlist, type List, type Mark } from '../lib/format';
   import { paragraphs } from '../lib/script';
 
   // A Write cell (mock-up 8): while typing you see the marks (**bold**); elsewhere they show as formatting. Selecting
@@ -13,7 +13,8 @@
     lists = false,
   }: {
     value: string; label: string; placeholder: string; oninput: () => void;
-    // Bullets, numbers and tick boxes, with their buttons always shown (the planning panel, AP-24).
+    // Bullet, number and tick box buttons always shown, and the marks shown as • ☐ ☑ (the planning panel, AP-24).
+    // Enter, Backspace and renumbering work on lists in every field (AP-29).
     lists?: boolean;
     // Pasting two or more paragraphs hands them over, with the text before and after the selection (AP-13).
     onparagraphs?: (lines: string[], head: string, tail: string) => void;
@@ -61,14 +62,36 @@
         })()
       : toggle(value, start, end, mark);
     box.focus();
-    // Through the browser's own typing, so Ctrl+Z undoes it.
-    box.setSelectionRange(0, value.length);
-    if (!document.execCommand('insertText', false, next.text)) {
-      value = next.text;
+    put(next.text, next.start, next.end);
+    look();
+  }
+
+  // Puts in a new text through the browser's own typing, so Ctrl+Z undoes it. Only the stretch that differs is
+  // typed over, so the box doesn't scroll and the browser keeps the rest.
+  function put(text: string, start: number, end = start) {
+    if (!box || text === value) return box?.setSelectionRange(start, end);
+    const diff = changed(value, text);
+    box.setSelectionRange(diff.start, diff.start + diff.old);
+    const typed = diff.added ? document.execCommand('insertText', false, diff.added) : document.execCommand('delete');
+    if (!typed) {
+      value = text;
       oninput();
     }
-    box.setSelectionRange(next.start, next.end);
-    look();
+    box.setSelectionRange(start, end);
+  }
+
+  // After every change, numbered lists count again from their first line (AP-29). Not after Ctrl+Z or Ctrl+Y, or
+  // undoing the renumbering would renumber again and Ctrl+Z could never go back past it.
+  function input(e: Event) {
+    if (box) value = box.value;
+    oninput();
+    const kind = (e as InputEvent).inputType;
+    if (!box || kind === 'historyUndo' || kind === 'historyRedo') return;
+    const next = renumber(value);
+    if (next === value) return;
+    const at = box.selectionStart;
+    const diff = changed(value, next);
+    put(next, at <= diff.start ? at : at + diff.added.length - diff.old);
   }
 
   function paste(e: ClipboardEvent) {
@@ -79,16 +102,12 @@
   }
 
   function keydown(e: KeyboardEvent) {
-    if (lists && box && e.key === 'Enter' && !e.shiftKey && box.selectionStart === box.selectionEnd) {
-      const next = continueList(value, box.selectionStart);
+    const plain = !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey;
+    if (box && plain && (e.key === 'Enter' || e.key === 'Backspace') && box.selectionStart === box.selectionEnd) {
+      const next = (e.key === 'Enter' ? continueList : unlist)(value, box.selectionStart);
       if (next) {
         e.preventDefault();
-        box.setSelectionRange(0, value.length);
-        if (!document.execCommand('insertText', false, next.text)) {
-          value = next.text;
-          oninput();
-        }
-        box.setSelectionRange(next.at, next.at);
+        put(next.text, next.at);
         return;
       }
     }
@@ -115,7 +134,7 @@
       {/each}
     </div>
   {/if}
-  <textarea bind:this={box} bind:value aria-label={label} {placeholder} {oninput} onkeydown={keydown} onpaste={paste}
+  <textarea bind:this={box} bind:value aria-label={label} {placeholder} oninput={input} onkeydown={keydown} onpaste={paste}
     onfocus={() => (focused = true)} onblur={() => ((focused = false), (selecting = false))}
     onmouseup={look} onkeyup={look} onselect={look}></textarea>
   <div class="shown" aria-hidden="true" use:math={html}>{@html html}</div>

@@ -127,17 +127,50 @@ export function toggleList(text: string, start: number, end: number, kind: List)
   }).join('\n');
   // A selection stays on the lines; a caret goes to the end of its line, ready to type.
   const after = from + changed.length;
-  return { text: text.slice(0, from) + changed + text.slice(to), start: start === end ? after : from, end: after };
+  return { text: renumber(text.slice(0, from) + changed + text.slice(to)), start: start === end ? after : from, end: after };
 }
 
-// Enter at the end of a list line starts the next item (an empty item ends the list). Null: an ordinary Enter.
+// Numbered lines that touch are one list, counted on from its first line's number (AP-29). A blank or plain line
+// ends it. Run after every change, so no number is ever fixed by hand.
+export function renumber(text: string): string {
+  let next = -1;
+  return text.split('\n').map((line) => {
+    const m = /^(\d+)\. /.exec(line);
+    if (!m) return ((next = -1), line);
+    if (next < 0) next = Number(m[1]);
+    return `${next++}. ${line.slice(m[0].length)}`;
+  }).join('\n');
+}
+
+// Enter on a list line starts the next item; in the middle of the line it splits it in two (AP-29). An empty item
+// ends the list. Null: an ordinary Enter.
 export function continueList(text: string, at: number): { text: string; at: number } | null {
   const from = text.lastIndexOf('\n', at - 1) + 1;
-  const line = text.slice(from, at);
+  const end = text.indexOf('\n', at);
+  const line = text.slice(from, end === -1 ? text.length : end);
   const m = LIST_START.exec(line);
-  if (!m || text.slice(at).split('\n')[0].trim()) return null;
-  if (line === m[0]) return { text: text.slice(0, from) + text.slice(at), at: from };
+  if (!m || at < from + m[0].length) return null;
+  if (line === m[0]) return { text: renumber(text.slice(0, from) + text.slice(at)), at: from };
   const number = /^(\d+)\. /.exec(m[0]);
   const start = number ? `${Number(number[1]) + 1}. ` : m[0].startsWith('- [') ? '- [ ] ' : '- ';
-  return { text: text.slice(0, at) + '\n' + start + text.slice(at), at: at + 1 + start.length };
+  const rest = text.slice(at).replace(/^ +/, '');
+  return { text: renumber(text.slice(0, at) + '\n' + start + rest), at: at + 1 + start.length };
+}
+
+// Backspace just after a line's list mark takes the mark off, and the list renumbers (AP-29). Null: an ordinary
+// Backspace.
+export function unlist(text: string, at: number): { text: string; at: number } | null {
+  const from = text.lastIndexOf('\n', at - 1) + 1;
+  const m = LIST_START.exec(text.slice(from));
+  if (!m || at !== from + m[0].length) return null;
+  return { text: renumber(text.slice(0, from) + text.slice(at)), at: from };
+}
+
+// The smallest stretch that differs between two texts: from `start`, `old` characters became `added` ones.
+export function changed(before: string, after: string): { start: number; old: number; added: string } {
+  let start = 0;
+  while (start < before.length && start < after.length && before[start] === after[start]) start++;
+  let tail = 0;
+  while (tail < before.length - start && tail < after.length - start && before[before.length - 1 - tail] === after[after.length - 1 - tail]) tail++;
+  return { start, old: before.length - start - tail, added: after.slice(start, after.length - tail) };
 }
