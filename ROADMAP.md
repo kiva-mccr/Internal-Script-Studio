@@ -368,6 +368,9 @@ and suggestions, keeps every version, and exports them for production.
   and then edits the row to match): a small × in the label saves the line as it now reads as the take's text, so
   the label goes for everyone and comes back at the next edit. Agreed on board 35.
   Words a minute counts the new text only once Outdated is dismissed (the user's addition).
+- [ ] **AU-9** Play takes in Review (asked by the user): reviewers listen to the voice-over without the recording
+  tools. Each row's take plays from the row (▶, length, who and when, Outdated shown, no mic and no ×), and Play the
+  script works there as in Write (the top bar's Play, a row's number turns into ▶ "Play from here"). Mock-up: board 36.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
