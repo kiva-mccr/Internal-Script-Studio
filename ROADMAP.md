@@ -108,7 +108,7 @@ and suggestions, keeps every version, and exports them for production.
   length, the read time or, where every row has a take, the recorded voice-over's length.
   Mock-up: board 21, agreed with the extras and one change (the user: top bar "1 of 6 · 0:04/13:42"). Built: each
   section's read time at the right of its title (Write and Review), dialogue only; the top bar shows the whole
-  length, "0:25", or with takes "1 of 6 · 0:04/0:25" (the whole is takes plus read time for the rest, as Play times
+  length, "0:25", or with takes "1 of 6 · 0:04/0:25" (since AP-27 "0:04/0:25", beside Saved; the whole is takes plus read time for the rest, as Play times
   it). Settings > Read time sets the speaking speed (− +, 60 to 400, kept in this browser), the same speed as the
   teleprompter, Play and Copy for Teams, and offers "Use N", the takes' average speed. The script list's Length
   column: read time, or the recorded length with a mic once every row has a take.
@@ -168,6 +168,11 @@ and suggestions, keeps every version, and exports them for production.
   worker caching its files) so it opens and works offline. The scripts are already on the computer through the synced
   folder; OneDrive catches up once back online. To explore: how an update reaches people (a new version on the next
   visit), and what stays online-only (Follow my voice's first model download, links, Copy for Teams).
+- [x] **AP-27** A folder icon, and the length beside Saved (asked by the user: the length "feels weird behind the
+  buttons"). Mock-up 30, option A, with one change (the user: drop the "1 of 5", it wastes space). Built: the folder
+  name in the top bar is a folder icon back to the list ("Back to <folder>" on hover and for screen readers); the
+  length follows the save status as one grey line, "Saved · 0:25", or with takes "Saved · 0:04/0:25", and steps
+  aside while a red save message shows.
 
 ## Phase 3: review
 

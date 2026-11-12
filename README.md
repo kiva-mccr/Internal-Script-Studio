@@ -51,7 +51,8 @@ Status: a first working version. What it does today:
   way; the row number, its note and its files are a plain line above each row. Settings: the speaker's name,
   sections as scene headings or plain lines, and the row numbers and files line.
 - **Read time:** each section shows how long its dialogue takes to read aloud, and the top bar the whole script
-  ("2:05"; with takes, "3 of 4 · 0:14/2:05", where rows with a take count their take). The speaking speed is set in
+  beside the save status ("Saved · 2:05"; with takes, "Saved · 0:14/2:05": recorded so far / the whole script, where
+  rows with a take count their take). The speaking speed is set in
   ⋯ > Settings (150 words a minute to start, kept in this browser); once you have takes it offers their average speed.
   The script list shows each script's length: the read time, or the recorded voice-over's length (with a mic) once
   every row has a take.
@@ -84,7 +85,7 @@ Status: a first working version. What it does today:
 - **Voice-over:** the mic beside each row's dialogue records a take of that line (grey: none yet; blue: there is
   one). Play it back, see its length and words a minute, record again or delete it. A take says Outdated once its
   line changes. Takes are kept in the script's `voice/` folder, so OneDrive shares them.
-  The top bar shows how many rows have a take, their length, and the whole script's length ("3 of 4 · 0:14/2:05").
+  The top bar shows the takes' length and the whole script's length beside the save status ("0:14/2:05").
   Export > Voice-over (.wav) joins every row's take, in row order, into one file for the edit. Its preview plays the
   file and lists the rows (click one to hear it from there); settings add half a second between takes, or silence
   for rows with no take (as long as their read time).
