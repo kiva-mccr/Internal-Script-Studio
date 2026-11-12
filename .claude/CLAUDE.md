@@ -50,7 +50,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
 
 ## Status
-- Next: the round of 8 quick wins, one thread each, built in order (AP-20, AP-18, RV-10, AP-22 and AP-13 done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
+- Next: the round of 8 quick wins, one thread each, built in order (AP-20, AP-18, RV-10, AP-22, AP-13 and AU-3 done); the user prioritizes the rest after that round. "Last" in ROADMAP.md
   (AS-1, EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
@@ -74,4 +74,5 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
+- Pick the microphone (AU-3) with real microphones: tests fake the list and the recording; an unplugged mic is unseen.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.

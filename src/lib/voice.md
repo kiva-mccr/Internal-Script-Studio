@@ -14,5 +14,7 @@ id as state, with start, stop, play, remove and load), `wpm`, `outdated` and `ta
 - `wpm` counts the take's `text`, never the row's current dialogue: it used to, so typing in a recorded row changed
   the figure against the old recording.
 - These files are rewritten when a take is recorded again (unlike `.studio/`, which is written once).
+- `record` uses the mic picked in Settings (`lib/mic.ts`); `start` returns true when that mic was unplugged and the
+  default recorded instead, and Write says so.
 - Tests replace the microphone with `window.studioRecord`, which returns a short real WAV so playback works.
 - Never tried with a real microphone here: the test browser has none.

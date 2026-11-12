@@ -8,6 +8,7 @@
   import { keep, recall } from '../lib/remember';
   import type { Shared } from '../lib/share';
   import { shareLink } from '../lib/route';
+  import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
   let { folder, title, ready, mode, openCount, missingCount, voiceText, play, editors, reviewStatus, status, onAllow, onMode, onStatus, onPrompt, onPrint, onExport, onShare, onPlay, onStop }: {
@@ -26,6 +27,7 @@
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
   // Fountain, Final Draft and later exports) and ⋯ (Teleprompter). 'print': Print's choices, under Export.
   let menu = $state<'' | 'more' | 'export' | 'print'>('');
+  let settings = $state(false); // the Settings window (AU-3), opened from ⋯
   let moreEl = $state<HTMLElement>();
   let exportEl = $state<HTMLElement>();
   // Room for notes during production (asked by the user): a column on each row, lines at the end. Remembered.
@@ -141,12 +143,15 @@
         {#if menu === 'more'}
           <div class="menu">
             <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
+            <button onclick={() => ((menu = ''), (settings = true))}>Settings</button>
           </div>
         {/if}
       </span>
     </div>
   {/if}
 </header>
+
+{#if settings}<Settings onClose={() => (settings = false)} />{/if}
 
 <style>
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 24px; border-bottom: 1px solid var(--line); }

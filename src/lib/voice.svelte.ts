@@ -1,24 +1,29 @@
 // Voice-over per line (AU-1, mock-up 13): one take per row, recorded in the browser and kept in the script's folder
 // as voice/row-<id>.webm, beside voice/row-<id>.json (who, when, how long). By the row's id, so moving a row keeps
 // its take. OneDrive shares them like any asset; nothing is uploaded anywhere else.
+import { chosenMic, openMic } from './mic';
 import { countWords } from './readtime';
 
 // text: the dialogue as it was read, so a take whose line has changed since shows as outdated (asked by the user).
 export type Take = { by: string; at: number; seconds: number; text: string };
-export type Recording = { stop: () => Promise<Blob> };
+// fellBack: the mic picked in Settings wasn't there, so the default is recording (AU-3).
+export type Recording = { stop: () => Promise<Blob>; fellBack?: boolean };
 
 const FOLDER = 'voice';
 
-// A recording from the microphone. Tests stand in for it (tests/e2e/voice.spec.ts).
+// A recording from the microphone picked in Settings (or the default). Tests stand in for it, and are handed the
+// picked mic's id (tests/e2e/voice.spec.ts, settings.spec.ts).
 export async function record(): Promise<Recording> {
-  const fake = (window as unknown as { studioRecord?: () => Promise<Recording> }).studioRecord;
-  if (fake) return fake();
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  const id = chosenMic().id;
+  const fake = (window as unknown as { studioRecord?: (mic: string) => Promise<Recording> }).studioRecord;
+  if (fake) return fake(id);
+  const { stream, fellBack } = await openMic(id, (c) => navigator.mediaDevices.getUserMedia(c));
   const recorder = new MediaRecorder(stream);
   const parts: Blob[] = [];
   recorder.ondataavailable = (e) => e.data.size && parts.push(e.data);
   recorder.start();
   return {
+    fellBack,
     stop: () =>
       new Promise((resolve) => {
         recorder.onstop = () => {
@@ -77,11 +82,13 @@ export class VoiceOver {
     if (JSON.stringify(next) !== JSON.stringify(this.takes)) this.takes = next;
   }
 
-  async start(id: string) {
+  // True when the mic picked in Settings wasn't there and the default is recording instead.
+  async start(id: string): Promise<boolean> {
     this.stopPlaying();
     this.#take = await record();
     this.recording = id;
     this.started = Date.now();
+    return !!this.#take.fellBack;
   }
 
   // text: the row's dialogue now, kept with the take.

@@ -169,11 +169,11 @@ test('a shared link opens the script on Review; the mark leaves the address, and
   await expect(page.getByRole('button', { name: 'Write' })).toHaveAttribute('aria-current', 'page');
 });
 
-test('the ⋯ menu holds the Teleprompter; only one menu is open at a time', async ({ page }) => {
+test('the ⋯ menu holds the Teleprompter and Settings; only one menu is open at a time', async ({ page }) => {
   await openExample(page);
   await page.getByRole('button', { name: 'Export / Share' }).click();
   await page.getByRole('button', { name: 'More' }).click();
-  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter']);
+  await expect(page.locator('.menu > button')).toHaveText(['Teleprompter', 'Settings']);
   await page.keyboard.press('Escape');
   await expect(page.locator('.menu')).toHaveCount(0);
 });

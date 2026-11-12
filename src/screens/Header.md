@@ -3,10 +3,10 @@
 The bar at the top of a script: the folder name (back to the list), the title and the save status beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
 Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), the voice-over total (short: "3 of 4 · 0:14"), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
-Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final Draft, Voice-over and later exports), and ⋯ with Teleprompter.
+Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final Draft, Voice-over and later exports), and ⋯ with Teleprompter and Settings (AU-3, `Settings.svelte`).
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
-  `conflict.spec.ts`.
+  `conflict.spec.ts`, `settings.spec.ts`.
 
 ## Rules and pitfalls
 
