@@ -409,7 +409,16 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
-  it. Mock-up first.
+  it. Mock-up first. Agreed on board 46 ("Looks amazing") with its six suggested choices: a card under the
+  first-time screen (also after Change folder, not on Welcome back); the – folds it to one grey line, remembered by
+  the browser; the example is a real copy in the browser's private storage, so every part of the app works and
+  nothing is shared; a blue strip inside it with Start over (through the Undo bar) and Open your scripts folder; the
+  example gets a few made-up drawings, two comments and one History entry; the name typed, or "Guest". The user
+  chose to build this plain example first and the tutorial (AP-34) later on top of it.
+- [ ] **AP-34** A tutorial in the example (asked by the user): in the example from AP-33, a quick guided tour per tab
+  (Write, Review, History, Assets …) that highlights each feature, goes through them fast, then hands over control
+  to play; a Skip button shows throughout. A dedicated job that has to be kept up to date as features change. Kiva
+  asked to be reminded about this when setting priorities after each round. Mock-up first.
 - [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
   shared tick boxes for each row's on-screen shots and files, for the day of filming.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
