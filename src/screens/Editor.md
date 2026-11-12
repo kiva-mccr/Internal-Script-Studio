@@ -10,6 +10,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 
 ## Rules and pitfalls
 
+- A save leaves empty sections out of the file, on a copy: never out of `script`, or a section emptied while its
+  title still has the cursor would vanish under it (AP-22; `Write.svelte` removes it on blur).
 - No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.
   Only a failed save keeps the browser's "Leave site?" prompt, because leaving then would lose work.
 - History: on opening, a script.md that doesn't match the newest version gets an "outside" entry (no versions:

@@ -389,9 +389,11 @@
         });
         return;
       }
-      script.blocks = script.blocks.filter((b) => b.type === 'row' || b.title.trim() || b.note);
       script.front = withAuthor($state.snapshot(script) as Script, name).front;
-      const text = writeScript($state.snapshot(script) as Script);
+      // An empty section isn't written; Write removes it from the page once the cursor leaves it (AP-22).
+      const kept = $state.snapshot(script) as Script;
+      kept.blocks = kept.blocks.filter((b) => b.type === 'row' || b.title.trim() || b.note);
+      const text = writeScript(kept);
       if (text !== now) await writeScriptFile(dir, text);
       onDisk = text;
       lastWritten = await sha256(text);

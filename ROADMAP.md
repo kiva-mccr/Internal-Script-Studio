@@ -128,10 +128,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-21** Set-up help for other ways of syncing (asked by the user, later): the "Before you start"
   instructions for OneDrive, Google Drive, Dropbox, a network drive …, with screenshots so they are easy to follow.
   Mock-up first.
-- [ ] **AP-22** Adding sections, smoother (asked by the user): a new section starts empty with "New section" as
+- [x] **AP-22** Adding sections, smoother (asked by the user): a new section starts empty with "New section" as
   grey stand-in text, like the empty cells, not as real text; an emptied section is removed only once the cursor
   leaves its box, never while still typing in it; and the section button adds the section right after the box the
-  cursor is in, or at the end when no box is in use.
+  cursor is in, or at the end when no box is in use. Built: the new section takes the cursor; from a section's title
+  it goes after that section's rows; it gets an empty row only when no rows follow it.
 - [ ] **AP-23** Named links with a preview (asked by the user): a pasted link can be given a name, shown instead of
   the address, and shows a preview of the page. Mock-up first; goes with AP-19.
 - [x] **AP-25** Saving when the browser takes back access (a bug the user hit: "Couldn't save, trying again").
