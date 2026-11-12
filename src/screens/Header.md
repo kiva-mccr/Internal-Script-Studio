@@ -13,6 +13,7 @@ Copy for Teams, EX-10) above Export (Print… with its choices, Fountain, Final 
 - One menu is open at a time (`menu`). It closes on Esc, on a click outside both menus, after choosing, and a
   moment after a copy (the item says "Link copied" or "Copied, paste it in Teams"; a failed copy says so in the menu).
   Tests open ⋯ with the "More" button, and Print with "Export" (it matches "Export / Share") then "Print…".
+- Copy link copies `shareLink(location.href)`, which opens on Review (RV-10).
 - Copy for Teams hands the clipboard promises (`ClipboardItem`) and asks `onShare` for the text, so the click still
   counts while the Editor saves and reads History. The text itself is `lib/share.ts`.
 - A new export goes in the Export menu, and `onExport` grows a new `to`.
