@@ -370,7 +370,9 @@ and suggestions, keeps every version, and exports them for production.
   Words a minute counts the new text only once Outdated is dismissed (the user's addition).
 - [ ] **AU-9** Play takes in Review (asked by the user): reviewers listen to the voice-over without the recording
   tools. Each row's take plays from the row (▶, length, who and when, Outdated shown, no mic and no ×), and Play the
-  script works there as in Write (the top bar's Play, a row's number turns into ▶ "Play from here"). Mock-up: board 36.
+  script works there as in Write (the top bar's Play, a row's number turns into ▶ "Play from here"). Agreed on
+  board 36 ("Looks perfect"): a row with no take shows nothing until the script plays over it; a comment on a take is
+  a comment on its row (no time stamp); recording and the joined WAV stay in Write.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
