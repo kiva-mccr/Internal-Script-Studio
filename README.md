@@ -21,6 +21,7 @@ Status: a first working version. What it does today:
   left with no title is removed once you click out of it. Paste a draft (from Word, say) into a Dialogue box and
   each paragraph gets its own row; Undo at the bottom puts it back. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
   "From other scripts…" lists the files and links of every other script in the folder: pick one and it is copied in.
+  The script list's Files button shows the files of every script, to browse.
   Images show a small preview; click it to see it full size. Select text for bold, italic, underline,
   strikethrough, a link, an equation (LaTeX) or Clear; Ctrl+B, I, U and K work too.
   It saves on its own a moment after you stop typing. If the browser stops letting the app edit the folder (Chrome

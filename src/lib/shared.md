@@ -4,7 +4,7 @@ The shared asset browser (AS-1, board 29): `sharedFiles` lists every other scrip
 folder, then the links its rows use), with how many rows use each; `copyShared` gives the line to add to a row,
 copying a file into this script's `assets/` first.
 
-- **Used by:** `screens/SharedFiles.svelte`. **Tests:** `tests/e2e/shared.spec.ts`.
+- **Used by:** `screens/SharedFiles.svelte` (adding from a row, and browsing from the script list). **Tests:** `tests/e2e/shared.spec.ts`.
 
 ## Rules and pitfalls
 

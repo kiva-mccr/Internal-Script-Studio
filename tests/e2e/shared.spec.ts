@@ -58,3 +58,17 @@ test('Find with no match says so, and Esc closes the window', async ({ page }) =
   await page.keyboard.press('Escape');
   await expect(box).toHaveCount(0);
 });
+
+test('Files on the script list shows every script\'s files, opens a file, and a script\'s name opens it', async ({ page }) => {
+  await setUp(page, '', FILES);
+  await page.getByRole('button', { name: 'Files', exact: true }).click();
+  const box = page.getByRole('dialog', { name: 'Files in every script' });
+  await expect(box.locator('h3')).toHaveText(['The Water Cycle · Approved', 'Trailer · Draft']);
+  await expect(box.getByRole('button', { name: /Add to row/ })).toHaveCount(0);
+  const popup = page.waitForEvent('popup');
+  await box.getByRole('button', { name: /cloud\.mp4/ }).click();
+  expect((await popup).url()).toMatch(/^blob:/);
+  await box.getByRole('link', { name: 'Trailer' }).click();
+  await expect(box).toHaveCount(0);
+  await expect(page.getByLabel('Dialogue, row 1')).toHaveValue('Hello.');
+});

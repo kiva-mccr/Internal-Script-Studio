@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SharedFiles from './SharedFiles.svelte';
   import { onMount } from 'svelte';
   import { countMissing } from '../lib/assets';
   import { flags, listNotes } from '../lib/comments';
@@ -81,6 +82,7 @@
     }
   }
 
+  let browsing = $state(false); // Files in every script (AS-1b)
   const label: Record<string, string> = { draft: 'Draft', 'in review': 'In review', approved: 'Approved' };
 </script>
 
@@ -89,8 +91,10 @@
 <header>
   <span class="folder">{folder.name}</span>
   <button class="link" onclick={onChangeFolder}>Change folder</button>
+  <button class="outline small" onclick={() => (browsing = true)}>Files</button>
   <button class="primary small" onclick={() => (adding = true)}>New script</button>
 </header>
+{#if browsing}<SharedFiles root={folder} onClose={() => (browsing = false)} />{/if}
 
 <main>
   {#if adding}
