@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount, tick } from 'svelte';
+  import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { clearMarks, plain, toHtml } from '../lib/format';
   import { addMark, follow, LEAD, move, normal, voiceAt, type Mark } from '../lib/follow';
   import { listen, type ListenError, type Listening } from '../lib/listen';
@@ -8,8 +8,9 @@
   import type { Script } from '../lib/script';
 
   // The teleprompter (EX-2, mock-up 10): the dialogue, big, scrolling past a marker a third of the way down at a
-  // speed in words a minute, or following the voice of whoever reads it (EX-8). onClose: back to the script.
-  let { script, onClose }: { script: Script; onClose: () => void } = $props();
+  // speed in words a minute, or following the voice of whoever reads it (EX-8). from: the block it opens at (AU-7).
+  // onClose: back to the script.
+  let { script, from = 0, onClose }: { script: Script; from?: number; onClose: () => void } = $props();
 
   const speed = $derived(speaking.wpm); // words a minute, shared with read time (AP-12)
   let size = $state(Number(recall('prompter-size')) || 44); // px
@@ -43,6 +44,8 @@
     });
   });
   const byBlock = $derived(new Map(lines.map((l) => [l.i, l])));
+  // It opens at the first line from that block on (AU-7); Follow my voice listens from there too.
+  read = untrack(() => lines.find((l) => l.i >= from)?.start ?? 0);
   const total = $derived(lines.reduce((n, l) => n + l.words, 0));
   // Every word of the dialogue, as compared with what is heard; counted the same way as `lines`.
   const scriptWords = $derived(
@@ -156,6 +159,14 @@
     if (read >= total) read = 0; // at the end, Start goes from the top again
     lastTime = performance.now();
     frame = requestAnimationFrame(step);
+  }
+
+  // Back to the first line (AU-7). While following the voice, it waits there for the voice.
+  function fromTop() {
+    read = heardAt = 0;
+    marks = [];
+    jump = -1;
+    place();
   }
 
   const faster = (by: number) => setSpeed(speed + by);
@@ -279,6 +290,7 @@
       <button aria-label="Smaller text" onclick={() => bigger(-4)}>A−</button>
       <button aria-label="Bigger text" onclick={() => bigger(4)}>A+</button>
     </span>
+    <button class="top" onclick={fromTop} disabled={read === 0}>⤒ From the top</button>
     <label><input type="checkbox" bind:this={voiceBox} checked={!!voice} onchange={toggleVoice} /> Follow my voice</label>
     <label><input type="checkbox" bind:checked={mirror} /> Mirror</label>
     <label><input type="checkbox" bind:checked={cues} /> On-screen cues</label>
@@ -310,7 +322,8 @@
   .group { display: inline-flex; align-items: center; gap: 8px; }
   label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
   .left { color: #9a9a9a; font-variant-numeric: tabular-nums; }
-  .controls .exit { padding: 0 12px; }
+  .controls .exit, .controls .top { padding: 0 12px; }
+  .controls button:disabled { opacity: 0.4; }
   .listening { position: absolute; left: 24px; top: 24px; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px;
     border-radius: 999px; background: rgba(40, 40, 40, 0.92); font-size: 13px; color: #e6e6e6; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; }

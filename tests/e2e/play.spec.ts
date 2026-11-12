@@ -98,3 +98,20 @@ test('the page follows the row being played, and the top bar stays in view', asy
   await expect(playing(page).getByLabel('Dialogue, row 5')).toBeInViewport();
   await expect(page.getByRole('button', { name: 'Stop playing' })).toBeInViewport();
 });
+
+test('a row number turns into ▶ under the mouse, and shows ❚❚ while its row plays (AU-7)', async ({ page }) => {
+  await openWithTakes(page, [1]);
+  const from = page.getByRole('button', { name: 'Play from row 3' });
+  await expect(from.locator('.n')).toBeVisible();
+  await expect(from.locator('.go')).toBeHidden();
+  await page.getByLabel('Dialogue, row 3').hover(); // anywhere on the row, not only the number
+  await expect(from.locator('.go')).toBeVisible();
+  await expect(from.locator('.n')).toBeHidden();
+  await from.click();
+  await expect(playing(page).getByLabel('Dialogue, row 3')).toBeVisible();
+  const pause = page.getByRole('button', { name: 'Pause at row 3' });
+  await expect(pause).toHaveText('❚❚');
+  await pause.click();
+  await expect(page.getByRole('button', { name: 'Carry on playing the script' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play from row 3' })).toBeVisible();
+});

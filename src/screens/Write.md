@@ -42,7 +42,8 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
 - The takes live in the Editor's `VoiceOver` (`lib/voice.svelte.ts`); a row with no id yet can't record.
 - Play the script (AU-2): the Editor's `Player` says which row is playing; that row is tinted (`.here`), scrolled
   to, and its take's bar fills (a row with no take shows a grey bar and "No take yet"). A row's number is a button
-  ("Play from row n") only while there is something to play (`canPlay`). A row's own ▶ pauses the script when it
+  ("Play from row n") only while there is something to play (`canPlay`). It shows ▶ while the mouse is anywhere on
+  the row (AU-7, CSS only: `.n` and `.go`), and ❚❚ ("Pause at row n", pauses) on the row playing. A row's own ▶ pauses the script when it
   is the row being played, so its name is "Pause row n" then: tests tell it from the top bar's "Pause the script".
 - Flags (AP-9, mock-up 22): the flag button sits in the third slot of the row tools' top line (left 50px, clear of
   the mic), seen on hover and focus and always once flagged. A new flag puts the cursor in its note; the note is
