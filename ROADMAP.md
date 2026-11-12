@@ -355,10 +355,10 @@ and suggestions, keeps every version, and exports them for production.
   the top bar's Play still starts from the top; Play still needs a take. The teleprompter opens at the row the cursor
   was last in (else the first row on screen, in practice the top: ⋯ is at the top of the page), with "⤒ From the
   top" in its bar; Follow my voice listens from there.
-- [ ] **AU-8** Dismiss "Outdated" on a take (asked by the user, who often says a line differently while recording
+- [x] **AU-8** Dismiss "Outdated" on a take (asked by the user, who often says a line differently while recording
   and then edits the row to match): a small × in the label saves the line as it now reads as the take's text, so
   the label goes for everyone and comes back at the next edit. Agreed on board 35.
-  Words a minute counts the new text only once Outdated is dismissed.
+  Words a minute counts the new text only once Outdated is dismissed (the user's addition).
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.

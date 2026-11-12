@@ -52,8 +52,30 @@ test('a take says Outdated once its line is changed, and keeps its words a minut
   await page.getByLabel('Dialogue, row 1').click();
   await page.keyboard.press('End');
   await page.keyboard.type(' Really, really, truly it does.');
-  await expect(page.locator('.old')).toHaveText('Outdated');
+  await expect(page.locator('.old')).toContainText('Outdated');
   await expect(page.locator('.take .about')).toHaveText(rate!); // the words a minute of what was recorded
+});
+
+test('Outdated can be dismissed: the take keeps the line as it now reads, and the next edit shows it again', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'Record row 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Stop recording row 1' }).click();
+  const rate = await page.locator('.take .about').textContent();
+  await page.getByLabel('Dialogue, row 1').click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' Really, really, truly it does.');
+  await expect(page.locator('.old')).toContainText('Outdated');
+  await expect(page.locator('.take .about')).toHaveText(rate!);
+  await page.getByRole('button', { name: "Row 1's take matches the line: hide Outdated" }).click();
+  await expect(page.locator('.old')).toHaveCount(0);
+  await expect(page.locator('.take .about')).not.toHaveText(rate!); // now counts the new words
+  const take = JSON.parse(await readFile(page, 'Episode 03/voice/row-k3f9a.json'));
+  expect(take.text).toContain('Really, really, truly it does.');
+  expect(take.by).toBe('Sam');
+  await page.getByLabel('Dialogue, row 1').click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' More.');
+  await expect(page.locator('.old')).toContainText('Outdated');
 });
 
 test('deleting a take takes it out of the folder; someone else’s take appears', async ({ page }) => {
