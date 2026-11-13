@@ -426,6 +426,9 @@ and suggestions, keeps every version, and exports them for production.
   (Write, Review, History, Assets …) that highlights each feature, goes through them fast, then hands over control
   to play; a Skip button shows throughout. A dedicated job that has to be kept up to date as features change. Kiva
   asked to be reminded about this when setting priorities after each round. Mock-up first.
+- [ ] **AP-35** A "What's new" tour (asked by the user): every so often, after updates that add features (not
+  fixes), the app shows a short tour of just those new features the next time it is opened, with a Skip button.
+  Related to AP-34 (the tutorial per tab), and could reuse its tour. Mock-up first.
 - [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
   shared tick boxes for each row's on-screen shots and files, for the day of filming.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
