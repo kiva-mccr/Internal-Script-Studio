@@ -444,14 +444,6 @@ and suggestions, keeps every version, and exports them for production.
   the tab opens by itself once per send back, only for a send back by someone else. Rows with something open grow a
   little so the row tools clear the bubble. Quotes are marked on the formatted text, so not while that very box is
   being typed in. A click on a quote's words in a field opens its card.
-- [x] **RV-17** Clicking a row's comment bubble (or a quote) again, while that comment is still the selected one,
-  scrolls the Comments tab back to its card (asked by the user, 2026-11-13).
-- [x] **RV-18** In Write's Comments tab a resolved comment, or an accepted or rejected suggestion, stays in place with
-  Undo for 5 seconds, then moves into Resolved by itself (the user, 2026-11-13: "I like the undo", replacing RV-13's
-  "until the panel or tab is left"). Review is unchanged: Resolve there still moves it at once.
-- [x] **RV-20** The selected comment stands out (the user: the pale blue line was hard to see): its card gets a solid
-  blue outline with a soft ring and tint, and flashes when you jump to it; its row in Write gets a darker tint and a
-  blue bar on the left. Before and after: project files, comment-highlight/.
 - [x] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
   only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
   Built as mock-up 43 (the user agreed, with every suggested choice): an All · For me switch above the list (the
@@ -477,6 +469,35 @@ and suggestions, keeps every version, and exports them for production.
   rows stay editable in Write, the old words on their own line above the box (5a); a ✓ Seen per row clears that one
   ("2 changes left", 5b). Built so: `lib/visit.ts` credits each row to the last version that changed it (compared
   with its parent, merges skipped); the bar is `VisitBar.svelte`, shared by Write and Review.
+- [ ] **RV-16** Comments in line order (asked by the user): the comment lists (Review, and Write's Comments tab) show
+  comments in the order of the rows they are on, by default, with a switch to sort them by time or by type instead.
+  By type puts suggestions first, then comments on specific words, then comments on a whole row (the user's order).
+  Placed by the user after the current queue. Mock-up first.
+- [x] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
+  comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
+  comment back into view. Bug fix, no mock-up needed. Built so: a click on a quote does the same.
+- [x] **RV-18** A resolved comment moves into Resolved by itself (a bug the user hit): today it stays in the open list
+  until the comment panel is closed and opened again. The user likes the Undo, so a resolved comment stays in place
+  for about 5 seconds with Undo showing, then moves into the Resolved dropdown on its own. Bug fix, no mock-up needed.
+  Built so: in Write's Comments tab, 5 seconds, accepted and rejected suggestions too; Review still moves it at once.
+- [x] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
+  is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
+  RV-18: a before and after picture is shown to the user before it is merged. Built so (the user: "looks good"): a
+  solid blue outline with a soft ring and tint on the card, a short flash when you jump to it, and a darker tint
+  with a blue bar on its row in Write. Pictures: project files, comment-highlight/.
+- [ ] **RV-21** Tab counts that say what's new for you (asked by the user): today the Review tab's number is the open
+  comments. Instead, Review counts the rows changed between Send back to writer and the next Send for review (what
+  the reviewer has to look at), and Write counts the comments and suggestions made between Send for review and Send
+  back to writer (what the writer has to deal with). A count clears once you open its tab, then counts only what is
+  new since (remembered per browser, like RV-15). Placed by the user after the current queue. Mock-up first.
+- [ ] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
+  dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
+  how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
+  current queue. Mock-up first.
+- [ ] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
+  be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
+  are on hold, and held comments come back into view when the script is sent for review or a version is made, so they
+  don't become a dumping ground. Placed by the user after the current queue. Mock-up first.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
@@ -492,7 +513,8 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **AP-34** A tutorial in the example (asked by the user): in the example from AP-33, a quick guided tour per tab
   (Write, Review, History, Assets …) that highlights each feature, goes through them fast, then hands over control
   to play; a Skip button shows throughout. A dedicated job that has to be kept up to date as features change. Kiva
-  asked to be reminded about this when setting priorities after each round. Mock-up first.
+  asked to be reminded about this when setting priorities after each round. Mock-up first. Moved by the user
+  (2026-11-13) to the front of the new features, after the flaky tests, the screen split and History at scale.
 - [ ] **AP-35** A "What's new" tour (asked by the user): every so often, after updates that add features (not
   fixes), the app shows a short tour of just those new features the next time it is opened, with a Skip button.
   Related to AP-34 (the tutorial per tab), and could reuse its tour. Mock-up first.
@@ -500,6 +522,15 @@ and suggestions, keeps every version, and exports them for production.
   page should be centred in the part of the page on screen, not on the whole length of the page. The two pop-up
   windows in the code, Settings and Shared files, are pinned to the screen with a gap at the top, so which one the
   user saw (or a menu or panel inside the page) is to be confirmed first. Bug fix, no mock-up needed.
+- [ ] **AP-37** When each computer last synced (asked by the user): a web page can't ask OneDrive for its status, so
+  each computer with the app open leaves a small "still here" mark in `.studio/` about once a minute, and the others
+  show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
+  OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
+  (beside "… is editing"?). Mock-up first.
+- [ ] **AP-39** No blank page when scrolling fast (a bug the user hit, not urgent): scrolling quickly through a script
+  shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
+  empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
+  Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
 - [ ] **EX-19** A DaVinci Resolve project from the timeline (asked by the user): the app builds a file that DaVinci
   Resolve opens, with the timeline from SB-1 (images, takes and timings in order), so editors pick it up and keep
   working on it in Resolve. Needs SB-1 first. Mock-up first.
