@@ -56,8 +56,13 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
   AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14 (done), AP-32 (done), RV-15 (done), AP-33 (done). AP-34 (a tutorial in the example) waits: remind the user of it when
-  they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done). Then HI-3 (done). The user prioritizes
-  what comes next; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
+  they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
+- Now (the user's queue, 2026-11-13): flaky tests (done), split Editor.svelte and Write.svelte (done), HI-3 History at
+  scale (done). Next the bug fixes (AP-36, RV-17, RV-18, RV-20), then AP-34 (the tutorial in the example) first
+  among new features. The user is running the real-world checks (two computers, real files, printing) with the field
+  test checklist: https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. The next-round picks (AP-15, AP-8, AP-26, SB-1,
+  and the new RV-16, RV-19, AP-37, AP-38, AP-39 …) wait until then; "Last" in ROADMAP.md (EX-5, CC-1) waits until
+  everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
 ## Rules learnt from earlier steps
