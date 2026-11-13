@@ -475,6 +475,9 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
   comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
   comment back into view. Bug fix, no mock-up needed.
+- [ ] **RV-18** A resolved comment moves into Resolved at once (a bug the user hit): resolving a comment should
+  fold it into the Resolved dropdown straight away, not only after the comment panel is closed and opened again. Bug
+  fix, no mock-up needed.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
