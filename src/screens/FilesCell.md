@@ -6,7 +6,7 @@ describe something still to find, or pick from other scripts: `SharedFiles.svelt
 picture, PDF page 1, video, sound, first lines of text or Word); linked images show a thumbnail. Files with no
 preview get their kind and size on the chip.
 
-- **Used by:** `screens/Write.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `shared.spec.ts`, `previews.spec.ts`.
+- **Used by:** `screens/WriteRow.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `shared.spec.ts`, `previews.spec.ts`.
 
 ## Rules and pitfalls
 

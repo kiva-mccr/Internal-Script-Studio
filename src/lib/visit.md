@@ -4,7 +4,7 @@ What changed since you last looked (RV-15, board 45): the rows other people chan
 the script on this computer, each with who changed it last and when, worked out from History. Also the
 localStorage key for the last visit, and names as a sentence ("Ana, Jo and Sam").
 
-- **Used by:** `screens/Editor.svelte`, `screens/Write.svelte`, `screens/Review.svelte`, `screens/VisitBar.svelte`.
+- **Used by:** `screens/Editor.svelte`, `screens/Write.svelte`, `screens/WriteRow.svelte`, `screens/Review.svelte`, `screens/VisitBar.svelte`.
   **Tests:** `tests/unit/visit.test.ts`, `tests/e2e/visit.spec.ts`.
 
 ## Rules and pitfalls

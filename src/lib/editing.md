@@ -3,7 +3,7 @@
 "Sam is editing": one small file per person in `.studio/editing/` (docs/studio-folder.md), rewritten every 30 s
 while the script is open and removed on leaving.
 
-- **Used by:** `screens/Editor.svelte`. **Tests:** `tests/unit/editing.test.ts`, `tests/e2e/conflict.spec.ts`.
+- **Used by:** `lib/saving.svelte.ts`, `screens/Editor.svelte` (removes yours on leaving). **Tests:** `tests/unit/editing.test.ts`, `tests/e2e/conflict.spec.ts`.
 
 ## Rules and pitfalls
 

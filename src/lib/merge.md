@@ -3,7 +3,7 @@
 Combines two saves made from the same starting text, row by row (docs/studio-folder.md, Conflicts). What only one
 side changed is taken without asking; a field both sides changed differently is a clash the person picks for.
 
-- **Used by:** `screens/Editor.svelte`. **Tests:** `tests/unit/merge.test.ts`, `tests/e2e/conflict.spec.ts`.
+- **Used by:** `lib/saving.svelte.ts`. **Tests:** `tests/unit/merge.test.ts`, `tests/e2e/conflict.spec.ts`.
 
 ## Rules and pitfalls
 

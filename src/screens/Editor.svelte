@@ -3,15 +3,15 @@
   import { assetList, missingFiles } from '../lib/assets';
   import { Player, plan } from '../lib/play.svelte';
   import { clock, speaking } from '../lib/readtime.svelte';
-  import { askAccess, hasAccess, keep, recall } from '../lib/remember';
+  import { keep, recall } from '../lib/remember';
   import { takeLength, takesSpeed, VoiceOver } from '../lib/voice.svelte';
-  import { addAsset, assetFile, findScript, readScript, writeScriptFile } from '../lib/folder';
+  import { addAsset, assetFile } from '../lib/folder';
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
-  import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
-  import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, ancestor, backNote, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sendVersion, sha256, type Version } from '../lib/history';
-  import { merge, type Merged, type Side } from '../lib/merge';
+  import { frontValue, rows, type Block } from '../lib/script';
+  import { removeEditing } from '../lib/editing';
+  import { backNote, listVersions, OUTSIDE, reviewEnd, reviewNote, type Version } from '../lib/history';
+  import { Saving } from '../lib/saving.svelte';
   import Assets from './Assets.svelte';
   import Comments from './Comments.svelte';
   import Conflict from './Conflict.svelte';
@@ -33,27 +33,26 @@
   let { folder, path, name, review = false }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean } =
     $props();
 
-  const SAVE_AFTER = 1500; // ms after the last change
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
-  const ENTRY_EVERY = 5 * 60 * 1000; // a history entry at most every 5 minutes of editing (docs/studio-folder.md)
   const HERE_EVERY = 30 * 1000; // the "… is editing" file is refreshed this often
 
-  let dir = $state<FileSystemDirectoryHandle | null>(null);
-  let script = $state<Script | null>(null);
+  // The script on disk: reading, saving, History and clashes (lib/saving.svelte.ts).
+  const file = new Saving(untrack(() => folder), () => name, (message) => (notice = message), () => readReview());
+  const dir = $derived(file.dir);
+  const script = $derived(file.script);
+  const status = $derived(file.status);
+  const clash = $derived(file.clash);
+  const changed = () => file.changed();
+  const save = () => file.save();
   let missing = $state(false);
-  // saved: all written. waiting: changes not written yet. saving. failed: the last write failed (tried again).
-  // conflict: two saves made at the same time, waiting for the person to pick (`clash`).
-  // locked: the browser took back its OK to edit the folder; only a click (Allow editing) can ask again.
-  let status = $state<'saved' | 'waiting' | 'saving' | 'failed' | 'conflict' | 'locked'>('saved');
   let notice = $state('');
   // The last delete, kept a few seconds so it can be undone (no browser dialogs: the user's rule).
   let undo = $state<{ blocks: Block[]; what: string } | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
   let printing = $state<(PrintChoices & { version: string }) | null>(null); // the print version, while printing (EX-1)
   let exporting = $state<{ to: Format; version: string } | null>(null); // the export screen (EX-9), in place of the script
-  let onDisk = ''; // the text of script.md as last read or written by this page
-  let timer: ReturnType<typeof setTimeout> | undefined;
   let checker: ReturnType<typeof setInterval> | undefined;
+  let heartbeat: ReturnType<typeof setInterval> | undefined;
   let mode = $state<'write' | 'review' | 'history' | 'assets'>(untrack(() => review) ? 'review' : 'write');
   // The Files column's paths that aren't in the folder (EX-6): the Assets tab's count and list. Checked again when
   // the files change, when the tab opens and with the 5 s check, since OneDrive may bring a file in at any time.
@@ -106,14 +105,6 @@
     if (lost) items.push({ id: '', head: `${lost} ${lost === 1 ? 'file' : 'files'} missing`, text: [...lostFiles].map((f) => f.split('/').pop()).join(', ') });
     return items;
   });
-  let last: Version | null = null; // the newest history entry this page knows of
-  let started: Promise<void> = Promise.resolve(); // History found or started on opening (sets `last`)
-  let pendingSince = 0; // when the first save not yet in History was made
-  let clash = $state<{
-    merged: Merged; heading: string; mineLabel: string; theirsLabel: string; combined: string;
-    parents: string[]; note: string; copy?: string;
-  } | null>(null);
-  let editors = $state<string[]>([]); // other people with this script open
   // Voice-over takes (AU-1): read with the script and with the 5 s check, so others' takes appear.
   const voice = new VoiceOver();
   // The top bar's length (AP-12), beside Saved: "0:04/13:42", the takes so far and the whole script (takes, plus read
@@ -155,9 +146,7 @@
     }
   }
   let finding = $state(false); // the find and replace bar in Write (AP-32)
-  let heartbeat: ReturnType<typeof setInterval> | undefined;
-  const since = new Date().toISOString();
-  let lastWritten = ''; // fingerprint of what this page last wrote to script.md
+
 
   // What changed since you last looked (RV-15, board 45): worked out once on opening, from History and the time
   // this browser last opened the script. Seen marks and Got it last until the script is left.
@@ -187,25 +176,15 @@
   onMount(async () => {
     const opened = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     try {
-      dir = await findScript(folder, path);
-      if (!dir) {
-        missing = true;
-        return;
-      }
-      const text = await readScript(dir);
-      load(text);
-      started = startHistory(dir, text);
-      await started;
-      await here();
-      await lookForClashes(dir, text);
+      if (!(await file.open(path))) return void (missing = true);
       const key = visitKey(folder.name, path);
       const before = recall(key);
       keep(key, opened);
-      if (script) visit = sinceVisit(await listVersions(dir).catch(() => []), script, before, name);
-      notes = await listNotes(dir).catch(() => []);
-      await voice.load(dir);
+      if (file.dir && file.script) visit = sinceVisit(await listVersions(file.dir).catch(() => []), file.script, before, name);
+      if (file.dir) notes = await listNotes(file.dir).catch(() => []);
+      if (file.dir) await voice.load(file.dir);
       checker = setInterval(checkOutside, CHECK_EVERY);
-      heartbeat = setInterval(here, HERE_EVERY);
+      heartbeat = setInterval(() => file.here(), HERE_EVERY);
     } catch {
       notice = "The script couldn't be opened. If OneDrive is still syncing, wait a moment and reload.";
     }
@@ -216,137 +195,10 @@
     player.stop();
     clearInterval(checker);
     clearInterval(heartbeat);
-    const d = dir;
+    const d = file.dir;
     const who = name; // read now: leaving the example takes the props away before leave() is done
-    leave().finally(() => d && removeEditing(d, who));
+    file.leave().finally(() => d && removeEditing(d, who));
   });
-
-  // "… is editing": this person's file, with when they were last here and what they last wrote.
-  async function here() {
-    if (!dir) return;
-    const now = new Date().toISOString();
-    await writeEditing(dir, { v: 1, who: name, since, seen: now, last_written: lastWritten }).catch(() => {});
-  }
-
-  // On opening: the newest version should match script.md. If not, it was changed outside the app (Notepad, a
-  // laptop that closed before its entry was written), and that gets its own entry. No versions: History starts.
-  async function startHistory(dir: FileSystemDirectoryHandle, text: string) {
-    try {
-      const versions = await listVersions(dir);
-      const newest = versions.at(-1);
-      const sha = await sha256(text);
-      const matching = heads(versions).findLast((v) => v.sha256 === sha);
-      if (!newest) last = await addVersion(dir, { parents: [], who: name, kind: 'restart', text });
-      else if (matching) last = matching;
-      else {
-        // Someone's last save that never got its entry (their laptop closed): credit it to them.
-        const writer = (await readEditing(dir)).find((e) => e.last_written === sha)?.who;
-        last = writer
-          ? await addVersion(dir, { parents: [newest.id], who: writer, kind: 'edit', text })
-          : await addVersion(dir, { parents: [newest.id], who: OUTSIDE, kind: 'outside', text });
-      }
-    } catch {
-      // History can't be written (read-only folder?): editing still works.
-    }
-  }
-
-  // On opening: two saves made at the same time show up as two newest versions, or as a copy OneDrive kept
-  // beside script.md (script-LAPTOP-SAM.md). Either way, the two are combined row by row.
-  async function lookForClashes(dir: FileSystemDirectoryHandle, text: string) {
-    try {
-      for await (const name of dir.keys()) {
-        if (!/^script-.+\.md$/i.test(name)) continue;
-        const copy = await (await (await dir.getFileHandle(name)).getFile()).text();
-        const base = last?.text ?? text;
-        return offer(merge(base, text, copy), {
-          heading: 'OneDrive kept two copies of this script', mineLabel: 'script.md', theirsLabel: name,
-          mineName: 'script.md', theirsName: name, parents: last ? [last.id] : [], copy: name,
-        });
-      }
-      const versions = await listVersions(dir);
-      const tips = heads(versions);
-      if (tips.length < 2) return;
-      const sha = await sha256(text);
-      const a = tips.findLast((v) => v.sha256 === sha) ?? tips.at(-1)!;
-      const b = tips.filter((v) => v !== a).at(-1)!;
-      const base = ancestor(versions, a, b);
-      const [aName, bName] = [person(a.who), person(b.who)];
-      offer(merge(base?.text ?? '', a.text, b.text), {
-        heading: `${cap(bName)} and ${aName} both saved at the same time`,
-        mineLabel: label(a.who), theirsLabel: label(b.who), mineName: aName, theirsName: bName, parents: [a.id, b.id],
-      });
-    } catch {
-      // Can't be read yet (mid-sync): looked at again next time the script opens.
-    }
-  }
-
-  // Shows a combination of two saves, or saves it straight away when nothing clashes.
-  async function offer(
-    merged: Merged,
-    o: { heading: string; mineLabel: string; theirsLabel: string; mineName: string; theirsName: string; parents: string[]; copy?: string },
-  ) {
-    const note = `Combined ${o.theirsName === OUTSIDE ? 'two saves' : `${o.theirsName}’s and ${o.mineName === 'you' ? 'your' : `${o.mineName}’s`} changes`}`;
-    if (!merged.clashes.length) return combine(merged.text({}), o.parents, note, o.copy);
-    const parts = [
-      ...merged.onlyTheirs.map((n) => `row ${n} (only ${o.theirsName} changed it)`),
-      ...merged.onlyMine.map((n) => `row ${n} (only ${o.mineName} changed it)`),
-    ];
-    clash = {
-      merged, heading: o.heading, mineLabel: o.mineLabel, theirsLabel: o.theirsLabel, parents: o.parents, note, copy: o.copy,
-      combined: parts.length ? `Also combined: ${parts.join(', ')}.` : '',
-    };
-    status = 'conflict';
-  }
-
-  // Writes the combined script and its "merge" entry, with both saves as parents.
-  async function combine(text: string, parents: string[], note: string, copy?: string) {
-    if (!dir) return;
-    try {
-      await writeScriptFile(dir, text);
-      lastWritten = await sha256(text);
-      last = await addVersion(dir, { parents, who: name, kind: 'merge', text, note });
-      if (copy) await dir.removeEntry(copy).catch(() => {}); // deleted only once its merge is saved
-      pendingSince = 0;
-      clash = null;
-      load(text);
-      await here();
-    } catch {
-      notice = "The combined script couldn't be saved. If OneDrive is still syncing, wait a moment and try again.";
-    }
-  }
-
-  function resolve(picks: Record<string, Side>) {
-    if (clash) combine(clash.merged.text(picks), clash.parents, clash.note, clash.copy);
-  }
-
-  const person = (who: string) => (who === name ? 'you' : who);
-  const label = (who: string) => (who === name ? 'Yours' : `${who}’s`);
-  const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
-
-  // After someone else's change is shown: follow their newest version, if it has synced.
-  async function followHistory(text: string) {
-    if (!dir) return;
-    const newest = (await listVersions(dir).catch(() => [])).at(-1);
-    if (newest && newest.sha256 === (await sha256(text))) last = newest;
-  }
-
-  // A history entry for what was saved: at most every 5 minutes of editing, or now when `now` is set.
-  async function record(text: string, now: boolean) {
-    await started; // an edit made just after opening waits for History to start, or it gets no entry
-    if (!dir || !last) return;
-    if ((await sha256(text)) === last.sha256) return;
-    pendingSince ||= Date.now();
-    if (!now && Date.now() - pendingSince < ENTRY_EVERY) return;
-    last = await addVersion(dir, { parents: [last.id], who: name, kind: 'edit', text });
-    pendingSince = 0;
-  }
-
-  // Leaving the script (or opening History): save what is waiting and put it in History.
-  async function leave() {
-    await changingStatus;
-    await saveWaiting();
-    if (status === 'saved' && onDisk) await record(onDisk, true).catch(() => {});
-  }
 
   // The newest mode asked for: Review or History, shown only once what is waiting is saved, never replaces a mode
   // picked meanwhile (History then straight to Write stayed on History).
@@ -361,7 +213,7 @@
 
   async function showHistory() {
     const ask = ++asked;
-    await leave();
+    await file.leave();
     if (dir) notes = await listNotes(dir).catch(() => notes);
     if (ask === asked) mode = 'history';
   }
@@ -374,37 +226,9 @@
   }
 
   async function restore(version: Version) {
-    if (!dir) return;
-    try {
-      await leave();
-      await writeScriptFile(dir, version.text);
-      const when = new Date(version.when).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-      last = await addVersion(dir, {
-        parents: last ? [last.id] : [], who: name, kind: 'restore', text: version.text,
-        note: `Restored the version from ${when.replace(' AM', ' am').replace(' PM', ' pm')}`,
-      });
-      pendingSince = 0;
-      undo = null;
-      load(version.text);
-      switchMode('write');
-    } catch {
-      notice = "That version couldn't be restored. If OneDrive is still syncing, wait a moment and try again.";
-    }
-  }
-
-  // An official version: the script as it is now, named. Returns null if it couldn't be written.
-  async function publish(official: string): Promise<Version | null> {
-    if (!dir) return null;
-    try {
-      await leave();
-      const text = await readScript(dir);
-      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'official', text, note: official });
-      pendingSince = 0;
-      return last;
-    } catch {
-      notice = "The official version couldn't be published. If OneDrive is still syncing, wait a moment and try again.";
-      return null;
-    }
+    if (!(await file.restore(version))) return;
+    undo = null;
+    switchMode('write');
   }
 
   // Flags a row with a note (AP-9), or clears its flag (null).
@@ -492,119 +316,14 @@
       .catch(() => {});
   }
   $effect(readReview);
-  // A status change in progress: leaving waits for its History entry, or a quick switch of tab made a second entry
-  // ("Changed the status") beside it.
-  let changingStatus: Promise<void> = Promise.resolve();
   async function setStatus(to: 'draft' | 'in review' | 'approved', note: string, message = '') {
-    if (!dir || !script) return;
-    await leave();
-    await (changingStatus = changeStatus(dir, script, to, note, message));
-  }
-  async function changeStatus(dir: FileSystemDirectoryHandle, script: Script, to: string, note: string, message: string) {
-    script.front = setFrontValue(script.front, 'status', to);
-    await save();
-    if (status !== 'saved') return; // a clash or a failed save: shown already
-    try {
-      // A send for review is also the next official version, unless nothing changed since the newest one (RV-9).
-      const official = to === 'in review' && !sendVersion(await listVersions(dir), onDisk).still;
-      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'review', text: onDisk, note, message, official });
-      pendingSince = 0;
-      untrack(readReview); // the new entry: the review note, or the marks start again from here
-    } catch {
-      // History can't be written: the status itself is saved.
-    }
+    await file.setStatus(to, note, message);
   }
 
   async function showReview() {
     const ask = ++asked;
-    await leave();
+    await file.leave();
     if (ask === asked) mode = 'review';
-  }
-
-  function load(text: string) {
-    const parsed = parseScript(text);
-    // Ids are given now, not on save, so a row keeps the same id from its first save on.
-    const used = new Set(rows(parsed).map((row) => row.id));
-    for (const row of rows(parsed)) if (!row.id) used.add((row.id = newId(used)));
-    script = parsed;
-    onDisk = text;
-    status = 'saved';
-  }
-
-  function changed() {
-    if (status === 'conflict' || status === 'locked') return; // kept in the page, saved once that is settled
-    status = 'waiting';
-    clearTimeout(timer);
-    timer = setTimeout(save, SAVE_AFTER);
-  }
-
-  // The save being written, for saveWaiting.
-  let saving: Promise<void> = Promise.resolve();
-  function save(): Promise<void> {
-    return (saving = write());
-  }
-
-  // What is typed, on disk: a save already being written is waited for (without that, History opened mid-save got
-  // no entry for it, and Print or Send for review read the script before it), then what is still waiting is saved.
-  async function saveWaiting() {
-    await saving;
-    if (status === 'waiting') await save();
-  }
-
-  async function write() {
-    if (!dir || !script) return;
-    clearTimeout(timer);
-    status = 'saving';
-    try {
-      const now = await readScript(dir);
-      if (now !== onDisk) {
-        // Someone else saved while you were typing: combine the two, row by row.
-        const mine = writeScript(withAuthor($state.snapshot(script) as Script, name));
-        const newest = (await listVersions(dir)).at(-1);
-        const theirsSynced = newest && newest.sha256 === (await sha256(now)) && newest.id !== last?.id;
-        const who = editors[0] ?? (theirsSynced && newest.who !== name ? newest.who : 'Someone else');
-        await offer(merge(onDisk, mine, now), {
-          heading: `${who} and you both saved at the same time`, mineLabel: 'Yours', theirsLabel: label(who),
-          mineName: 'you', theirsName: who,
-          parents: [...(last ? [last.id] : []), ...(theirsSynced ? [newest.id] : [])],
-        });
-        return;
-      }
-      script.front = withAuthor($state.snapshot(script) as Script, name).front;
-      // An empty section isn't written; Write removes it from the page once the cursor leaves it (AP-22).
-      const kept = $state.snapshot(script) as Script;
-      kept.blocks = kept.blocks.filter((b) => b.type === 'row' || b.title.trim() || b.note);
-      const text = writeScript(kept);
-      if (text !== now) await writeScriptFile(dir, text);
-      onDisk = text;
-      lastWritten = await sha256(text);
-      await record(text, false).catch(() => {});
-      here();
-      // Edits typed while saving start another save.
-      if (status === 'saving') status = 'saved';
-    } catch {
-      // Retrying can't bring back a lost OK (the browser asks only from a click), so that waits for Allow editing.
-      if (!(await hasAccess(folder).catch(() => true))) return void (status = 'locked');
-      status = 'failed';
-      timer = setTimeout(save, SAVE_AFTER * 4);
-    }
-  }
-
-  // Chrome and Edge take back the OK to edit the folder after the tab has been in the background a while. Checked
-  // with the 5 s check and on coming back to the tab, so it shows before a save fails.
-  async function checkAccess(): Promise<boolean> {
-    if (status === 'locked') return false;
-    if (await hasAccess(folder).catch(() => true)) return true;
-    clearTimeout(timer);
-    status = 'locked';
-    return false;
-  }
-
-  // Allow editing (from a click): the browser asks, then what is in the page is saved.
-  async function allow() {
-    if (!(await askAccess(folder).catch(() => false))) return;
-    status = 'waiting';
-    await save();
   }
 
   async function checkFiles() {
@@ -637,23 +356,14 @@
     field?.focus({ preventScroll: true });
   }
 
-  // Someone else saved (OneDrive brought their change): with nothing of yours waiting, show it quietly.
+  // The 5 s check: missing files, takes, who else is here, comments, and someone else's save.
   async function checkOutside() {
-    if (!dir || document.hidden || !(await checkAccess())) return;
+    if (!file.dir || document.hidden || !(await file.checkAccess())) return;
     checkFiles();
-    if (!voice.recording) voice.load(dir);
-    editors = othersEditing(await readEditing(dir).catch(() => []), name);
-    notes = await listNotes(dir).catch(() => notes);
-    if (status !== 'saved') return;
-    try {
-      const now = await readScript(dir);
-      if (now !== onDisk && status === 'saved') {
-        load(now);
-        await followHistory(now);
-      }
-    } catch {
-      // Mid-sync: try again next time.
-    }
+    if (!voice.recording) voice.load(file.dir);
+    await file.readEditors();
+    notes = await listNotes(file.dir).catch(() => notes);
+    await file.lookOutside();
   }
 
   // A row or section was deleted in Write: kept a few seconds so it can be undone.
@@ -674,35 +384,20 @@
   // images and equations are in. The version is "v3" only while the script is still that official version.
   async function print(choices: PrintChoices) {
     if (!script || !dir || printing) return;
-    printing = { ...choices, version: await version() };
-  }
-
-  // Saves what is waiting, then names the version the script is: "v3" while it is still that official version, ''
-  // for a draft. Print and the exports carry it (EX-7).
-  async function version(): Promise<string> {
-    await saveWaiting();
-    const versions = dir ? await listVersions(dir).catch(() => []) : [];
-    const n = officialNumber(versions, onDisk);
-    return n ? `v${n}` : '';
-  }
-
-  // What Send for review will make (RV-9), for its panel: saves what is waiting, then the next version or "still v2".
-  async function nextVersion(): Promise<{ n: number; still: boolean }> {
-    await saveWaiting();
-    return sendVersion(dir ? await listVersions(dir).catch(() => []) : [], onDisk);
+    printing = { ...choices, version: await file.version() };
   }
 
   // Export (EX-9): saves what is waiting, then opens the export screen on that format, in place of the script.
   async function openExport(to: Format) {
     if (!script) return;
     player.stop();
-    exporting = { to, version: await version() };
+    exporting = { to, version: await file.version() };
   }
 
   // Copy for Teams (EX-10): saves what is waiting, then the script's facts as a short message (lib/share.ts).
   async function shareNow() {
     if (!script) throw new Error('No script');
-    const v = await version();
+    const v = await file.version();
     const newest = dir ? (await listVersions(dir).catch(() => [])).at(-1) : undefined;
     const who = newest && newest.who !== OUTSIDE ? newest.who : '';
     const voiced = script.blocks.filter((b) => b.type === 'row' && voice.takes[b.id]).length;
@@ -712,7 +407,7 @@
 
   // Leaving saves what is waiting. Only a failed save or a lost OK, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
-    leave();
+    file.leave();
     if (status === 'failed' || status === 'locked') event.preventDefault();
   }
 </script>
@@ -725,7 +420,7 @@
 {/if}
 
 {#if crediting && script}
-  <Credits root={folder} bind:script={script} me={name} onChange={changed} onClose={() => (crediting = false)} />
+  <Credits root={folder} bind:script={() => script!, (s) => (file.script = s)} me={name} onChange={changed} onClose={() => (crediting = false)} />
 {/if}
 
 {#if printing && script && dir}
@@ -751,10 +446,10 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
+  onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
 
 <div class="page">
 <main>
@@ -766,17 +461,17 @@
     </div>
   {:else if clash}
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
-      theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
+      theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={(picks) => file.resolve(picks)} />
   {:else if script && dir && mode === 'review'}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
     <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} visit={reviewedAt ? null : marks} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
-    <History {dir} {notes} onRestore={restore} onPublish={publish} onOpen={openComment} />
+    <History {dir} {notes} onRestore={restore} onPublish={(official) => file.publish(official)} onOpen={openComment} />
   {:else if script && dir}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
-    <Write bind:script bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
+    <Write bind:script={() => script!, (s) => (file.script = s)} bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
       talk={openThreads} {talking} onTalk={showComment} visit={marks} {came} />
   {/if}
 </main>
