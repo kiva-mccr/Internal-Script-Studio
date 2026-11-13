@@ -10,7 +10,9 @@ file per change, the newest counts) and a script's credits (a `credits:` line of
 ## Rules and pitfalls
 
 - Files are written once, never edited (OneDrive sync): a change or a removal is a new file. Names carry a random
-  part after the person's id, so two changes in the same second never share a name.
+  part after the person's id, so two changes in the same second never share a name. The newest is found by `when`
+  (milliseconds), never by file name: two changes in one second sorted by their random part (failed on CI: a new
+  person's usual role, saved just after their contact details, lost to them).
 - A credit keeps the person's name as well as their id, so the script and its exports read without the folder's list.
   There is no renaming yet, so the two can't drift.
 - The front matter line is JSON on one line (frontValue reads one line); a line that can't be read gives no credits.

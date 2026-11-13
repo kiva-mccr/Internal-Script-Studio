@@ -67,8 +67,11 @@ test('credits pick from the folder, someone new joins it, and contact details ar
 
 test('People on the script list: how to reach everyone, the scripts that credit them, and removing someone no script credits', async ({ page }) => {
   const credited = `---\ntitle: Trailer\ncredits: [{"id":"jo000001","name":"Jo","role":"Cut the trailer"}]\n---\n\n${row}`;
-  const lee = { ...jo, id: 'lee00001', name: 'Lee', role: 'Animator', email: 'lee@example.org', linkedin: 'linkedin.com/in/lee' };
-  await setUp(page, '', { ...FILES, 'Trailer/script.md': credited, [`${PEOPLE}/20261110T100001Z_lee00001_aaaaaaaa.json`]: JSON.stringify(lee) });
+  // Two changes to Lee in one second: the newer (by its time, not its file name) counts.
+  const lee = { ...jo, id: 'lee00001', name: 'Lee', role: 'Animator', email: 'lee@example.org', linkedin: 'linkedin.com/in/lee', when: '2026-11-10T10:00:01.500Z' };
+  const leeBefore = { ...lee, email: 'old@example.org', when: '2026-11-10T10:00:01.200Z' };
+  await setUp(page, '', { ...FILES, 'Trailer/script.md': credited, [`${PEOPLE}/20261110T100001Z_lee00001_00000000.json`]: JSON.stringify(lee),
+    [`${PEOPLE}/20261110T100001Z_lee00001_zzzzzzzz.json`]: JSON.stringify(leeBefore) });
   await page.getByRole('button', { name: 'People' }).click();
   const box = page.getByRole('dialog', { name: 'People' });
   await expect(box.locator('.name')).toHaveText([/Jo\s*On 1 script$/, /Lee\s*On 0 scripts/]);

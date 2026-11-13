@@ -17,15 +17,18 @@ export async function listPeople(root: FileSystemDirectoryHandle): Promise<Perso
   if (!folder) return [];
   const names: string[] = [];
   for await (const name of folder.keys()) if (name.endsWith('.json')) names.push(name);
-  const newest = new Map<string, Entry>();
-  for (const name of names.sort()) {
+  const entries: Entry[] = [];
+  for (const name of names) {
     try {
       const entry = JSON.parse(await (await (await folder.getFileHandle(name)).getFile()).text()) as Entry;
-      if (entry.v === 1 && entry.id && typeof entry.name === 'string') newest.set(entry.id, entry);
+      if (entry.v === 1 && entry.id && typeof entry.name === 'string' && typeof entry.when === 'string') entries.push(entry);
     } catch {
       // Skipped: OneDrive may still be bringing it in.
     }
   }
+  // By `when`, to the millisecond: file names keep only seconds, and two changes in one second sort by their random part.
+  const newest = new Map<string, Entry>();
+  for (const entry of entries.sort((a, b) => a.when.localeCompare(b.when))) newest.set(entry.id, entry);
   return [...newest.values()]
     .filter((e) => !e.removed)
     .map(({ id, name, role, email, linkedin }) => ({ id, name, role: role ?? '', email: email ?? '', linkedin: linkedin ?? '' }))
