@@ -14,4 +14,5 @@ preview get their kind and size on the chip.
   or it closes. A file that is missing or not really its kind shows no preview, only its chip. A picture that won't
   draw just hides (no kind on the chip); a video or sound that won't play falls back to the chip with kind and size.
 - A file that is not there (still syncing, or renamed) gives a plain message, not an error.
+- "From Sam's comment" (`came`, RV-12) works like "Copied from …".
 - "Copied from …" under a chip is only kept while the cell is shown; the script does not record where a file came from.

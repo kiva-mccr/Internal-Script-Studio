@@ -15,6 +15,7 @@
     active,
     recent = false,
     undoResolve = false,
+    use,
     onActivate,
     onAdd,
     onApply,
@@ -29,6 +30,9 @@
     active: boolean; // the one being read: its quote is marked darker
     recent?: boolean; // decided or resolved here just now: kept in place with Undo
     undoResolve?: boolean; // Resolve keeps it in place with Undo (Write, RV-13) instead of moving it to Resolved (Review)
+    // Write only (RV-12): "Use in script" on its files copies one into its row (number and Files lines); `from` is
+    // "Sam's comment" or "Ana's reply", shown under the new chip.
+    use?: { row: number; lines: string[]; add: (item: Attachment, from: string) => Promise<boolean> };
     onActivate: () => void;
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
@@ -48,6 +52,7 @@
   let editFiles = $state<File[]>([]); // and new ones
   let editMissing = $state('');
   const mine = (n: Note) => n.who === me && !t.resolved;
+  const using = (n: Note) => use && { row: use.row, lines: use.lines, add: (item: Attachment) => use.add(item, `${n.who}'s ${n.kind === 'reply' ? 'reply' : 'comment'}`) };
 
   function startEdit(n: Note) {
     editing = n.id;
@@ -128,7 +133,7 @@
     <p class="text">Replace “<span class="old">{t.comment.quote}</span>” with “<span class="new">{t.comment.replace}</span>”.</p>
   {:else}
     {#if t.comment.text}<p class="text">{t.comment.text}</p>{/if}
-    {#if t.comment.files?.length}<Attached {dir} files={t.comment.files} />{/if}
+    {#if t.comment.files?.length}<Attached {dir} files={t.comment.files} use={using(t.comment)} />{/if}
   {/if}
   {#each t.replies as r (r.id)}
     {#if r.deleted}
@@ -136,7 +141,7 @@
     {:else}
       <div class="reply">
         <div class="who"><strong>{r.who}</strong><span class="when">{@render time(r)}{#if mine(r) && editing !== r.id}<button class="link inline" onclick={() => startEdit(r)}>Edit</button><button class="link inline" onclick={() => remove(r)}>Delete</button>{/if}</span></div>
-        {#if editing === r.id}{@render editor(r, 'Edit reply')}{:else}{#if r.text}<p class="text">{r.text}</p>{/if}{#if r.files?.length}<Attached {dir} files={r.files} />{/if}{/if}
+        {#if editing === r.id}{@render editor(r, 'Edit reply')}{:else}{#if r.text}<p class="text">{r.text}</p>{/if}{#if r.files?.length}<Attached {dir} files={r.files} use={using(r)} />{/if}{/if}
       </div>
     {/if}
   {/each}

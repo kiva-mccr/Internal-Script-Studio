@@ -8,8 +8,10 @@
 
   // files: the row's Files lines. root and here: the picked folder and this script's folder name, for "From other
   // scripts…" (AS-1); row: the row's number. onChange: called with the new list. onNotice: a message for the page.
+  // came: a line just added from a comment's files (RV-12), and whose: "From Sam's comment" under its chip.
   let {
     files,
+    came = null,
     dir,
     root,
     here,
@@ -18,6 +20,7 @@
     onNotice,
   }: {
     files: string[];
+    came?: { line: string; from: string } | null;
     dir: FileSystemDirectoryHandle;
     root: FileSystemDirectoryHandle;
     here: string;
@@ -126,7 +129,8 @@
       {/if}
       <button class="remove" aria-label="Remove {ref.label}" onclick={() => onChange(files.filter((_, j) => j !== i))}>×</button>
     </span>
-    {#if copied?.line === line}<span class="copied">Copied from {copied.from}</span>{/if}
+    {#if copied?.line === line}<span class="copied">Copied from {copied.from}</span>
+    {:else if came?.line === line}<span class="copied">From {came.from}</span>{/if}
   {/each}
 
   {#if adding}

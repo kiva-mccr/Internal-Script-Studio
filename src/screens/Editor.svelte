@@ -5,7 +5,7 @@
   import { clock, speaking } from '../lib/readtime.svelte';
   import { askAccess, hasAccess, keep, recall } from '../lib/remember';
   import { takeLength, takesSpeed, VoiceOver } from '../lib/voice.svelte';
-  import { findScript, readScript, writeScriptFile } from '../lib/folder';
+  import { addAsset, assetFile, findScript, readScript, writeScriptFile } from '../lib/folder';
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
@@ -25,7 +25,7 @@
   import Write from './Write.svelte';
   import VisitBar from './VisitBar.svelte';
   import { sinceVisit, visitKey, type Marks, type Visit } from '../lib/visit';
-  import { addNote, flags, listNotes, threads, type Field, type Note } from '../lib/comments';
+  import { addNote, flags, listNotes, threads, type Attachment, type Field, type Note } from '../lib/comments';
 
   // review: opened from a shared link, so it starts on the Review tab (RV-10).
   let { folder, path, name, review = false }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean } =
@@ -414,6 +414,29 @@
     return true;
   }
 
+  // "Use in script" (RV-12, board 49): a file on a comment is copied from .studio/files/ into assets/ (a name already
+  // there gets " 2") and added under the row's files, saved as usual. `came` names where it came from, under its chip.
+  let came = $state<{ row: string; line: string; from: string } | null>(null);
+  async function useFile(row: string, item: Attachment, from: string): Promise<boolean> {
+    const block = script?.blocks.find((b) => b.type === 'row' && b.id === row);
+    if (!dir || !block || block.type !== 'row') return false;
+    const file = await assetFile(dir, item.path);
+    if (!file) {
+      notice = `${item.name} isn't here yet. If it was just added, OneDrive may still be syncing.`;
+      return false;
+    }
+    try {
+      const line = await addAsset(dir, new File([file], item.name, { type: file.type }));
+      block.files = [...block.files, line];
+      came = { row, line, from };
+      changed();
+      return true;
+    } catch {
+      notice = "The file couldn't be copied into the script's folder.";
+      return false;
+    }
+  }
+
   // Review status (RV-3): draft → in review → approved, or sent back to draft. Saved at once, with a History entry.
   const reviewStatus = $derived(script ? frontValue(script.front, 'status') || 'draft' : 'draft');
   // Read from History when Review opens, and again after a status change: the note sent with it for review
@@ -712,7 +735,7 @@
   {:else if script && dir}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
     <Write bind:script bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
-      talk={openThreads} {talking} onTalk={showComment} visit={marks} />
+      talk={openThreads} {talking} onTalk={showComment} visit={marks} {came} />
   {/if}
 </main>
 {#snippet visitBar(shown: Marks)}
@@ -724,7 +747,7 @@
 {/if}
 {#snippet comments()}
   {#if script && dir}
-    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} onAdd={note} onApply={apply} onShow={showRow} />
+    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />
   {/if}
 {/snippet}
 </div>

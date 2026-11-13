@@ -163,3 +163,42 @@ test('Send back to writer takes a note, kept in History and shown at the top of 
   await expect(newest).toContainText('Sent back to writer');
   await expect(newest).toContainText('Tighten row 3.');
 });
+
+test('Use in script copies a file on a comment into its row, only in Write (RV-12)', async ({ page }) => {
+  // Row 1 already uses an older notes.pdf (another size), so the attached one is not "in row" and its copy gets " 2".
+  const script = draft.replace('- assets/leaf-closeup.jpg', '- assets/leaf-closeup.jpg\n- assets/notes.pdf');
+  const files = [{ name: 'leaf-real.png', path: '.studio/files/ana00003/leaf-real.png', size: 4 }, { name: 'notes.pdf', path: '.studio/files/ana00003/notes.pdf', size: 10 }];
+  const ana = note({ id: 'ana00003', kind: 'comment', who: 'Ana', when: '2026-11-10T09:03:00Z', row: id(1), field: 'on_screen', quote: 'sunlit leaf', text: 'A real leaf, and my notes.' });
+  const withFiles: [string, string] = [ana[0], JSON.stringify({ ...JSON.parse(ana[1]), files })];
+  await open(page, [withFiles, ['Episode 03/.studio/files/ana00003/leaf-real.png', 'leaf'], ['Episode 03/.studio/files/ana00003/notes.pdf', 'new notes!'],
+    ['Episode 03/assets/notes.pdf', 'old notes']], script);
+  await page.getByRole('button', { name: 'Open comments, 1 open' }).click();
+  const card = page.getByRole('complementary', { name: 'Comments' }).getByRole('article', { name: 'Comment by Ana' });
+
+  await card.getByRole('button', { name: 'Use in script: leaf-real.png' }).click();
+  await expect(card).toContainText('In row 1');
+  const cell = page.locator('[data-row]').first();
+  await expect(cell.getByRole('button', { name: 'Remove leaf-real.png' })).toBeAttached();
+  await expect(cell).toContainText("From Ana's comment");
+  await card.getByRole('button', { name: 'Use in script: notes.pdf' }).click();
+  await expect(card.getByRole('button', { name: /Use in script/ })).toHaveCount(0);
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('- assets/leaf-closeup.jpg\n- assets/notes.pdf\n- assets/leaf-real.png\n- assets/notes 2.pdf\n');
+  expect(await readFile(page, 'Episode 03/assets/leaf-real.png')).toBe('leaf');
+  expect(await readFile(page, 'Episode 03/assets/notes 2.pdf')).toBe('new notes!');
+  expect(await readFile(page, 'Episode 03/assets/notes.pdf')).toBe('old notes');
+  // The file on the comment stays where it was.
+  expect(await listFiles(page, 'Episode 03/.studio/files/ana00003')).toEqual(['leaf-real.png', 'notes.pdf']);
+
+  // After a reload both still show "In row 1"; taking one off the row brings its button back.
+  await page.reload();
+  await expect(page.getByRole('complementary', { name: 'Comments' }).getByRole('article', { name: 'Comment by Ana' })).toContainText('In row 1');
+  await expect(card.getByRole('button', { name: /Use in script/ })).toHaveCount(0);
+  await cell.getByRole('button', { name: 'Remove leaf-real.png' }).click();
+  await expect(card.getByRole('button', { name: 'Use in script: leaf-real.png' })).toBeVisible();
+
+  // Review shows the files without the button.
+  await page.getByRole('button', { name: /^Review/ }).click();
+  const inReview = page.getByRole('article', { name: 'Comment by Ana' });
+  await expect(inReview.getByTitle('Open notes.pdf')).toBeVisible();
+  await expect(inReview.getByRole('button', { name: /Use in script/ })).toHaveCount(0);
+});

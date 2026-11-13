@@ -15,4 +15,5 @@ the same card.
 - Carries `data-id` (the comment's id): Approve's list (RV-5) and the Comments tab find a card by it.
 - Reply and edit boxes are each card's own, so two cards can have a box open at once.
 - Edit and Delete show only on `me`'s own while open. While its own edit box is open its other actions are hidden.
+- `use` (Write only, RV-12) passes "Use in script" to its files and its replies' files, naming who it came from.
 - A click anywhere on it calls `onActivate` (marks it, and in Write goes to its row), buttons included.
