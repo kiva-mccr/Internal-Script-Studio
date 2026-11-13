@@ -490,6 +490,10 @@ and suggestions, keeps every version, and exports them for production.
   the reviewer has to look at), and Write counts the comments and suggestions made between Send for review and Send
   back to writer (what the writer has to deal with). A count clears once you open its tab, then counts only what is
   new since (remembered per browser, like RV-15). Placed by the user after the current queue. Mock-up first.
+- [ ] **RV-22** A Comment button on selected words (asked by the user): in Review, selecting words today opens the
+  comment box straight away (so a double-click on a word opens it too). Instead, selecting words shows a small Comment
+  button beside them, and the box opens only when it is clicked, so selecting to read or copy doesn't start a
+  comment. Placed by the user after the current queue. Mock-up first.
 - [ ] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
   dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
   how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
