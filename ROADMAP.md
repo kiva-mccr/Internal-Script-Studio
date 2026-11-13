@@ -444,6 +444,14 @@ and suggestions, keeps every version, and exports them for production.
   the tab opens by itself once per send back, only for a send back by someone else. Rows with something open grow a
   little so the row tools clear the bubble. Quotes are marked on the formatted text, so not while that very box is
   being typed in. A click on a quote's words in a field opens its card.
+- [x] **RV-17** Clicking a row's comment bubble (or a quote) again, while that comment is still the selected one,
+  scrolls the Comments tab back to its card (asked by the user, 2026-11-13).
+- [x] **RV-18** In Write's Comments tab a resolved comment, or an accepted or rejected suggestion, stays in place with
+  Undo for 5 seconds, then moves into Resolved by itself (the user, 2026-11-13: "I like the undo", replacing RV-13's
+  "until the panel or tab is left"). Review is unchanged: Resolve there still moves it at once.
+- [x] **RV-20** The selected comment stands out (the user: the pale blue line was hard to see): its card gets a solid
+  blue outline with a soft ring and tint, and flashes when you jump to it; its row in Write gets a darker tint and a
+  blue bar on the left. Before and after: project files, comment-highlight/.
 - [x] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
   only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
   Built as mock-up 43 (the user agreed, with every suggested choice): an All · For me switch above the list (the

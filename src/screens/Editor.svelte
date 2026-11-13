@@ -79,9 +79,11 @@
   let sideOpen = $state(recall('planning-open') === '1');
   let sideTab = $state<'planning' | 'comments'>(recall('side-tab') === 'comments' ? 'comments' : 'planning');
   let talking = $state(''); // the comment being read in Write's Comments tab
+  let goTo = $state(0); // bumped on every bubble or quote click, so the same card is scrolled to again (RV-17)
   // A bubble or a quote in Write: the panel opens on Comments at that card.
   function showComment(id: string) {
     talking = id;
+    goTo++;
     sideTab = 'comments';
     sideOpen = true;
   }
@@ -484,7 +486,7 @@
 {/if}
 {#snippet comments()}
   {#if script && dir}
-    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />
+    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} {goTo} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />
   {/if}
 {/snippet}
 </div>
