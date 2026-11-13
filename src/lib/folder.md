@@ -10,4 +10,5 @@ and the files in its `assets/`.
 
 - Names are checked case-blind (Windows and OneDrive treat `Trailer` and `trailer` as the same folder) and lose
   the characters OneDrive refuses (`safeName`).
+- `isCopyOf` tells whether a Files line is a copy `addAsset` made of a file of that name (RV-12's "In row").
 - A file picked for a row is copied into `assets/`, never moved; a name already there gets " 2", " 3" …

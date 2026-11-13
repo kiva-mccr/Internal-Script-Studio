@@ -90,6 +90,17 @@ export async function addAsset(dir: FileSystemDirectoryHandle, file: File): Prom
   return `assets/${name}`;
 }
 
+// Whether a Files line is a copy of a file named `name` made by addAsset: assets/ plus its safe name, or that name
+// with " 2", " 3" … (RV-12: "Use in script" shows "In row" while such a line is in the row).
+export function isCopyOf(line: string, name: string): boolean {
+  const dot = name.lastIndexOf('.');
+  const stem = safeName(dot > 0 ? name.slice(0, dot) : name) || 'file';
+  const ext = dot > 0 ? name.slice(dot) : '';
+  if (!line.startsWith('assets/') || !line.endsWith(ext)) return false;
+  const rest = line.slice(7, line.length - ext.length);
+  return rest === stem || (rest.startsWith(stem + ' ') && /^[1-9]\d*$/.test(rest.slice(stem.length + 1)));
+}
+
 // A file inside the script's folder, by its path in the Files column. Null if it is not there.
 export async function assetFile(dir: FileSystemDirectoryHandle, path: string): Promise<File | null> {
   const parts = path.split('/').filter((p) => p && p !== '.' && p !== '..');

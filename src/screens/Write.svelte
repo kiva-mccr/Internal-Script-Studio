@@ -26,10 +26,12 @@
   // read in the Comments tab; onTalk opens the tab at one (from a bubble, or a click on its quote).
   // finding: the find and replace bar is open (AP-32; Ctrl+F, or ⋯ in the top bar).
   // visit: rows others changed since this person last looked (RV-15), marked; the rows stay editable as ever.
-  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, visit, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
+  // came: a file just added to a row from a comment (RV-12), named under its chip.
+  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, visit, came = null, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
     script: Script; finding: boolean; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
     talk: Thread[]; talking: string; onTalk: (id: string) => void; visit: Marks | null;
+    came?: { row: string; line: string; from: string } | null;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
@@ -472,7 +474,7 @@
           </div>
         {/if}
         {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
-          <FilesCell files={block.files} {dir} {root} here={folderName} row={n ?? 0} {onNotice}
+          <FilesCell files={block.files} {dir} {root} here={folderName} row={n ?? 0} {onNotice} came={came?.row === block.id ? came : null}
             onChange={(files) => { block.files = files; onChange(); }} />
         {/if}
         {#if flag}

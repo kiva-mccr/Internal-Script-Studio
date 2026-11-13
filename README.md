@@ -43,7 +43,8 @@ Status: a first working version. What it does today:
   comments while rewriting: reply, resolve (Undo while the panel is open), and accept or reject suggestions. Rows
   with something open show a small blue speech bubble with the count under the row number, and the quoted words are
   marked yellow; click either to open that card, and click a card to go to its row. New comments are still started
-  in Review. After a send back, Write opens on Comments with the reviewer's note at the top.
+  in Review. After a send back, Write opens on Comments with the reviewer's note at the top. A file on a comment
+  can go straight into the script: "Use in script" under it copies it into assets/ and adds it to that comment's row.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small

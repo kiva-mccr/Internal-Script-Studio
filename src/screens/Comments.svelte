@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { quoteGone, threads, type Field, type Note } from '../lib/comments';
+  import { quoteGone, threads, type Attachment, type Field, type Note } from '../lib/comments';
   import type { Version } from '../lib/history';
   import type { Row, Script } from '../lib/script';
   import { ago } from '../lib/when';
@@ -18,6 +18,7 @@
     onAdd,
     onApply,
     onShow,
+    onUse,
   }: {
     dir: FileSystemDirectoryHandle;
     script: Script;
@@ -28,6 +29,7 @@
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
     onShow: (row: string) => void;
+    onUse: (row: string, item: Attachment, from: string) => Promise<boolean>; // "Use in script" (RV-12)
   } = $props();
 
   const LABELS: Record<Field, string> = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
@@ -43,6 +45,13 @@
   const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
   const rows = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
   const numbers = $derived(new Map(rows.map((row, i) => [row.id, i + 1])));
+
+  // "Use in script" (RV-12) on an open card's files, into its row; none for a deleted row.
+  function use(c: Note) {
+    const row = rows.find((r) => r.id === c.row);
+    if (!row) return undefined;
+    return { row: numbers.get(row.id)!, lines: row.files, add: (item: Attachment, from: string) => onUse(row.id, item, from) };
+  }
 
   function where(c: Note) {
     const n = numbers.get(c.row ?? '');
@@ -67,7 +76,7 @@
   {/if}
   {#each shown as t (t.comment.id)}
     <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
-      recent={recent.includes(t.comment.id)} undoResolve onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
+      recent={recent.includes(t.comment.id)} undoResolve use={t.resolved ? undefined : use(t.comment)} onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
       {onAdd} {onApply} onDecided={(id) => (recent = [...recent, id])}
       onGone={(id, deleted) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id))} />
   {:else}

@@ -412,8 +412,12 @@ and suggestions, keeps every version, and exports them for production.
   a comment on its row (no time stamp); recording and the joined WAV stay in Write. Built so: the take line is one
   component for both tabs (`Take.svelte`); Play keeps going when switching between Write and Review.
 
-- [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
-  "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
+- [x] **RV-12** Use an attached file in the script (suggested while drawing RV-11; agreed on board 49 with the
+  user's two changes: every attached file, not only images, and only in Write). In Write's Comments tab, each file on
+  an open comment or reply has "Use in script": it is copied from .studio/files/ into assets/ (a name already there
+  gets " 2"; nothing is overwritten) and added under that row's files, saved as any edit. The button then reads
+  "In row N" for everyone (a line there with the copy's name and the same size); taking it off the row brings the
+  button back. "From Sam's comment" shows under the new chip while the page is open. Review shows the files only.
 - [x] **RV-13** Review comments in Write (asked by the user: writers had no way to work through comments while
   rewriting). The user picked idea A of three on board 37: the side panel gets two tabs, Planning and Comments; in
   Write the writer replies, resolves and accepts or rejects suggestions beside the text. Rows with something open get
