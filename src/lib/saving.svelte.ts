@@ -275,8 +275,7 @@ export class Saving {
   async leave() {
     await this.#changingStatus;
     await this.saveWaiting();
-    // Under load, typing can still be marked as waiting once that save is done (seen as a missing History entry in
-    // the "same second" test): saved again, at most twice more.
+    // Typing that came in while that save was written (a slow folder, the person already back in Write) goes in too.
     for (let i = 0; i < 2 && this.status === 'waiting'; i++) await this.saveWaiting();
     if (this.status !== 'saved') return;
     // In line with saves and the 5 s check: two History entries worked out at once could both be made.
@@ -439,9 +438,9 @@ export class Saving {
       }
       this.problem = '';
       this.#backup();
+      await this.#keep(); // before Saved shows, so on the keeper's computer Saved means script.md too
       // Edits typed while saving start another save.
       if (this.status === 'saving') this.status = 'saved';
-      await this.#keep();
     } catch (e) {
       // Retrying can't bring back a lost OK (the browser asks only from a click), so that waits for Allow editing.
       if (!(await hasAccess(this.folder).catch(() => true))) return void (this.status = 'locked');
