@@ -48,7 +48,7 @@ Status: a first working version. What it does today:
   saves between them folded away until you open them.
 - **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
-  Voice-over; **the ⋯ menu** holds Teleprompter and Settings.
+  Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter and Settings.
 - **Export screen:** each export opens a screen in place of the script, with the formats on the left, a preview of
   the result in the middle (it follows the settings as you change them) and the settings on the right, with Print…
   or Save. Settings are remembered on this computer. Back to the script (or Esc) returns.
@@ -93,6 +93,12 @@ Status: a first working version. What it does today:
   bar and "Changed" or "New"; a removed row stays as one struck-through grey line), so a reviewer rereads only those.
   The bar above the script says how many; "Show the edits" puts the old text struck through above the new, and "Only
   changed rows" folds the rest to one line. Untick "What's changed" to read without marks (remembered on your computer).
+- **Find and replace:** Ctrl+F in Write (or ⋯ › Find and replace) opens a bar above the script. It finds in section
+  titles, Dialogue, On screen and the notes and link names in Images & files, never in file names or links, and marks
+  every match (the one you're on darker). Enter and Shift+Enter step through; Match case and Whole words narrow it.
+  Replace changes the match you're on and goes to the next; Replace all changes every one, with Undo at the bottom. A
+  replacement takes the capitals of the word it replaces (Glucose becomes Sugar). Esc closes the bar; Ctrl+F from
+  inside it gives the browser's own find.
 - **Flags:** flag a row to come back to it (the flag under its number, shown when you point at the row), with an
   optional note such as "Needs a source". Step through flagged rows with ‹ › above the table and Clear each one.
   Review shows them, the list counts them ("2 flagged"), and they are listed before Approve. Flags never change the

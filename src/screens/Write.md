@@ -60,3 +60,6 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   formatted text (`.shown`), so not while that box is focused; the effect reruns when those rows' text changes
   (`quoted`). A click in Dialogue or On screen with the cursor in a quote's words (found in the raw text, so not
   across marks) opens its card (`onTalk`). The row of the card being read is tinted (`.talking`).
+- Find and replace (AP-32): `Find.svelte` sits above the table in a sticky wrapper; the column headings stick below
+  it (`--find-h`, its height). Ctrl+F is caught on the window (`findKey`): it opens the bar, or comes back to it, but
+  from inside the bar it is left to the browser. ⋯ › Find and replace opens it through the Editor (`finding`).

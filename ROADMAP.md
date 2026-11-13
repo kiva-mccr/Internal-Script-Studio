@@ -424,8 +424,15 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
   only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
   Mock-up first.
-- [ ] **AP-32** Find and replace in a script (suggested, the user's second pick): search all three columns, step
-  through the matches, replace one or all (for renaming a term or a person across an episode). Mock-up first.
+- [x] **AP-32** Find and replace in a script (suggested, the user's second pick): search all three columns, step
+  through the matches, replace one or all (for renaming a term or a person across an episode). Mock-up: board 44,
+  agreed as drawn ("love it") with its six choices: Ctrl+F in Write (also ⋯) opens a bar under the top
+  bar, Esc closes, Ctrl+F from inside the bar gives the browser's own; not in Review. It looks in section titles,
+  Dialogue, On screen and the words of Files lines (notes, link names), never file names or links. Ignores capitals
+  unless Match case, parts of words unless Whole words; matches the text as it reads, across bold in a word; a
+  replacement takes the capitals it replaces. Enter / Shift+Enter step; Replace one moves on, Replace all has the Undo
+  bar. An ordinary edit (saves on its own, no special History entry). Left out: every script at once, wildcards.
+  Built: `lib/find.ts` and `Find.svelte`; equations are not searched (they show as maths).
 - [ ] **RV-15** What changed since you last looked (suggested, the user's third pick): on opening a script, rows
   others edited since your last visit get a small mark, with a line such as "3 changes since Tuesday" to step through
   them. Mock-up first.
