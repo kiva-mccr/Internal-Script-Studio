@@ -60,6 +60,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
 - e2e tests run as "Sam": use other names for other people's versions and editing files.
+- A file being written shows in a folder listing as "name.crswap" until it closes: `listFiles` in tests skips them.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.
