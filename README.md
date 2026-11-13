@@ -52,6 +52,8 @@ Status: a first working version. What it does today:
   review", unless nothing has changed since the newest (then it stays, say, v2, and no copy is made). Comments
   show in History too: under the change they led to, so it is clear why a line changed, or at the bottom of the
   version they were made on if nothing has changed for them yet (with "Open in Review" while still open).
+  A long History lists the newest 50 first; "Show 50 older" loads more, and after that older ones load as you
+  scroll. Each History file is read once and remembered by the browser, so big histories stay quick.
 - **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
   Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter, Credits and Settings.

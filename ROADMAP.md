@@ -503,14 +503,15 @@ and suggestions, keeps every version, and exports them for production.
   GitHub, hover shows its title and when it went live; set at build time (docs-only merges don't rebuild); "dev"
   when run locally. Built so: deploy.yml sets LIVE_BUILD and vite.config.ts reads the merge commit's number and title.
 
-- [ ] **HI-3** History that holds up when it gets huge (asked by the user, 2026-11-13; the user picked 1, 2 and
+- [x] **HI-3** History that holds up when it gets huge (asked by the user, 2026-11-13; the user picked 1, 2 and
   Load more of four ideas): (1) the Editor reads History once when a script opens and then only new files, instead
   of about 10 times; (2) the browser remembers what it has read (History files never change), so a later visit reads
   only new files; (3) History shows the newest 50 with "Show 50 older" under them; after the first click, older ones load
   by themselves as you scroll near the end (the user's ask). A History of 50 or fewer has no button. No change to `.studio/`.
   Left for later, if a new computer is still slow on real OneDrive: one small index file per 100 versions
   ("chapters"). Not wanted: storing changes instead of whole copies. Measure on a made-up 2,000-version script
-  before and after. Agreed on board 52 ("looks good", plus loading as you scroll). Queued after the flaky tests and the screen-file split.
+  before and after. Agreed on board 52 ("looks good", plus loading as you scroll). Built so: `lib/versioncache.ts` keeps each
+  read version in memory and IndexedDB (keyed by name, size and time), so every `listVersions` call reads only new files.
 
 ## Last (the user's order: these wait until everything above is done)
 

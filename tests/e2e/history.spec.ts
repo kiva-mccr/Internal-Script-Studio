@@ -267,3 +267,41 @@ test('a change shows the comments that led to it, and a version the ones nothing
   await rest.getByRole('button', { name: 'Open in Review' }).click();
   await expect(page.locator('article[data-id="open0001"]')).toHaveClass(/active/);
 });
+
+test('a long History shows the newest 50, then older ones as you scroll, and is remembered (HI-3)', async ({ page }) => {
+  const files: Record<string, string> = { [SCRIPT]: example };
+  const sha256 = createHash('sha256').update(example).digest('hex');
+  for (let i = 0; i < 120; i++) {
+    const id = `v${String(i).padStart(7, '0')}`;
+    const when = new Date(Date.UTC(2026, 10, 1) + i * 60_000).toISOString().replace(/\.\d+Z$/, 'Z');
+    const parents = i ? [`v${String(i - 1).padStart(7, '0')}`] : [];
+    files[`${VERSIONS}/${when.replace(/[-:]/g, '')}_${id}.json`] = JSON.stringify({ v: 1, id, parents, who: 'Jo', when, kind: i ? 'edit' : 'restart', note: '', sha256, text: example });
+  }
+  await setUp(page, '#/Episode%2003', files);
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(versions(page)).toHaveCount(50);
+  await expect(page.getByText('Showing the newest 50 of 120 versions.')).toBeVisible();
+  await page.getByRole('button', { name: 'Show 50 older' }).click();
+  await expect(page.getByRole('button', { name: /older$/ })).toHaveCount(0);
+  await expect(page.getByText(/Older ones load as you scroll\./)).toBeVisible();
+  await versions(page).nth(99).scrollIntoViewIfNeeded();
+  await expect(versions(page)).toHaveCount(120);
+  await expect(versions(page).last()).toContainText('History starts here');
+  await expect(page.getByText(/Showing the newest/)).toHaveCount(0);
+  // Kept in this browser, so the next visit reads only new files.
+  const kept = await page.evaluate(() => new Promise<number>((resolve) => {
+    const open = indexedDB.open('script-studio-history');
+    open.onsuccess = () => {
+      const count = open.result.transaction('versions').objectStore('versions').count();
+      count.onsuccess = () => resolve(count.result);
+    };
+  }));
+  expect(kept).toBe(120);
+});
+
+test('a short History has no Show older', async ({ page }) => {
+  await openExample(page);
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(versions(page)).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /older$/ })).toHaveCount(0);
+});
