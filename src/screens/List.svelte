@@ -4,6 +4,9 @@
   import { onMount } from 'svelte';
   import { countMissing } from '../lib/assets';
   import { flags, listNotes } from '../lib/comments';
+  import { forMe, waiting, type ForMe } from '../lib/forme';
+  import { listVersions } from '../lib/history';
+  import { keep, recall } from '../lib/remember';
   import FlagIcon from './FlagIcon.svelte';
   import { createScript, findScript, listScripts, readScript, type ScriptInfo } from '../lib/folder';
   import { plan } from '../lib/play.svelte';
@@ -24,6 +27,11 @@
   let addError = $state('');
   let missing = $state<Record<string, number>>({}); // files missing from each script's folder (EX-6), by path
   let flagCount = $state<Record<string, number>>({}); // flagged rows in each script (AP-9), by path
+  let mine = $state<Record<string, ForMe>>({}); // what waits for you in each script (RV-14), by path
+  let onlyMine = $state(recall('list-for-me') === '1'); // the All · For me switch, kept in this browser
+  const show = (forMeOnly: boolean) => keep('list-for-me', (onlyMine = forMeOnly) ? '1' : '');
+  let mineCount = $derived(scripts?.filter((s) => waiting(mine[s.path.join('/')])).length ?? 0);
+  let shown = $derived(onlyMine ? (scripts ?? []).filter((s) => waiting(mine[s.path.join('/')])) : (scripts ?? []));
   // Each script and its takes, for its length (AP-12), by path. The length itself follows the speaking speed.
   let read = $state.raw<Record<string, { script: Script; takes: Record<string, Take> }>>({});
 
@@ -53,6 +61,7 @@
   async function countAll(list: ScriptInfo[]) {
     const next: Record<string, number> = {};
     const flaggedNow: Record<string, number> = {};
+    const mineNow: Record<string, ForMe> = {};
     const scripts: typeof read = {};
     for (const info of list) {
       try {
@@ -62,13 +71,18 @@
         const key = info.path.join('/');
         scripts[key] = { script, takes: await readTakes(dir) };
         next[key] = await countMissing(dir, script);
-        flaggedNow[key] = flags(await listNotes(dir), rows(script).map((row) => row.id)).size;
+        const notes = await listNotes(dir);
+        flaggedNow[key] = flags(notes, rows(script).map((row) => row.id)).size;
+        // History only matters for a review or a send back, so an approved script's isn't read.
+        const versions = info.status === 'approved' ? [] : await listVersions(dir);
+        mineNow[key] = forMe(name, info.status, versions, notes);
       } catch {
         // Mid-sync: counted next time.
       }
     }
     missing = next;
     flagCount = flaggedNow;
+    mine = mineNow;
     read = scripts;
   }
 
@@ -127,13 +141,24 @@
       {/if}
     </div>
   {:else if scripts}
+    <div class="switch" role="group" aria-label="Show">
+      <button type="button" aria-pressed={!onlyMine} onclick={() => show(false)}>All <span class="count">{scripts.length}</span></button>
+      <button type="button" aria-pressed={onlyMine} onclick={() => show(true)}>For me{#if mineCount}<span class="badge">{mineCount}</span>{/if}</button>
+    </div>
+    {#if onlyMine && shown.length === 0}
+      <div class="empty nothing">
+        <h1>Nothing waiting for you</h1>
+        <p>No scripts to review and no unanswered replies. <button type="button" class="link" onclick={() => show(false)}>Show all {scripts.length}</button></p>
+      </div>
+    {:else}
     <div class="scroll">
       <div class="table">
         <div class="head"><span>Script</span><span>Status</span><span>Length</span><span>Last edited</span></div>
-        {#each scripts as script (script.path.join('/'))}
+        {#each shown as script (script.path.join('/'))}
           {@const long = length(script.path)}
+          {@const me = mine[script.path.join('/')]}
           <a class="row" href={routeHash(script.path)}>
-            <span class="title-cell"><span class="title">{script.title}</span>{#if flagCount[script.path.join('/')]}<span class="flagged"><FlagIcon size={12} />{flagCount[script.path.join('/')]} flagged</span>{/if}{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}</span>
+            <span class="title-cell"><span class="title">{script.title}</span>{#if flagCount[script.path.join('/')]}<span class="flagged"><FlagIcon size={12} />{flagCount[script.path.join('/')]} flagged</span>{/if}{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}{#if me?.review}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Your review</span>{/if}{#if me?.replies}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L3 21l2-6.2A8 8 0 1 1 21 12z"></path></svg>{me.replies === 1 ? '1 reply' : `${me.replies} replies`}</span>{/if}{#if me?.back}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>Sent back to you</span>{/if}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
             <span class="length" title={long ? (long.recorded ? 'Recorded voice-over, every row' : `Read time at ${speaking.wpm} words a minute`) : undefined}>
               {long?.text ?? ''}{#if long?.recorded}<svg role="img" aria-label="recorded" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>{/if}
@@ -143,6 +168,7 @@
         {/each}
       </div>
     </div>
+    {/if}
   {/if}
 </main>
 
@@ -158,7 +184,15 @@
   .row { align-items: center; min-height: 56px; border-bottom: 1px solid #f0f0f0; color: var(--ink); text-decoration: none; }
   .row:hover { background: #fafafa; }
   .row:hover .title { color: var(--accent); }
-  .title-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .title-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; padding: 8px 0; }
+  .mine { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; background: #eef2fb; color: #1e46ae; font-size: 12px; font-weight: 500; }
+  .switch { display: inline-flex; gap: 2px; margin-bottom: 16px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
+  .switch button { min-height: 38px; padding: 0 16px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .switch button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+  .count { font-weight: 400; color: var(--muted); }
+  .badge { display: inline-block; min-width: 18px; margin-left: 6px; padding: 1px 6px; box-sizing: border-box; border-radius: 999px; background: var(--accent); color: #fff; font-size: 12px; text-align: center; }
+  .nothing { padding-top: 48px; }
+  .nothing .link { font-size: inherit; }
   .flagged { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #fff7ed; color: var(--flag); font-size: 12px; font-weight: 500; }
   .missing { flex: none; padding: 2px 8px; border-radius: 999px; background: #fdf0ef; color: var(--danger); font-size: 12px; font-weight: 500; }
   .title { font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

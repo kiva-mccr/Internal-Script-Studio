@@ -6,7 +6,7 @@ rows (AP-9) are kept here too (`flag`, `unflag`; `flags()` says which rows are f
 
 - `fieldText` is what a cell shows (files by their names); `quoteGone` says a quote is no longer in its field
   ("on text that has since changed"), through `plain` (needs the page, so no unit test).
-- **Used by:** `screens/Editor.svelte`, `screens/Review.svelte`, `screens/Comments.svelte`, `screens/CommentCard.svelte`. **Tests:** `tests/unit/comments.test.ts`,
+- **Used by:** `screens/Editor.svelte`, `screens/Review.svelte`, `screens/Comments.svelte`, `screens/CommentCard.svelte`, `lib/forme.ts`. **Tests:** `tests/unit/comments.test.ts`,
   `tests/e2e/review.spec.ts`.
 
 ## Rules and pitfalls

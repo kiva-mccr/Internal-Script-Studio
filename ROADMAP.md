@@ -438,9 +438,13 @@ and suggestions, keeps every version, and exports them for production.
   the tab opens by itself once per send back, only for a send back by someone else. Rows with something open grow a
   little so the row tools clear the bubble. Quotes are marked on the formatted text, so not while that very box is
   being typed in. A click on a quote's words in a field opens its card.
-- [ ] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
+- [x] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
   only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
-  Mock-up first.
+  Built as mock-up 43 (the user agreed, with every suggested choice): an All · For me switch above the list (the
+  count in a blue badge; remembered in this browser, All at first) and blue labels on the rows in both views: "Your
+  review" (In review and someone else sent it; no reviewers are assigned), "N replies" (open comments you wrote in
+  whose newest word is someone else's) and "Sent back to you" (a send of yours sent back). Worked out from History
+  and the comment files, nothing stored per person. Nothing for you: "Nothing waiting for you" and Show all.
 - [x] **AP-32** Find and replace in a script (suggested, the user's second pick): search all three columns, step
   through the matches, replace one or all (for renaming a term or a person across an episode). Mock-up: board 44,
   agreed as drawn ("love it") with its six choices: Ctrl+F in Write (also ⋯) opens a bar under the top

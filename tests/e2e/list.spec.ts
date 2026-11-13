@@ -52,3 +52,47 @@ test('an empty name is refused in the page', async ({ page }) => {
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page.getByRole('alert')).toHaveText('Type a name for the script.');
 });
+
+// RV-14: what waits for you, from History and comment files written as other people would.
+const json = (o: object) => JSON.stringify({ v: 1, ...o });
+const version = (id: string, who: string, note: string, when: string) =>
+  json({ id, parents: [], who, when, kind: 'review', note, sha256: '', text: '' });
+const comment = (id: string, who: string, kind: string, when: string, about?: string) =>
+  json({ id, who, kind, when, text: 'Hi', row: 'r1', field: 'dialogue', quote: '', ...(about ? { about } : {}) });
+
+test('For me shows only the scripts waiting for you, with labels saying why', async ({ page }) => {
+  await setUp(page, '', {
+    'Ep 03/script.md': '---\ntitle: Ep 03\nstatus: in review\n---\n',
+    'Ep 03/.studio/versions/20261109T140000Z_a.json': version('a', 'Ana', 'Sent for review', '2026-11-09T14:00:00Z'),
+    'Ep 03/.studio/comments/20261109T141000Z_c.json': comment('c', 'Sam', 'comment', '2026-11-09T14:10:00.000Z'),
+    'Ep 03/.studio/comments/20261109T142000Z_d.json': comment('d', 'Ana', 'reply', '2026-11-09T14:20:00.000Z', 'c'),
+    'Ep 04/script.md': '---\ntitle: Ep 04\nstatus: draft\n---\n',
+    'Ep 04/.studio/versions/20261109T140000Z_b.json': version('b', 'Sam', 'Sent for review', '2026-11-09T14:00:00Z'),
+    'Ep 04/.studio/versions/20261109T150000Z_e.json': version('e', 'Ana', 'Sent back to writer', '2026-11-09T15:00:00Z'),
+    'Ep 05/script.md': '---\ntitle: Ep 05\nstatus: in review\n---\n',
+    'Ep 05/.studio/versions/20261109T140000Z_f.json': version('f', 'Sam', 'Sent for review', '2026-11-09T14:00:00Z'),
+    'Ep 06/script.md': '---\ntitle: Ep 06\nstatus: approved\n---\n',
+  });
+  const rows = page.locator('a.row');
+  await expect(rows).toHaveCount(4);
+  await expect(page.getByRole('link', { name: /Ep 03\s*Your review\s*1 reply/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Ep 04\s*Sent back to you/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'For me 2' })).toBeVisible();
+
+  await page.getByRole('button', { name: /For me/ }).click();
+  await expect(rows).toHaveCount(2);
+  await expect(page.getByRole('link', { name: /Ep 05/ })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button', { name: /For me/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(rows).toHaveCount(2);
+  await page.getByRole('button', { name: /^All/ }).click();
+  await expect(rows).toHaveCount(4);
+});
+
+test('For me with nothing waiting says so, with a way back to all', async ({ page }) => {
+  await setUp(page, '', { 'Ep 06/script.md': '---\ntitle: Ep 06\nstatus: approved\n---\n' });
+  await page.getByRole('button', { name: /For me/ }).click();
+  await expect(page.getByRole('heading', { name: 'Nothing waiting for you' })).toBeVisible();
+  await page.getByRole('button', { name: 'Show all 1' }).click();
+  await expect(page.locator('a.row')).toHaveCount(1);
+});

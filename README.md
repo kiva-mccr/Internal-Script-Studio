@@ -102,6 +102,9 @@ Status: a first working version. What it does today:
   writer, shown at the top of Comments in Write); each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
+  **For me:** the script list labels what waits for you: "Your review" (in review and someone else sent it), "2
+  replies" (open comments you wrote in where someone else has the last word) and "Sent back to you". The All · For
+  me switch above the list shows only those scripts (remembered on your computer).
   **What's changed:** once a script has been sent back or approved, Review marks the rows changed since then (a blue
   bar and "Changed" or "New"; a removed row stays as one struck-through grey line), so a reviewer rereads only those.
   The bar above the script says how many; "Show the edits" puts the old text struck through above the new, and "Only
