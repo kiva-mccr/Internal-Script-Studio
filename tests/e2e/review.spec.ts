@@ -155,9 +155,12 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect.poll(() => readFile(page, SCRIPT)).toContain('status: draft\n');
   await page.getByRole('button', { name: 'History' }).click();
   const versions = page.getByRole('navigation', { name: 'Versions' }).getByRole('button');
-  await expect(versions.nth(0)).toContainText('Sent back to writer');
-  await expect(versions.nth(1)).toContainText('Sent for review');
-  await expect(versions.nth(2)).toContainText('Approved');
+  // The send made v1 (RV-9): the send back folds under it, the approval before it.
+  await expect(versions.nth(1)).toContainText('v1Sent for review');
+  await versions.nth(0).click(); // 1 change since v1
+  await expect(versions.nth(1)).toContainText('Sent back to writer');
+  await versions.nth(3).click(); // the changes before v1
+  await expect(versions.nth(4)).toContainText('Approved');
 });
 
 test('a note for the reviewers with Send for review: shown at the top of Review and kept in History (RV-8)', async ({ page }) => {

@@ -65,6 +65,10 @@ except as the `who` of what they write.
 | `restart` | `.studio/` was missing or empty | "History starts here" (also for scripts made before History existed) |
 | `official` | someone publishes an official version, `note` its name | "v2 · Sent to the narrator" (numbered by publish order) |
 
+A send for review is also the next official version (RV-9): its `review` entry then has `official: true` and counts
+in the numbering ("v3 · Sent for review"). It has none when the script is the same as the newest official version,
+leaving out the `status` and `authors` lines, so a version is never made twice.
+
 Official versions are numbered from the order they were published, so the number is never stored. Once a script
 has one, History shows the official versions and folds the small saves between them into one line ("6 changes
 since v2") until opened.

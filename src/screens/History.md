@@ -13,6 +13,8 @@ official version (mock-up 7): a named version, v1, v2 …; with any, the small s
 - The newest version is the current one: no Restore button on it.
 - An official version is compared with the official one before it (v1 with the version it was made from).
 - With official versions, History opens on the newest official one, not the newest save.
+- A send for review that made a version (RV-9) shows as one line, "v3 · Sent for review", without "Published by";
+  one that made none is not folded and reads "Sent for review (still v2)".
 - The Publish button sits outside the `Versions` nav, so the nav's buttons are only versions (tests count them).
 - Publishing goes through `Editor.svelte` (`onPublish`): what is waiting is saved first, then script.md as it is
   on disk is what gets published.

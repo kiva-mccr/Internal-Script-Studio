@@ -38,7 +38,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   matches someone's `last_written` is credited to them, not "Outside the app".
 - Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
 - Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after
-  `leave()`), then add a `review` History entry. The button names contain "Write" (Send back to writer), so tests
+  `leave()`), then add a `review` History entry; a send's entry is also the next official version (`official: true`)
+  unless `sendVersion` says nothing changed since the newest (RV-9). The button names contain "Write" (Send back to writer), so tests
   pick the Write tab with `exact: true`.
 - Flags (AP-9): `flagged` comes from the comment notes (`flags()`), read every 5 s like comments; `flag` writes a
   `flag` or `unflag` note. Before Approve they come first, as `flag:<row id>`, and `showLoose` takes them back to

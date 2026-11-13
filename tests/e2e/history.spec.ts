@@ -138,3 +138,64 @@ test('the next official version is compared with the one before it', async ({ pa
   await expect(page.getByText(/changes compared with v1/)).toBeVisible();
   await expect(page.getByRole('region', { name: 'Changes' })).toContainText('Wide shot of a forest.');
 });
+
+test('Send for review makes the next official version, and none when nothing changed since (RV-9)', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', { [SCRIPT]: example.replace('status: in review', 'status: draft') });
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  const panel = page.getByRole('region', { name: 'Send for review' });
+  const send = async () => {
+    await page.getByRole('button', { name: 'Send for review' }).click();
+    await panel.getByRole('button', { name: 'Send for review' }).click();
+    await expect(page.getByText('In review', { exact: true })).toBeVisible();
+  };
+  const backToDraft = async () => {
+    await page.getByRole('button', { name: 'Review', exact: true }).click();
+    await page.getByRole('button', { name: 'Send back to writer' }).click();
+    await page.getByRole('region', { name: 'Send back to writer' }).getByRole('button', { name: 'Send back to writer' }).click();
+    await page.getByRole('button', { name: 'Write', exact: true }).click();
+  };
+  const officials = async () => (await Promise.all((await listFiles(page, VERSIONS)).map(async (f) => JSON.parse(await readFile(page, `${VERSIONS}/${f}`)))))
+    .filter((v) => v.kind === 'official' || v.official);
+
+  // A first send: v1, named "Sent for review", with the note.
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel).toContainText('It becomes v1 in History.');
+  await panel.getByLabel('A note for the reviewers').fill('Check row 1.');
+  await panel.getByRole('button', { name: 'Send for review' }).click();
+  await expect.poll(officials).toMatchObject([{ kind: 'review', official: true, note: 'Sent for review', message: 'Check row 1.' }]);
+
+  // Sent back, then sent again with no changes: still v1, no new version.
+  await backToDraft();
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel).toContainText('Still v1: nothing has changed since it.');
+  await panel.getByRole('button', { name: 'Send for review' }).click();
+  await expect(page.getByText('In review', { exact: true })).toBeVisible();
+  expect(await officials()).toHaveLength(1);
+
+  // Published by hand, then sent with no changes: no duplicate either.
+  await backToDraft();
+  await page.getByLabel('On screen, row 1').fill('Wide shot of a forest.');
+  await page.getByRole('button', { name: 'History' }).click();
+  await page.getByRole('button', { name: 'Publish official version' }).click();
+  await page.getByLabel('Name it').fill('For the narrator');
+  await page.getByRole('button', { name: 'Publish v2' }).click();
+  await expect(page.getByRole('heading', { name: 'v2 · For the narrator' })).toBeVisible();
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+  await page.getByRole('button', { name: 'Send for review' }).click();
+  await expect(panel).toContainText('Still v2');
+  await panel.getByRole('button', { name: 'Send for review' }).click();
+  await expect(page.getByText('In review', { exact: true })).toBeVisible();
+  expect(await officials()).toHaveLength(2);
+
+  // Changed, then sent: v3, one line in History, compared with v2.
+  await backToDraft();
+  await page.getByLabel('On screen, row 1').fill('Wide shot of a meadow.');
+  await send();
+  await expect.poll(async () => (await officials()).length).toBe(3);
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(versions(page).first()).toContainText('v3Sent for review');
+  await expect(versions(page).first()).not.toContainText('Published by');
+  await expect(page.getByRole('heading', { name: 'v3 · Sent for review' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Changes' })).toContainText('compared with v2');
+  await expect(versions(page).getByText('Sent for review (still v2)')).toBeVisible();
+});

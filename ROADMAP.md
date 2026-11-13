@@ -242,8 +242,14 @@ and suggestions, keeps every version, and exports them for production.
   is optional; Cancel or Esc closes it and keeps what was typed. Reviewers see it at the top of Review while it is in
   review (Hide folds it to "Sam's note"); History shows it under "Sent for review", in that entry's `message`. Not on
   Send back to writer for now.
-- [ ] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
-  next official version (AP-10), or keeps the current version when nothing has changed since it. Mock-up first.
+- [x] **RV-9** Send for review makes a version (asked by the user): sending for review publishes the script as the
+  next official version (AP-10), or keeps the current version when nothing has changed since it. Built as mock-up 51
+  (the user agreed, with every suggested choice, and asked that a version published by hand and then sent with no
+  changes is never made twice): the send panel says "It becomes v3 in History." or "Still v2: nothing has changed
+  since it."; the version is named "Sent for review" (no name box), its note shown with it; one count with versions
+  published by hand; one History line ("v3 · Sent for review"), and a send that made none shows as "Sent for review
+  (still v2)". Kept as the send's own `review` entry with `official: true`. "Nothing changed" leaves out the status
+  and authors lines, so print and exports also keep "v2" after an approve. Approve and Send back make no version.
 - [x] **RV-10** A shared link opens in Review (asked by the user): a link sent to someone opens the script on the
   Review tab by default (Copy link, and the Teams embed of EX-10). Built: shared links end in `?review`; the app opens
   Review and drops the mark from the address, so a reload after moving to Write stays in Write.
