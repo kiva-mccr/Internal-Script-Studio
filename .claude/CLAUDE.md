@@ -51,7 +51,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done). Waiting for a slot: RV-13 (board 37, idea A and its six choices agreed). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14, AP-32, RV-15, AP-33. Then, added by the user (2026-11-13), in this order: RV-9, RV-6, RV-12, EX-18, AP-31. The user prioritizes
+  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done). Waiting for a slot: RV-13 (board 37, idea A and its six choices agreed). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14, AP-32, RV-15, AP-33. Then, added by the user (2026-11-13), in this order: RV-9, RV-6, RV-12, EX-18, AP-31. The user prioritizes
   what comes next; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
@@ -73,6 +73,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   recording (a WAV); decoding Chrome's real webm takes was never seen here.
 - Play the script (AU-2, AU-7, AU-9) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
   shown time keeps up with real webm takes is unseen.
+- Notes lines on every printed page (EX-15) in real Chrome/Edge printing to paper: only Chromium's PDF was seen here.
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

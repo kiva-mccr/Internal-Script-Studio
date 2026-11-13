@@ -295,8 +295,11 @@ and suggestions, keeps every version, and exports them for production.
   the pace; scrolling by the line's real height instead of its share of words (a long line moves faster); allowing
   for the half second each hearing takes; the next words of the script given to the model as a hint (Whisper takes
   one, Moonshine doesn't), so fewer misheard words pull the marker.
-- [ ] **EX-15** Print: notes on every page (asked by the user): the lined Notes space (EX-1) goes at the foot of every
-  printed page instead of once at the end of the script. Mock-up first.
+- [x] **EX-15** Print: notes on every page (asked by the user). Mock-up: board 42, built as drawn ("go ahead"):
+  "Notes space at the end" became "Notes lines on every page"; the lines sit at the foot of every printed page,
+  above the footer (on the last page too), with a small "Notes" heading, full page width; 4 lines to start, − / +
+  for 2 to 8, remembered. Printed as a fixed block Chrome repeats on each page, with a table footer as tall keeping
+  the rows clear of it.
 - [x] **EX-16** Print: collapse columns (asked by the user): choose which of the three columns print (for example the
   dialogue only, or no Images & files), and the rest widen to fill the page; kept with Print's other choices. Mock-up:
   board 38, built as drawn: "Columns to print" ticks at the top of Print's settings, all on by default; the last one
