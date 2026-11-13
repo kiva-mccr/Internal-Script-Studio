@@ -13,6 +13,7 @@ export type Version = {
   kind: Kind;
   note: string;
   message?: string; // the note with "Sent for review" (RV-8) or "Sent back to writer" (RV-13); absent when none was written
+  official?: true; // a send for review that is also the next official version (RV-9); absent otherwise
   sha256: string;
   text: string;
 };
@@ -90,7 +91,7 @@ export function sinceReview(before: Script, after: Script): { changed: Map<strin
 // Writes a new version file and returns it.
 export async function addVersion(
   dir: FileSystemDirectoryHandle,
-  entry: { parents: string[]; who: string; kind: Kind; text: string; note?: string; message?: string },
+  entry: { parents: string[]; who: string; kind: Kind; text: string; note?: string; message?: string; official?: boolean },
   now = new Date(),
 ): Promise<Version> {
   const version: Version = {
@@ -102,6 +103,7 @@ export async function addVersion(
     kind: entry.kind,
     note: entry.note ?? '',
     ...(entry.message ? { message: entry.message } : {}),
+    ...(entry.official ? { official: true as const } : {}),
     sha256: await sha256(entry.text),
     text: entry.text,
   };
@@ -136,16 +138,33 @@ export async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Official versions are numbered v1, v2 … in the order they were published (versions oldest first).
+// An official version: published from History, or made by a send for review (RV-9).
+export const isOfficial = (v: Version) => v.kind === 'official' || !!v.official;
+
+// Official versions are numbered v1, v2 … in the order they were made (versions oldest first).
 export function officialNumbers(versions: Version[]): Map<string, number> {
-  return new Map(versions.filter((v) => v.kind === 'official').map((v, i) => [v.id, i + 1]));
+  return new Map(versions.filter(isOfficial).map((v, i) => [v.id, i + 1]));
 }
 
-// The number of the official version a script's text is, or 0: the newest version is official and the text has
-// not changed since (versions oldest first, `sha` the text's fingerprint). Printing shows it (EX-1).
-export function officialNumber(versions: Version[], sha: string): number {
-  const newest = versions.at(-1);
-  return newest?.kind === 'official' && newest.sha256 === sha ? (officialNumbers(versions).get(newest.id) ?? 0) : 0;
+// Two texts are the same script when only the review status or the authors differ: a send or a save by someone
+// new changes those lines, not the script (RV-9).
+export function sameScript(a: string, b: string): boolean {
+  const plain = (text: string) => text.replace(/^---\n[\s\S]*?\n---\n/, (front) => front.replace(/^(status|authors):.*\n/gm, ''));
+  return plain(a) === plain(b);
+}
+
+// The number of the official version a script's text is, or 0 once anything has changed since the newest official
+// version (versions oldest first). Printing and the exports show it (EX-1, EX-7).
+export function officialNumber(versions: Version[], text: string): number {
+  const newest = versions.findLast(isOfficial);
+  return newest && sameScript(newest.text, text) ? (officialNumbers(versions).get(newest.id) ?? 0) : 0;
+}
+
+// What a send for review makes (RV-9): the next official version, or none when the script is still the newest one
+// (`still`), however that one was made, so a version published by hand and then sent is never made twice.
+export function sendVersion(versions: Version[], text: string): { n: number; still: boolean } {
+  const n = officialNumber(versions, text);
+  return n ? { n, still: true } : { n: officialNumbers(versions).size + 1, still: false };
 }
 
 // Versions nothing was made from: normally one. Two means two saves at the same time.

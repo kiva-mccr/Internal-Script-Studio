@@ -12,8 +12,12 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
   versions lie before them); sorting by name alone put them in a random order (bug found while building).
 - A file that can't be read (half-synced) is skipped, never an error.
 - Rows are matched by id, so a moved row is not "edited".
-- Official versions (kind `official`) get their number from `officialNumbers`, by publish order; never stored.
-  `officialNumber` says which one the script still is (printing), or 0 once anything has changed since.
+- Official versions (kind `official`, or a send for review with `official: true`, RV-9: `isOfficial`) get their
+  number from `officialNumbers`, by the order they were made; never stored. `officialNumber` says which one the
+  script still is (printing), or 0 once anything has changed since the newest. "Changed" is `sameScript`: the
+  `status` and `authors` lines are left out, since a send, approve or a save by someone new changes them.
+- `sendVersion` decides what a send makes: the next number, or `still` the newest one when nothing changed, however
+  that one was made (the user's rule: never a duplicate).
 - `message` (RV-8, RV-13) is written only when there is one. `reviewNote` is the newest review change, if it was a send
   with a note; sent back or approved since means none. `backNote` is the newest review change if it was a send back
   (note or not), for the top of Write's Comments tab.

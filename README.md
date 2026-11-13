@@ -47,7 +47,8 @@ Status: a first working version. What it does today:
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
-  saves between them folded away until you open them.
+  saves between them folded away until you open them. Send for review also makes the next one, named "Sent for
+  review", unless nothing has changed since the newest (then it stays, say, v2, and no copy is made).
 - **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
   Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter and Settings.

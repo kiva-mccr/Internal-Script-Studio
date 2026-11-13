@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { changes, listVersions, officialNumbers, summary, type Version } from '../lib/history';
+  import { changes, isOfficial, listVersions, officialNumber, officialNumbers, summary, type Version } from '../lib/history';
   import { renderMath, toHtml } from '../lib/format';
   import { at } from '../lib/when';
 
@@ -29,7 +29,7 @@
     try {
       versions = (await listVersions(dir)).reverse();
       // With official versions, History opens on the newest one.
-      const newestOfficial = versions.findIndex((v) => v.kind === 'official');
+      const newestOfficial = versions.findIndex(isOfficial);
       picked = Math.max(newestOfficial, 0);
     } catch {
       error = "History couldn't be read. If OneDrive is still syncing, wait a moment and try again.";
@@ -39,8 +39,8 @@
   const numbers = $derived(officialNumbers([...(versions ?? [])].reverse()));
   const nextNumber = $derived(numbers.size + 1);
 
-  // Without official versions: every version. With them: the official ones, and the small saves between two of
-  // them folded into one line until opened.
+  // Without official versions: every version. With them: the official ones and the sends for review, and the small
+  // saves between them folded into one line until opened.
   type Item = { kind: 'one'; i: number } | { kind: 'group'; first: number; list: number[]; label: string };
   const items = $derived.by((): Item[] => {
     const list = versions ?? [];
@@ -52,8 +52,8 @@
       group = [];
     };
     list.forEach((v, i) => {
-      if (v.kind !== 'official') return void group.push(i);
-      flush(`since v${numbers.get(v.id)}`);
+      if (!isOfficial(v) && !isSend(v)) return void group.push(i);
+      flush(isOfficial(v) ? `since v${numbers.get(v.id)}` : 'since sent for review');
       out.push({ kind: 'one', i });
     });
     flush('before v1');
@@ -61,6 +61,13 @@
   });
 
   const count = (n: number) => (n === 1 ? '1 change' : `${n} changes`);
+  const isSend = (v: Version) => v.kind === 'review' && v.note === 'Sent for review';
+
+  // A send for review that made no version, because nothing had changed since the newest one (RV-9): its number.
+  function still(i: number): number {
+    const v = versions![i];
+    return isSend(v) && !v.official ? officialNumber(versions!.slice(i + 1).reverse(), v.text) : 0;
+  }
 
   // The version a version is compared with: for an official one, the official one before it; otherwise its first
   // parent, else the one before it in time.
@@ -75,7 +82,8 @@
   function title(i: number): string {
     const v = versions![i];
     const n = numbers.get(v.id);
-    return n ? `v${n} · ${v.note}` : summary(v, before(i));
+    if (n) return `v${n} · ${v.note}`;
+    return still(i) ? `${v.note} (still v${still(i)})` : summary(v, before(i));
   }
 
   function startPublish() {
@@ -114,8 +122,8 @@
     {@const n = numbers.get(version.id)}
     <button class="entry" class:official={n} class:picked={i === picked} aria-current={i === picked ? 'true' : undefined}
       onclick={() => (picked = i)}>
-      <span class="note">{#if n}<span class="tag">v{n}</span>{version.note}{:else}{summary(version, before(i))}{/if}</span>
-      <span class="meta">{n ? 'Published by ' : ''}{version.who} · {at(Date.parse(version.when))}</span>
+      <span class="note">{#if n}<span class="tag">v{n}</span>{version.note}{:else}{title(i)}{/if}</span>
+      <span class="meta">{version.kind === 'official' ? 'Published by ' : ''}{version.who} · {at(Date.parse(version.when))}</span>
       {#if version.message}<span class="message">{version.message}</span>{/if}
     </button>
   {/snippet}
@@ -164,7 +172,7 @@
         {/if}
       </div>
       <p class="meta">
-        {selectedNumber ? 'Published by ' : ''}{selected.who} · {at(Date.parse(selected.when))}{before(picked)
+        {selected.kind === 'official' ? 'Published by ' : ''}{selected.who} · {at(Date.parse(selected.when))}{before(picked)
           ? ` · changes compared with ${selectedNumber && selectedNumber > 1 ? `v${selectedNumber - 1}` : 'the version before'}`
           : ''}
         {#if picked === 0}<br />This is the current version.{/if}

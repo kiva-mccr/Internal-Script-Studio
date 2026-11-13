@@ -11,7 +11,7 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onExport, onShare, onPlay, onStop }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onExport, onShare, onPlay, onStop, nextVersion }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
@@ -19,6 +19,7 @@
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void;
     onFind: () => void; // ⋯ › Find and replace, in Write (AP-32)
     onExport: (to: Format) => void; onShare: () => Promise<Shared>;
+    nextVersion: () => Promise<{ n: number; still: boolean }>; // what Send for review makes (RV-9)
   } = $props();
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
@@ -33,6 +34,7 @@
   // 'back': a note for the writer, before sending back (RV-13); they see it at the top of Comments in Write.
   let menu = $state<'' | 'more' | 'export' | 'approve' | 'send' | 'back'>('');
   let sendNote = $state('');
+  let sendMakes = $state<{ n: number; still: boolean } | null>(null); // shown in the send panel once known
   let backNote = $state('');
   let sendEl = $state<HTMLElement>();
   let backEl = $state<HTMLElement>();
@@ -51,6 +53,12 @@
     menu = '';
     onStatus('in review', 'Sent for review', sendNote.trim());
     sendNote = '';
+  }
+  async function openSend() {
+    if (menu === 'send') return void (menu = '');
+    menu = 'send';
+    sendMakes = null;
+    sendMakes = await nextVersion().catch(() => null);
   }
   function sendBack() {
     menu = '';
@@ -152,12 +160,14 @@
         </span>
       {:else if reviewStatus !== 'in review' && mode === 'write'}
         <span class="more" bind:this={sendEl}>
-          <button class="outline" aria-expanded={menu === 'send'} onclick={() => (menu = menu === 'send' ? '' : 'send')}>Send for review</button>
+          <button class="outline" aria-expanded={menu === 'send'} onclick={openSend}>Send for review</button>
           {#if menu === 'send'}
             <div class="menu approve-menu" role="region" aria-label="Send for review">
               <label class="lead" for="send-note">A note for the reviewers</label>
               <textarea id="send-note" rows="4" bind:value={sendNote} {@attach (el) => el.focus()} placeholder="What should they look at? (optional)"></textarea>
-              <p class="quiet">They see it at the top of Review. It is kept in History.</p>
+              {#if sendMakes}
+                <p class="makes"><span class="tag">v{sendMakes.n}</span>{sendMakes.still ? `Still v${sendMakes.n}: nothing has changed since it.` : `It becomes v${sendMakes.n} in History.`}</p>
+              {/if}
               <div class="actions">
                 <button class="outline" onclick={() => (menu = '')}>Cancel</button>
                 <button class="dark" onclick={send}>Send for review</button>
@@ -257,6 +267,8 @@
   .approve-menu textarea { box-sizing: border-box; width: 100%; min-height: 96px; padding: 10px 12px; border: 1px solid var(--line-strong);
     border-radius: 8px; font: inherit; font-size: 14px; line-height: 1.5; resize: vertical; }
   .quiet { font-size: 13px; color: var(--muted); }
+  .makes { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; }
+  .tag { padding: 2px 8px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 12px; font-weight: 600; }
   .loose { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
   .loose button { display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 6px;
     background: none; color: var(--ink); font-size: 13px; text-align: left; }

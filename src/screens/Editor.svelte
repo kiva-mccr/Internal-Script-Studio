@@ -10,7 +10,7 @@
   import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, ancestor, backNote, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sha256, type Version } from '../lib/history';
+  import { addVersion, ancestor, backNote, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sendVersion, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
   import Assets from './Assets.svelte';
   import Comments from './Comments.svelte';
@@ -458,7 +458,9 @@
     await save();
     if (status !== 'saved') return; // a clash or a failed save: shown already
     try {
-      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'review', text: onDisk, note, message });
+      // A send for review is also the next official version, unless nothing changed since the newest one (RV-9).
+      const official = to === 'in review' && !sendVersion(await listVersions(dir), onDisk).still;
+      last = await addVersion(dir, { parents: last ? [last.id] : [], who: name, kind: 'review', text: onDisk, note, message, official });
       pendingSince = 0;
       untrack(readReview); // the new entry: the review note, or the marks start again from here
     } catch {
@@ -619,8 +621,14 @@
   async function version(): Promise<string> {
     if (status === 'waiting') await save();
     const versions = dir ? await listVersions(dir).catch(() => []) : [];
-    const n = officialNumber(versions, await sha256(onDisk));
+    const n = officialNumber(versions, onDisk);
     return n ? `v${n}` : '';
+  }
+
+  // What Send for review will make (RV-9), for its panel: saves what is waiting, then the next version or "still v2".
+  async function nextVersion(): Promise<{ n: number; still: boolean }> {
+    if (status === 'waiting') await save();
+    return sendVersion(dir ? await listVersions(dir).catch(() => []) : [], onDisk);
   }
 
   // Export (EX-9): saves what is waiting, then opens the export screen on that format, in place of the script.
@@ -681,7 +689,7 @@
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} onFind={() => ((mode = 'write'), (finding = true))} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => ((mode = 'write'), (finding = true))} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
 
 <div class="page">
 <main>

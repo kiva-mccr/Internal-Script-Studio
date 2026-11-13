@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { ancestor, backNote, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sinceReview, summary, type Version } from '../../src/lib/history';
+import { ancestor, backNote, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sameScript, sendVersion, sinceReview, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -55,15 +55,45 @@ describe('officialNumbers', () => {
 });
 
 describe('officialNumber', () => {
-  it('is the newest official version, only while the text has not changed since', () => {
+  it('is the newest official version, only while the script has not changed since', () => {
+    const changed = edit('Slow push-in on a sunlit leaf.', 'Wide shot.');
     const list = [
-      version(example, { id: 'a', kind: 'official', sha256: 'x' }),
-      version(example, { id: 'b', kind: 'official', sha256: 'y' }),
+      version(changed, { id: 'a', kind: 'official' }),
+      version(example, { id: 'b', kind: 'official' }),
     ];
-    expect(officialNumber(list, 'y')).toBe(2);
-    expect(officialNumber(list, 'z')).toBe(0);
-    expect(officialNumber([...list, version(example, { id: 'c', sha256: 'y' })], 'y')).toBe(0);
-    expect(officialNumber([], 'y')).toBe(0);
+    expect(officialNumber(list, example)).toBe(2);
+    expect(officialNumber(list, changed)).toBe(0);
+    // A later save of the same script, or only the status changed: still v2.
+    expect(officialNumber([...list, version(example, { id: 'c' })], edit('status: in review', 'status: approved'))).toBe(2);
+    expect(officialNumber([], example)).toBe(0);
+  });
+  it('counts a send for review that made a version (RV-9)', () => {
+    const list = [version(example, { id: 'a', kind: 'official' }), version(example, { id: 'b', kind: 'review', official: true })];
+    expect([...officialNumbers(list)]).toEqual([['a', 1], ['b', 2]]);
+    expect(officialNumber(list, example)).toBe(2);
+  });
+});
+
+describe('sameScript', () => {
+  it('leaves out the status and the authors, nothing else', () => {
+    expect(sameScript(example, edit('status: in review', 'status: draft'))).toBe(true);
+    expect(sameScript(example, example.replace(/^authors:.*$/m, 'authors: [Kiva, Sam, Ana]'))).toBe(true);
+    expect(sameScript(example, edit('Slow push-in on a sunlit leaf.', 'Wide shot.'))).toBe(false);
+    expect(sameScript(example, example.replace(/^title:.*$/m, 'title: Something else'))).toBe(false);
+  });
+});
+
+describe('sendVersion', () => {
+  const changed = edit('Slow push-in on a sunlit leaf.', 'Wide shot.');
+  it('is the next version after changes, the first when there is none', () => {
+    expect(sendVersion([], example)).toEqual({ n: 1, still: false });
+    expect(sendVersion([version(example, { kind: 'official' })], changed)).toEqual({ n: 2, still: false });
+  });
+  it('keeps the version when nothing changed, however it was made (no duplicates)', () => {
+    const byHand = [version(example, { id: 'a', kind: 'official' }), version(example, { id: 'b' })];
+    expect(sendVersion(byHand, edit('status: in review', 'status: draft'))).toEqual({ n: 1, still: true });
+    const bySend = [version(example, { id: 'a', kind: 'review', official: true })];
+    expect(sendVersion(bySend, example)).toEqual({ n: 1, still: true });
   });
 });
 
