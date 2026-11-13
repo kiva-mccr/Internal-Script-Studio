@@ -76,6 +76,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   before handing over anything that touches saving, History or the folder. Fix the race, never add retries.
 
 ## Known gaps (never seen for real; confirm when the user can)
+- Since 2026-11-13 the user's team keeps the scripts on a networked file server (a shared drive), not OneDrive,
+  because OneDrive wouldn't sync. The first two-computer test there: saves kept showing "Couldn't save, trying
+  again" while typing (one person typing, and two people on different rows). Being fixed in its own thread.
 - Nothing has been tried on a real OneDrive synced folder yet.
 - The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
 - Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
