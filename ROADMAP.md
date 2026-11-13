@@ -503,6 +503,14 @@ and suggestions, keeps every version, and exports them for production.
   GitHub, hover shows its title and when it went live; set at build time (docs-only merges don't rebuild); "dev"
   when run locally. Built so: deploy.yml sets LIVE_BUILD and vite.config.ts reads the merge commit's number and title.
 
+- [ ] **HI-3** History that holds up when it gets huge (asked by the user, 2026-11-13; the user picked 1, 2 and
+  Load more of four ideas): (1) the Editor reads History once when a script opens and then only new files, instead
+  of about 10 times; (2) the browser remembers what it has read (History files never change), so a later visit reads
+  only new files; (3) History shows the newest entries with a "Load more" for older ones. No change to `.studio/`.
+  Left for later, if a new computer is still slow on real OneDrive: one small index file per 100 versions
+  ("chapters"). Not wanted: storing changes instead of whole copies. Measure on a made-up 2,000-version script
+  before and after. Mock-up: board 52. Queued after the flaky tests and the screen-file split.
+
 ## Last (the user's order: these wait until everything above is done)
 
 - [x] **AS-1** A shared asset browser between scripts (asked by the user): browse and reuse the files of every
