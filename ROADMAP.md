@@ -476,9 +476,9 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
   comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
   comment back into view. Bug fix, no mock-up needed.
-- [ ] **RV-18** A resolved comment moves into Resolved at once (a bug the user hit): resolving a comment should
-  fold it into the Resolved dropdown straight away, not only after the comment panel is closed and opened again. Bug
-  fix, no mock-up needed.
+- [ ] **RV-18** A resolved comment moves into Resolved by itself (a bug the user hit): today it stays in the open list
+  until the comment panel is closed and opened again. The user likes the Undo, so a resolved comment stays in place
+  for about 5 seconds with Undo showing, then moves into the Resolved dropdown on its own. Bug fix, no mock-up needed.
 - [ ] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
   is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
   RV-18: a before and after picture is shown to the user before it is merged.
