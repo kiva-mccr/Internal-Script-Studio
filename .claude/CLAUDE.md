@@ -76,6 +76,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Play the script (AU-2, AU-7, AU-9) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
   shown time keeps up with real webm takes is unseen.
 - Notes lines on every printed page (EX-15) in real Chrome/Edge printing to paper: only Chromium's PDF was seen here.
+- Landscape print (EX-18) in real Chrome/Edge print windows and on paper: only Chromium's PDF (11 × 8.5 in) was seen here.
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.
