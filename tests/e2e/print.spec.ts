@@ -144,3 +144,29 @@ test('columns to print: the rest widen (Dialogue first, then Notes), one always 
   await page.getByLabel('Dialogue', { exact: true }).uncheck();
   await expect(preview.locator('th')).toHaveText(['#', 'Images & files', 'Notes']);
 });
+
+test('landscape or portrait: the preview turns, the print window opens turned, remembered', async ({ page }) => {
+  await openExample(page);
+  await openPrint(page);
+  const sheet = page.getByLabel('Preview').locator('.sheet');
+  await expect(page.getByLabel('Portrait')).toBeChecked(); // as before EX-18
+  const tall = await sheet.evaluate((el) => el.getBoundingClientRect().width);
+  await page.getByLabel('Landscape').check();
+  await expect(page.getByLabel('Preview')).toContainText('As it will print, landscape');
+  // Drawn wider, then shrunk to fit: each column gets a bigger share of the page than the text needs.
+  expect(await sheet.evaluate((el) => (el.parentElement as HTMLElement).style.width)).toBe('965px');
+  expect(await sheet.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(tall * 0.9);
+
+  await page.getByLabel('Settings').getByRole('button', { name: 'Print…' }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
+  const pageRule = () => page.evaluate(() => [...document.querySelectorAll('style')].map((s) => s.textContent).find((t) => t?.includes('@page')));
+  expect(await pageRule()).toContain('size: landscape');
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await page.getByRole('button', { name: 'Back to the script' }).click();
+  await openPrint(page);
+  await expect(page.getByLabel('Landscape')).toBeChecked();
+  await page.getByLabel('Portrait').check();
+  await page.getByLabel('Settings').getByRole('button', { name: 'Print…' }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(2);
+  expect(await pageRule()).toContain('size: portrait');
+});
