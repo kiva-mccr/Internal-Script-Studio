@@ -544,6 +544,13 @@ and suggestions, keeps every version, and exports them for production.
   shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
   empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
   Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
+- [ ] **RV-23** Fold columns in Review too (asked by the user): the ‹ fold from AP-17 (Write only today) also works
+  in Review, every column open by default. Whether Review remembers its own folds or shares Write's is for the
+  mock-up. Mock-up first.
+- [ ] **AP-41** Copy the details of any error (asked by the user): every error message gets a small, quiet "copy
+  details" button that copies the full error (the browser's error name and message, what the app was doing, the
+  app's version, the browser) for debugging, without cluttering the message. Messages name OneDrive or another
+  system only when the app knows that's where the folder is (the save messages were changed in FX-1). Mock-up first.
 - [ ] **AP-40** The script list reads only what it needs (asked by the user): today the list, after showing names,
   reads every script's script file, take notes, all comment files and History (not approved ones) one after another,
   and again whenever the window gets focus. Instead: (1) only the scripts on screen are read, the rest as you scroll
