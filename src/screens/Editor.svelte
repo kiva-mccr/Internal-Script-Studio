@@ -217,7 +217,8 @@
     clearInterval(checker);
     clearInterval(heartbeat);
     const d = dir;
-    leave().finally(() => d && removeEditing(d, name));
+    const who = name; // read now: leaving the example takes the props away before leave() is done
+    leave().finally(() => d && removeEditing(d, who));
   });
 
   // "… is editing": this person's file, with when they were last here and what they last wrote.
@@ -343,14 +344,26 @@
   // Leaving the script (or opening History): save what is waiting and put it in History.
   async function leave() {
     await changingStatus;
-    if (status === 'waiting') await save();
+    await saveWaiting();
     if (status === 'saved' && onDisk) await record(onDisk, true).catch(() => {});
   }
 
+  // The newest mode asked for: Review or History, shown only once what is waiting is saved, never replaces a mode
+  // picked meanwhile (History then straight to Write stayed on History).
+  let asked = 0;
+  function switchMode(to: typeof mode) {
+    if (to === 'review') return showReview();
+    if (to === 'history') return showHistory();
+    asked++;
+    mode = to;
+    if (to === 'assets') checkFiles();
+  }
+
   async function showHistory() {
+    const ask = ++asked;
     await leave();
     if (dir) notes = await listNotes(dir).catch(() => notes);
-    mode = 'history';
+    if (ask === asked) mode = 'history';
   }
 
   // From History (RV-6): a still-open comment, in Review.
@@ -373,7 +386,7 @@
       pendingSince = 0;
       undo = null;
       load(version.text);
-      mode = 'write';
+      switchMode('write');
     } catch {
       notice = "That version couldn't be restored. If OneDrive is still syncing, wait a moment and try again.";
     }
@@ -503,8 +516,9 @@
   }
 
   async function showReview() {
+    const ask = ++asked;
     await leave();
-    mode = 'review';
+    if (ask === asked) mode = 'review';
   }
 
   function load(text: string) {
@@ -524,7 +538,20 @@
     timer = setTimeout(save, SAVE_AFTER);
   }
 
-  async function save() {
+  // The save being written, for saveWaiting.
+  let saving: Promise<void> = Promise.resolve();
+  function save(): Promise<void> {
+    return (saving = write());
+  }
+
+  // What is typed, on disk: a save already being written is waited for (without that, History opened mid-save got
+  // no entry for it, and Print or Send for review read the script before it), then what is still waiting is saved.
+  async function saveWaiting() {
+    await saving;
+    if (status === 'waiting') await save();
+  }
+
+  async function write() {
     if (!dir || !script) return;
     clearTimeout(timer);
     status = 'saving';
@@ -588,9 +615,9 @@
 
   // From the list before Approve (RV-5): to that comment in Review, or to the Assets tab for missing files.
   async function showLoose(id: string) {
-    if (!id) return (mode = 'assets'), checkFiles();
+    if (!id) return switchMode('assets');
     if (id.startsWith('flag:')) {
-      mode = 'write';
+      switchMode('write');
       await tick();
       const row = document.querySelector(`[data-row="${id.slice(5)}"]`);
       row?.scrollIntoView({ block: 'center' });
@@ -603,7 +630,7 @@
 
   // From the Assets tab: back to Write, at that row.
   async function jump(row: number) {
-    mode = 'write';
+    switchMode('write');
     await tick();
     const field = document.querySelector<HTMLElement>(`[aria-label="Dialogue, row ${row}"]`);
     field?.scrollIntoView({ block: 'center' });
@@ -653,7 +680,7 @@
   // Saves what is waiting, then names the version the script is: "v3" while it is still that official version, ''
   // for a draft. Print and the exports carry it (EX-7).
   async function version(): Promise<string> {
-    if (status === 'waiting') await save();
+    await saveWaiting();
     const versions = dir ? await listVersions(dir).catch(() => []) : [];
     const n = officialNumber(versions, onDisk);
     return n ? `v${n}` : '';
@@ -661,7 +688,7 @@
 
   // What Send for review will make (RV-9), for its panel: saves what is waiting, then the next version or "still v2".
   async function nextVersion(): Promise<{ n: number; still: boolean }> {
-    if (status === 'waiting') await save();
+    await saveWaiting();
     return sendVersion(dir ? await listVersions(dir).catch(() => []) : [], onDisk);
   }
 
@@ -726,8 +753,8 @@
 {:else}
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
-  onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => ((mode = 'write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
+  onMode={switchMode}
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
 
 <div class="page">
 <main>

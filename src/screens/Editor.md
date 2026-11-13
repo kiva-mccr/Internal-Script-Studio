@@ -26,6 +26,12 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   Leaving by closing the tab is best effort (the browser may not wait for the write).
   `record` waits for History to start (`started`): an edit saved before `last` was set got no entry (seen as a
   flaky "versions made in the same second" test on CI, where the version file was there before `last`).
+  Leaving, opening History, Print, the exports and Send for review go through `saveWaiting`, which also waits for a
+  save already being written: checking only for `waiting` skipped one mid-save, so it got no History entry (the same
+  test, flaky again under load).
+- Review and History are shown only once what is waiting is saved; `switchMode` keeps the newest mode asked for, so
+  one that finishes late never replaces a mode picked meanwhile (History then Write at once stayed on History).
+  Every change of mode goes through `switchMode` (or `showReview`/`showHistory`), never `mode = …`.
 - Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
 - A failed save tries again every 6 s, unless the browser took back its OK to edit the folder (`hasAccess` false):
   retrying can't fix that (the browser asks only from a click), so the status is `locked` and the top bar's Allow
@@ -36,7 +42,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   and the two are combined row by row (`lib/merge.ts`); only a field both changed shows `Conflict.svelte`.
 - On opening, two newest versions (heads) or a OneDrive copy (`script-*.md`) are combined the same way, and the
   merge version gets both as parents. A copy is removed only after the combined script is saved.
-- "… is editing": your `editing/` file is written on opening and every 30 s, removed on leaving. A script.md that
+- "… is editing": your `editing/` file is written on opening and every 30 s, removed on leaving (with the name read
+  as the editor closes: leaving the example takes its props away first, which threw). A script.md that
   matches someone's `last_written` is credited to them, not "Outside the app".
 - Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
 - Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after

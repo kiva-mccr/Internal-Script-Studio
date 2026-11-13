@@ -60,8 +60,11 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
 - e2e tests run as "Sam": use other names for other people's versions and editing files.
-- A file being written shows in a folder listing as "name.crswap" until it closes: `listFiles` in tests skips them.
-  The real name is there, empty, from the start: tests that read every file skip empty ones (flags.spec failed on CI).
+- A file being written shows in a folder listing as "name.crswap" until it closes, and its real name is there, empty
+  (or briefly gone), from the start. Tests read a folder's JSON files with `readJsonFiles` (waits for whole files)
+  and count them with `expect.poll`, never `listFiles` + `readFile` + `JSON.parse`.
+- Flaky tests show up under load: `npx playwright test --repeat-each=6 --workers=8 --trace off` (about 5 minutes)
+  before handing over anything that touches saving, History or the folder. Fix the race, never add retries.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.

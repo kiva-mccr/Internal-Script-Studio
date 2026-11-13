@@ -20,3 +20,5 @@ bar, and Open your scripts folder).
   with `history.replaceState` (no hashchange), so a reload after moving to Write stays in Write.
 - The example is never saved as the remembered folder. Being in it is kept per tab (sessionStorage), so a reload
   stays in it; leaving it clears the link's `#/…`, since its script means nothing in the real folder.
+- The picked folder is remembered (IndexedDB) before the list shows: saved after, a reload straight away found no
+  folder (a flaky set-up test under load).

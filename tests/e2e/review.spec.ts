@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { listFiles, readFile, setUp, writeFile } from './folder';
+import { listFiles, readFile, readJsonFiles, setUp, writeFile } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const SCRIPT = 'Episode 03/script.md';
@@ -46,10 +46,9 @@ test('select text to comment on it; the comment is saved as its own file', async
   await expect.poll(() => marked(page)).toEqual(['sunlit leaf']);
   await expect(page.getByRole('heading', { name: 'Open · 1' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
-  const [file] = await listFiles(page, COMMENTS);
-  expect(JSON.parse(await readFile(page, `${COMMENTS}/${file}`))).toMatchObject({
+  expect(await readJsonFiles(page, COMMENTS)).toMatchObject([{
     kind: 'comment', who: 'Sam', field: 'on_screen', quote: 'sunlit leaf', text: 'Could we shoot a real leaf?',
-  });
+  }]);
 });
 
 test('comment on a whole row, reply, resolve and reopen', async ({ page }) => {
@@ -195,8 +194,7 @@ test('a note for the reviewers with Send for review: shown at the top of Review 
   const newest = page.getByRole('navigation', { name: 'Versions' }).getByRole('button').nth(0);
   await expect(newest).toContainText('Sent for review');
   await expect(newest).toContainText('Rows 2 and 3 are new.\nIs the CO2 line clear?');
-  const files = await listFiles(page, 'Episode 03/.studio/versions');
-  const kept = await Promise.all(files.map((f) => readFile(page, `Episode 03/.studio/versions/${f}`).then((t) => JSON.parse(t))));
+  const kept = await readJsonFiles(page, 'Episode 03/.studio/versions');
   expect(kept.filter((v) => v.message).map((v) => [v.note, v.message])).toEqual([['Sent for review', 'Rows 2 and 3 are new.\nIs the CO2 line clear?']]);
   // Once sent back, Review no longer shows it.
   await page.getByRole('button', { name: /^Review/ }).click();
@@ -306,7 +304,7 @@ test('edit and delete your own comment, reply and suggestion, with Undo; never s
   await expect(suggestion.getByRole('button', { name: 'Edit' })).toHaveCount(0);
 
   // Each change is a new file; nothing was rewritten.
-  const files = await Promise.all((await listFiles(page, COMMENTS)).map(async (f) => JSON.parse(await readFile(page, `${COMMENTS}/${f}`))));
+  const files = await readJsonFiles(page, COMMENTS);
   expect(files.filter((f) => f.kind === 'edit').map((f) => f.text ?? f.replace).sort()).toEqual(['Too fast?', 'Yes.', 'absorb']);
   expect(files.filter((f) => f.kind === 'delete')).toHaveLength(2);
   expect(files.filter((f) => f.kind === 'undelete')).toHaveLength(2);

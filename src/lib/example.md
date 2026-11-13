@@ -13,3 +13,6 @@ Start over and its Undo, and whether the offer on the first-time screen is folde
 - It is made only once; later visits get it back as they left it. Start over keeps the old copy (in "Example before
   start over") until the next Start over, so Undo can bring it back.
 - The History and comments are written through `addVersion` and `addNote`, so they stay in the real format.
+- Start over and Undo remove the example while its script is open, and the open script may be writing a file in it
+  just then: removing fails while a file is being written, so `removeWhenFree` tries again (Undo did nothing now and
+  then, seen as a flaky test under load).
