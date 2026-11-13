@@ -367,7 +367,7 @@
     if (!voice.recording) voice.load(file.dir);
     await file.readEditors();
     notes = await listNotes(file.dir).catch(() => notes);
-    await file.lookOutside();
+    await file.sync();
   }
 
   // A row or section was deleted in Write: kept a few seconds so it can be undone.
@@ -409,6 +409,13 @@
       open: openCount, voice: voiced }, script);
   }
 
+  // Ctrl+S saves now (FX-2), never the browser's Save page window.
+  function saveKey(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 's') return;
+    e.preventDefault();
+    if (status === 'waiting' || status === 'failed') save();
+  }
+
   // Leaving saves what is waiting. Only a failed save or a lost OK, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
     file.leave();
@@ -416,7 +423,7 @@
   }
 </script>
 
-<svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={playKeys} />
+<svelte:window onbeforeunload={beforeUnload} onafterprint={() => (printing = null)} onkeydown={(e) => (saveKey(e), playKeys(e))} />
 <svelte:document onfocusin={(e) => { const at = (e.target as HTMLElement).closest?.<HTMLElement>('[data-block]'); if (at) cursorBlock = Number(at.dataset.block); }} onvisibilitychange={() => (document.hidden ? status === 'waiting' && save() : checkOutside())} />
 
 {#if prompting && script}
@@ -450,7 +457,7 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} {reviewStatus} {status} problem={file.problem}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {status} problem={file.problem}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
   onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />

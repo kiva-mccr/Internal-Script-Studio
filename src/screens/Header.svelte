@@ -11,11 +11,12 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, folding = '', reviewStatus, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText;
+    folding?: string; // whose changes are being folded in now: a small spinner beside "… is editing" (FX-2)
     problem?: string; // why the last save failed, in the browser's words ("Writing script.md: NoModificationAllowedError: …")
     onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void;
@@ -130,7 +131,7 @@
     </nav>
     <div class="right" data-tour="actions">
       {#if editors.length}
-        <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
+        <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}{#if folding}<span class="spin" role="img" aria-label="Bringing in {folding}’s changes" title="Bringing in {folding}’s changes"></span>{/if}</span>
       {/if}
       {#if reviewStatus === 'in review' && mode === 'review'}
         <span class="more" bind:this={backEl}>
@@ -241,6 +242,9 @@
   .editing { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #fff4e5;
     color: #7a4a00; font-size: 13px; font-weight: 500; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #e08a1e; }
+  .spin { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #e08a1e; border-right-color: transparent; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
   .modes { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f2f2f2; }
   .modes button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 14px; font-weight: 500; }
   .modes button[aria-current] { background: var(--ground); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); color: var(--ink); }

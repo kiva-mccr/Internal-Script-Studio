@@ -67,3 +67,12 @@ async function editingFolder(dir: FileSystemDirectoryHandle, create: boolean): P
     return null;
   }
 }
+
+// Who wrote a script.md that no version matches: the person whose last save it is, or else the one other person
+// editing it right now (their editing file can lag behind on a shared folder); '' if no one.
+export function writerOf(entries: Editing[], sha: string, me: string, now = Date.now()): string {
+  const matching = entries.find((e) => e.last_written === sha);
+  if (matching) return matching.who;
+  const others = othersEditing(entries, me, now);
+  return others.length === 1 ? others[0] : '';
+}
