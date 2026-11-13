@@ -493,6 +493,11 @@ and suggestions, keeps every version, and exports them for production.
   page should be centred in the part of the page on screen, not on the whole length of the page. The two pop-up
   windows in the code, Settings and Shared files, are pinned to the screen with a gap at the top, so which one the
   user saw (or a menu or panel inside the page) is to be confirmed first. Bug fix, no mock-up needed.
+- [ ] **AP-37** When each computer last synced (asked by the user): a web page can't ask OneDrive for its status, so
+  each computer with the app open leaves a small "still here" mark in `.studio/` about once a minute, and the others
+  show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
+  OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
+  (beside "… is editing"?). Mock-up first.
 - [ ] **EX-19** A DaVinci Resolve project from the timeline (asked by the user): the app builds a file that DaVinci
   Resolve opens, with the timeline from SB-1 (images, takes and timings in order), so editors pick it up and keep
   working on it in Resolve. Needs SB-1 first. Mock-up first.
