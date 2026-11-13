@@ -442,7 +442,7 @@ and suggestions, keeps every version, and exports them for production.
   rows stay editable in Write, the old words on their own line above the box (5a); a ✓ Seen per row clears that one
   ("2 changes left", 5b). Built so: `lib/visit.ts` credits each row to the last version that changed it (compared
   with its parent, merges skipped); the bar is `VisitBar.svelte`, shared by Write and Review.
-- [ ] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
+- [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
   it. Mock-up first. Agreed on board 46 ("Looks amazing") with its six suggested choices: a card under the
@@ -451,6 +451,9 @@ and suggestions, keeps every version, and exports them for production.
   nothing is shared; a blue strip inside it with Start over (through the Undo bar) and Open your scripts folder; the
   example gets a few made-up drawings, two comments and one History entry; the name typed, or "Guest". The user
   chose to build this plain example first and the tutorial (AP-34) later on top of it.
+  Built as agreed: the example (`lib/example.ts`) is copied into the browser's private storage as "Example" the first
+  time and kept as left; drawings for leaf-closeup.jpg, icons-ingredients.svg, glucose-model.png and storyboard-p4.pdf
+  were added to docs/example/ (made up). A reload stays in the example; leaving it goes back to the first-time screen.
 - [ ] **AP-34** A tutorial in the example (asked by the user): in the example from AP-33, a quick guided tour per tab
   (Write, Review, History, Assets …) that highlights each feature, goes through them fast, then hands over control
   to play; a Skip button shows throughout. A dedicated job that has to be kept up to date as features change. Kiva
