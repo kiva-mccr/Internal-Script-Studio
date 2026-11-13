@@ -11,11 +11,13 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
-    status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
+    status: keyof typeof statusText;
+    problem?: string; // why the last save failed, in the browser's words ("Writing script.md: NoModificationAllowedError: …")
+    onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void;
     onFind: () => void; // ⋯ › Find and replace, in Write (AP-32)
     onCredits: () => void; // ⋯ › Credits (AP-31)
@@ -25,6 +27,10 @@
 
   const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
     locked: 'Not saved: the browser needs your OK to edit the folder' };
+  // A failed save names the browser's error, so it can be reported (the field test on a shared folder): the name in
+  // the bar, all of it on hover.
+  const errorName = $derived(problem.split(': ')[1] ?? '');
+  const shownStatus = $derived(status === 'failed' && errorName ? `Couldn't save (${errorName}), trying again` : statusText[status]);
   const bad = $derived(status === 'failed' || status === 'conflict' || status === 'locked');
   // What was just copied, said in the menu for a moment before it closes.
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
@@ -105,7 +111,7 @@
     </a>
     <span class="title">{title}</span>
     <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
-    {#if ready}<span class="status" class:bad role="status" data-tour="saved">{statusText[status]}</span>{/if}
+    {#if ready}<span class="status" class:bad role="status" data-tour="saved" title={status === 'failed' ? problem : undefined}>{shownStatus}</span>{/if}
     <!-- The length follows Saved as one grey line (mock-up 30, A), and steps aside for a red message. -->
     {#if ready && voiceText && !bad}<span class="voice" title={voiceText.includes('/') ? 'Voice-over recorded so far / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
     <!-- The browser took back its OK to edit the folder: only a click can ask again (mock-up 18, option A). -->

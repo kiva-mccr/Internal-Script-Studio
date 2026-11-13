@@ -2,7 +2,7 @@
 // at the same time. The screens are Editor.svelte's; this file has no page of its own.
 import { untrack } from 'svelte';
 import { askAccess, hasAccess } from './remember';
-import { findScript, readScript, writeScriptFile } from './folder';
+import { findScript, readScript, scriptStamp, writeScriptFile } from './folder';
 import { newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Script } from './script';
 import { readEditing, othersEditing, writeEditing } from './editing';
 import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, sendVersion, sha256, type Version } from './history';
@@ -27,6 +27,7 @@ export class Saving {
   status = $state<Status>('saved');
   clash = $state<Clash | null>(null);
   editors = $state<string[]>([]); // other people with this script open
+  problem = $state(''); // why the last save failed, in the browser's words, for the person to report
   onDisk = ''; // the text of script.md as last read or written by this page
   last: Version | null = null; // the newest history entry this page knows of
   #started: Promise<void> = Promise.resolve(); // History found or started on opening (sets `last`)
@@ -38,6 +39,7 @@ export class Saving {
   #changingStatus: Promise<void> = Promise.resolve();
   #since = new Date().toISOString();
   #lastWritten = ''; // fingerprint of what this page last wrote to script.md
+  #stamp = ''; // script.md's time and size when the 5 s check last read it ('' after this page writes it)
 
   // name: a getter, since the Editor's props can go before its leaving is done. notice: a message for the person.
   // onEntry: a status change's History entry was written (the Editor reads Review's notes again).
@@ -262,14 +264,19 @@ export class Saving {
     this.#timer = setTimeout(() => this.save(), SAVE_AFTER);
   }
 
+  // One save at a time: a second one started mid-write (typing on while a slow write waits) would write script.md
+  // twice at once, and two renames onto it can clash on a network share.
   save(): Promise<void> {
-    return (this.#saving = this.#write());
+    return (this.#saving = this.#saving.then(() => this.#write()));
   }
 
   // What is typed, on disk: a save already being written is waited for (without that, History opened mid-save got
   // no entry for it, and Print or Send for review read the script before it), then what is still waiting is saved.
   async saveWaiting() {
-    await this.#saving;
+    // Until no save is left in line: one can be queued behind the one being waited for.
+    let saving: Promise<void>;
+    do await (saving = this.#saving);
+    while (saving !== this.#saving);
     if (this.status === 'waiting') await this.save();
   }
 
@@ -277,6 +284,7 @@ export class Saving {
     if (!this.dir || !this.script) return;
     clearTimeout(this.#timer);
     this.status = 'saving';
+    let step = 'Reading script.md';
     try {
       const now = await readScript(this.dir);
       if (now !== this.onDisk) {
@@ -297,16 +305,21 @@ export class Saving {
       const kept = $state.snapshot(this.script) as Script;
       kept.blocks = kept.blocks.filter((b) => b.type === 'row' || b.title.trim() || b.note);
       const text = writeScript(kept);
+      step = 'Writing script.md';
       if (text !== now) await writeScriptFile(this.dir, text);
+      this.#stamp = '';
+      this.problem = '';
       this.onDisk = text;
       this.#lastWritten = await sha256(text);
       await this.#record(text, false).catch(() => {});
       this.here();
       // Edits typed while saving start another save.
       if (this.status === 'saving') this.status = 'saved';
-    } catch {
+    } catch (e) {
       // Retrying can't bring back a lost OK (the browser asks only from a click), so that waits for Allow editing.
       if (!(await hasAccess(this.folder).catch(() => true))) return void (this.status = 'locked');
+      const error = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      this.problem = `${step}: ${error}`;
       this.status = 'failed';
       this.#timer = setTimeout(() => this.save(), SAVE_AFTER * 4);
     }
@@ -339,7 +352,12 @@ export class Saving {
     const dir = this.dir;
     if (!dir || this.status !== 'saved') return;
     try {
+      // Read only when it changed: every read holds script.md open for a moment, and on a network share a save
+      // from another computer can't replace a file someone has open.
+      const stamp = await scriptStamp(dir);
+      if (stamp && stamp === this.#stamp) return;
       const now = await readScript(dir);
+      this.#stamp = stamp;
       if (now !== this.onDisk && this.status === 'saved') {
         this.load(now);
         // Follows their newest version, if it has synced.
