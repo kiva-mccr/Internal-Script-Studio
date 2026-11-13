@@ -482,6 +482,10 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
   is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
   RV-18: a before and after picture is shown to the user before it is merged.
+- [ ] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
+  dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
+  how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
+  current queue. Mock-up first.
 - [ ] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
   be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
   are on hold, and held comments come back into view when the script is sent for review or a version is made, so they
