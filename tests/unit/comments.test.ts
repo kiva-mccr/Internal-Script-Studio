@@ -123,7 +123,7 @@ describe('files on comments (RV-11)', () => {
     expect([sizeText(300), sizeText(180000), sizeText(2400000), sizeText(60 * 1024 * 1024), sizeText(1.8 * 1024 ** 3)])
       .toEqual(['1 KB', '176 KB', '2.3 MB', '60 MB', '1.8 GB']);
     const big = { name: 'pilot-cut.mov', size: 51 * 1024 * 1024 } as File;
-    expect(tooBig(big)).toBe('pilot-cut.mov is too big to attach (51 MB; the limit is 50 MB). Put it in OneDrive and paste its link in the comment instead.');
+    expect(tooBig(big)).toBe('pilot-cut.mov is too big to attach (51 MB; the limit is 50 MB). Put it somewhere shared and paste its link in the comment instead.');
     expect(tooBig({ name: 'ok.png', size: 50 * 1024 * 1024 } as File)).toBe('');
   });
 });

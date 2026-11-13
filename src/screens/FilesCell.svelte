@@ -72,7 +72,7 @@
   async function openAsset(path: string) {
     const file = await assetFile(dir, path);
     if (!file) {
-      onNotice(`${path} isn't in the script's folder. If someone just added it, OneDrive may still be syncing.`);
+      onNotice(`${path} isn't in the script's folder. If someone just added it, the shared folder may still be syncing.`);
       return;
     }
     const url = URL.createObjectURL(file);

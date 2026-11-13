@@ -72,7 +72,7 @@
 
   async function open(item: Attachment) {
     const file = await assetFile(dir, item.path);
-    if (!file) return void (problem = `${item.name} isn't here yet. If it was just added, OneDrive may still be syncing.`);
+    if (!file) return void (problem = `${item.name} isn't here yet. If it was just added, the shared folder may still be syncing.`);
     problem = '';
     const url = URL.createObjectURL(file);
     if (VIEWABLE.test(item.name)) window.open(url, '_blank', 'noopener');

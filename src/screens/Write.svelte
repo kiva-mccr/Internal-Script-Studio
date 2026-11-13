@@ -96,7 +96,7 @@
       const blocked = e instanceof DOMException && (e.name === 'NotAllowedError' || e.name === 'NotFoundError');
       onNotice(blocked
         ? 'The microphone is blocked or missing. Allow it in the address bar (the camera and mic icon), then try again.'
-        : "The take couldn't be saved in the script's folder. If OneDrive is still syncing, wait a moment and try again.");
+        : "The take couldn't be saved in the script's folder. If the shared folder is still syncing, wait a moment and try again.");
     }
   }
 

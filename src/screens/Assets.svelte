@@ -51,7 +51,7 @@
   async function open(asset: Asset) {
     if (asset.kind === 'link') return void window.open(asset.target, '_blank', 'noopener');
     const file = await assetFile(dir, asset.target);
-    if (!file) return onNotice(`${asset.target} isn't in the script's folder. If someone just added it, OneDrive may still be syncing.`);
+    if (!file) return onNotice(`${asset.target} isn't in the script's folder. If someone just added it, the shared folder may still be syncing.`);
     const url = URL.createObjectURL(file);
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);

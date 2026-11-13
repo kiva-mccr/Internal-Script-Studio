@@ -190,7 +190,7 @@
       checker = setInterval(checkOutside, CHECK_EVERY);
       heartbeat = setInterval(() => file.here(), HERE_EVERY);
     } catch {
-      notice = "The script couldn't be opened. If OneDrive is still syncing, wait a moment and reload.";
+      notice = "The script couldn't be opened. If the shared folder is still syncing, wait a moment and reload.";
     }
   });
 
@@ -247,7 +247,7 @@
       notes = await listNotes(dir);
       return true;
     } catch {
-      notice = "That couldn't be saved. If OneDrive is still syncing, wait a moment and try again.";
+      notice = "That couldn't be saved. If the shared folder is still syncing, wait a moment and try again.";
       return false;
     }
   }
@@ -274,7 +274,7 @@
     if (!dir || !block || block.type !== 'row') return false;
     const file = await assetFile(dir, item.path);
     if (!file) {
-      notice = `${item.name} isn't here yet. If it was just added, OneDrive may still be syncing.`;
+      notice = `${item.name} isn't here yet. If it was just added, the shared folder may still be syncing.`;
       return false;
     }
     try {
@@ -467,7 +467,7 @@
   {#if missing}
     <div class="empty">
       <h1>No script called "{path.join(' / ')}"</h1>
-      <p>It isn't in {folder.name}. It may have been renamed, or OneDrive may still be bringing it to this computer.</p>
+      <p>It isn't in {folder.name}. It may have been renamed, or the shared folder may still be bringing it to this computer.</p>
       <p><a href="#/">Back to the list</a></p>
     </div>
   {:else if clash}

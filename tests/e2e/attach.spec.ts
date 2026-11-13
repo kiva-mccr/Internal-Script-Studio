@@ -66,7 +66,7 @@ test('a comment can be only files; a reply takes a pasted screenshot; too big a 
   await paste(page, 'Comment', [{ name: 'pilot-cut.mov', big: true }]);
   const form = page.getByRole('form', { name: 'New comment' });
   await expect(form.getByRole('alert')).toHaveText(
-    'pilot-cut.mov is too big to attach (51 MB; the limit is 50 MB). Put it in OneDrive and paste its link in the comment instead.',
+    'pilot-cut.mov is too big to attach (51 MB; the limit is 50 MB). Put it somewhere shared and paste its link in the comment instead.',
   );
   await paste(page, 'Comment', [{ name: 'notes.txt', text: 'see this' }]);
   await form.getByRole('button', { name: 'Add comment' }).click();

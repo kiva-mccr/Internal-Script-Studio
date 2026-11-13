@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { diff } from '../../src/lib/changes';
 
 // The real folder picker can't be clicked in a test, so it is swapped for a folder in the browser's private
 // storage (a real folder handle: it can be remembered and reopened like a OneDrive one). `files` maps paths inside
@@ -138,4 +139,14 @@ export async function listFiles(page: Page, path: string): Promise<string[]> {
       return [];
     }
   }, path);
+}
+
+// Someone else's save (FX-2): a change file from `before` to `after` in a script's `.studio/changes/`, as their
+// app would write it. Returns its name.
+export async function writeChange(page: Page, scriptDir: string, who: string, before: string, after: string, at = new Date()) {
+  const id = Math.random().toString(36).slice(2, 8).padEnd(6, 'a');
+  const name = `${at.toISOString().replace(/[-:.]/g, '')}_${id}_${who.toLowerCase()}.json`;
+  const change = { v: 1, id, who, when: at.toISOString(), delta: diff(before, after) };
+  await writeFile(page, `${scriptDir}/.studio/changes/${name}`, JSON.stringify(change) + '\n');
+  return name;
 }

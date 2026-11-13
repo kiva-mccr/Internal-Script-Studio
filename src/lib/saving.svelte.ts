@@ -197,12 +197,8 @@ export class Saving {
 
   // Shows `text` in the page; what differs from `shared` is this person's, still to save.
   #show(text: string) {
-    const timer = this.#timer;
     this.load(text);
-    if (text !== this.shared) {
-      this.#timer = timer;
-      this.changed();
-    }
+    if (text !== this.shared) this.changed();
   }
 
   #label = (who: string) => (fileName(who) === fileName(this.name()) ? 'Yours, from before' : `${who}’s`);

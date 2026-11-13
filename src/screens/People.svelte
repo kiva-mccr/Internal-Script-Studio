@@ -26,7 +26,7 @@
       [people, on] = await Promise.all([listPeople(root), creditedOn(root)]);
     } catch {
       people = [];
-      error = "The people in the folder couldn't be read. If OneDrive is still syncing, wait a moment and try again.";
+      error = "The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
     }
   }
 
@@ -51,7 +51,7 @@
       people = people!.filter((p) => p.id !== person.id);
       open = '';
     } catch {
-      error = `Couldn't remove ${person.name}. If OneDrive is still syncing, wait a moment and try again.`;
+      error = `Couldn't remove ${person.name}. If the shared folder is still syncing, wait a moment and try again.`;
     }
   }
 
