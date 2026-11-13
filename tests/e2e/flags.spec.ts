@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { listFiles, readFile, setUp } from './folder';
+import { readFile, readJsonFiles, setUp } from './folder';
 
 // Flags on rows (AP-9, mock-up 22): kept with the comments in .studio/comments/, never in script.md.
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
@@ -13,11 +13,9 @@ async function open(page: Page, files: Record<string, string> = {}) {
   await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
 }
 
-// Oldest first, by `when` (file names keep only seconds). A file still being written reads empty: left out until done.
+// Oldest first, by `when` (file names keep only seconds).
 const notes = async (page: Page) =>
-  (await Promise.all((await listFiles(page, COMMENTS)).filter((f) => f.endsWith('.json')).map((f) => readFile(page, `${COMMENTS}/${f}`))))
-    .filter((text) => text.trim())
-    .map((text) => JSON.parse(text))
+  (await readJsonFiles(page, COMMENTS))
     .sort((a, b) => (a.when < b.when ? -1 : 1));
 
 const flagFile = (row: string, who: string, text: string, when: string) => ({

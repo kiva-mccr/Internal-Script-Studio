@@ -51,7 +51,9 @@ test('the mic records at once, a ring fills for a second, then ■ is the cue; t
   expect(take.gain).toBeGreaterThan(0);
   expect(take.seconds).toBeGreaterThan(1.2); // the whole recording, as timed
   await expect(page.getByRole('button', { name: 'Play row 1' })).toHaveText('▶ 0:01');
-  await expect(page.getByRole('button', { name: 'Play row 1' })).toHaveAttribute('title', /^0:01 after cropping 0\.\d s of silence$/);
+  // The crop is the take's timed length less the part kept: the timing grows when the machine is busy (seen at 1 s).
+  const cut = Math.round((take.seconds - (take.to - take.from)) * 10) / 10;
+  await expect(page.getByRole('button', { name: 'Play row 1' })).toHaveAttribute('title', `0:01 after cropping ${cut} s of silence`);
   expect(await page.evaluate(() => (window as unknown as { noise: boolean }).noise)).toBe(true);
   // It plays (the cropped part) to the end.
   await page.getByRole('button', { name: 'Play row 1' }).click();

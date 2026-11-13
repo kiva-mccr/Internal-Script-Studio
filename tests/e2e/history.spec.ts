@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { listFiles, readFile, setUp, writeFile } from './folder';
+import { listFiles, readFile, readJsonFiles, setUp, writeFile } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const SCRIPT = 'Episode 03/script.md';
@@ -94,6 +94,17 @@ test('versions made in the same second stay in order', async ({ page }) => {
   await expect(versions(page).nth(2)).toContainText('History starts here');
 });
 
+test('History then Write straight away stays in Write, once the save History waits for is done', async ({ page }) => {
+  await openExample(page);
+  await page.getByLabel('Dialogue, row 3').fill('A change.');
+  await page.getByRole('button', { name: 'History' }).click();
+  await page.getByRole('button', { name: 'Write' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByLabel('Dialogue, row 3')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Write' })).toHaveAttribute('aria-current', 'page');
+});
+
 test('an official version is published by name, and the small saves before it fold away', async ({ page }) => {
   await openExample(page);
   await page.getByLabel('On screen, row 1').fill('Wide shot of a forest.');
@@ -114,7 +125,7 @@ test('an official version is published by name, and the small saves before it fo
   await fold.click();
   await expect(versions(page).getByText('History starts here')).toBeVisible();
   // Files made in the same second sort by their random id, so the official one is found by its kind.
-  const saved = await Promise.all((await listFiles(page, VERSIONS)).map(async (f) => JSON.parse(await readFile(page, `${VERSIONS}/${f}`))));
+  const saved = await readJsonFiles(page, VERSIONS);
   expect(saved.filter((v) => v.kind === 'official')).toMatchObject([{ note: 'First draft', who: 'Sam' }]);
 });
 
@@ -150,12 +161,12 @@ test('Send for review makes the next official version, and none when nothing cha
     await expect(page.getByText('In review', { exact: true })).toBeVisible();
   };
   const backToDraft = async () => {
-    await page.getByRole('button', { name: 'Review', exact: true }).click();
+    await page.getByRole('button', { name: /^Review/ }).click();
     await page.getByRole('button', { name: 'Send back to writer' }).click();
     await page.getByRole('region', { name: 'Send back to writer' }).getByRole('button', { name: 'Send back to writer' }).click();
     await page.getByRole('button', { name: 'Write', exact: true }).click();
   };
-  const officials = async () => (await Promise.all((await listFiles(page, VERSIONS)).map(async (f) => JSON.parse(await readFile(page, `${VERSIONS}/${f}`)))))
+  const officials = async () => (await readJsonFiles(page, VERSIONS))
     .filter((v) => v.kind === 'official' || v.official);
 
   // A first send: v1, named "Sent for review", with the note.

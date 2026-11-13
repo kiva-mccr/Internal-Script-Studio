@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { listFiles, readFile, setUp } from './folder';
+import { listFiles, readFile, readJsonFiles, setUp } from './folder';
 
 // Review comments in Write (RV-13, board 37 idea A): a Comments tab beside Planning, bubbles on rows, quotes marked.
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
@@ -98,7 +98,7 @@ test('in Write the writer accepts a suggestion, resolves with Undo and replies w
   await page.getByLabel('On screen, row 1').fill('Slow push-in on a real leaf.');
   await expect(ana).toContainText('On text that has since changed: “sunlit leaf”');
 
-  const files = await Promise.all((await listFiles(page, COMMENTS)).map(async (f) => JSON.parse(await readFile(page, `${COMMENTS}/${f}`))));
+  const files = await readJsonFiles(page, COMMENTS);
   expect(files.map((f) => f.kind).sort()).toEqual(['accept', 'comment', 'comment', 'reopen', 'reply', 'resolve', 'suggestion']);
   expect(files.find((f) => f.kind === 'reply')).toMatchObject({ who: 'Sam', about: 'ana00001' });
 });
