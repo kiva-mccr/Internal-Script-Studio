@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 
 // The real folder picker can't be clicked in a test, so it is swapped for a folder in the browser's private
 // storage (a real folder handle: it can be remembered and reopened like a OneDrive one). `files` maps paths inside
-// the folder to their text.
+// the folder to their text; text starting "base64:" is written as the bytes it stands for.
 export async function fakeFolder(page: Page, files: Record<string, string> = {}) {
   await rememberByName(page);
   await page.addInitScript((files) => {
@@ -15,7 +15,7 @@ export async function fakeFolder(page: Page, files: Record<string, string> = {})
           let dir = folder;
           for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part, { create: true });
           const writable = await (await dir.getFileHandle(parts.at(-1)!, { create: true })).createWritable();
-          await writable.write(text);
+          await writable.write(text.startsWith('base64:') ? Uint8Array.from(atob(text.slice(7)), (c) => c.charCodeAt(0)) : text);
           await writable.close();
         }
         return folder;

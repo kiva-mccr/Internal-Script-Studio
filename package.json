@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
-    "katex": "^0.16.22"
+    "katex": "^0.16.22",
+    "pdfjs-dist": "^6.5.438",
+    "utif": "^3.1.0"
   }
 }

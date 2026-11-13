@@ -23,7 +23,9 @@ Status: a first working version. What it does today:
   each paragraph gets its own row; Undo at the bottom puts it back. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.
   "From other scripts…" lists the files and links of every other script in the folder: pick one and it is copied in.
   The script list's Files button shows the files of every script, to browse.
-  Images show a small preview; click it to see it full size. Select text for bold, italic, underline,
+  Files show a small preview: a picture (also .tif, and a PDF's first page with its page count), a video that plays
+  in place, a slim player for sound, or the first lines of a Word, text, Markdown or CSV file. Other kinds
+  (PowerPoint, zip…) show their kind and size. Click a preview or a name to open the file. Select text for bold, italic, underline,
   strikethrough, a link, an equation (LaTeX) or Clear; Ctrl+B, I, U and K work too.
   It saves on its own a moment after you stop typing. If the browser stops letting the app edit the folder (Chrome
   and Edge do this after a tab sits in the background a while), the status says so: click Allow editing and what
@@ -76,8 +78,8 @@ Status: a first working version. What it does today:
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
   back). Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
-  50 MB each; bigger things go in OneDrive as a link). Images show a small preview, other files a chip; clicking
-  opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the
+  50 MB each; bigger things go in OneDrive as a link). They show the same previews as Images & files, with the name
+  and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the
   reviewers that they see at the top of Review, then Approve or Send back to writer; each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
@@ -110,7 +112,7 @@ Status: a first working version. What it does today:
   for its read time. With the mouse on a row, its number becomes ▶: click it to play from there (the row playing shows ❚❚); pause with the same button or Space, stop with ■ or
   Esc. It works the same in Review, where each line also shows its take to listen to, without the mic or delete.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
-  use it: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
+  use it, with a thumbnail for pictures, PDFs and videos: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.
 - **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
   both saved at the same time, the two are combined row by row; only a place you both changed is shown side by

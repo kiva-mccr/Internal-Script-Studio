@@ -45,7 +45,8 @@ test('attach files to a comment: × takes one off, and they are kept in .studio/
   await expect(form).toHaveCount(0);
 
   const card = page.getByRole('article', { name: 'Comment by Sam' });
-  await expect(card.getByRole('img', { name: 'Preview of leaf-real.png' })).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Open leaf-real.png' }).locator('img')).toBeVisible();
+  await expect(card.getByRole('button', { name: 'leaf-real.png · 1 KB' })).toBeVisible();
   await expect(card.getByRole('button', { name: /stock-licence\.pdf/ })).toContainText('1 KB');
   const [comment] = await notes(page);
   expect(comment.files.map((f: { path: string }) => f.path)).toEqual([
@@ -71,12 +72,14 @@ test('a comment can be only files; a reply takes a pasted screenshot; too big a 
   await paste(page, 'Comment', [{ name: 'notes.txt', text: 'see this' }]);
   await form.getByRole('button', { name: 'Add comment' }).click();
   const card = page.getByRole('article', { name: 'Comment by Sam' });
-  await expect(card.getByRole('button', { name: /notes\.txt/ })).toBeVisible();
+  // A text file shows its first lines (AP-19), with its name and size under them.
+  await expect(card.getByRole('button', { name: 'Open notes.txt' })).toContainText('see this');
+  await expect(card.getByRole('button', { name: 'notes.txt · 1 KB' })).toBeVisible();
 
   await card.getByRole('button', { name: 'Reply' }).click();
   await paste(page, 'Reply', [{ name: 'image.png', text: 'a' }, { name: 'image.png', text: 'b' }]);
   await card.getByRole('button', { name: 'Reply' }).click();
-  await expect(card.getByRole('button', { name: /image 2\.png/ })).toBeVisible();
+  await expect(card.getByRole('button', { name: 'image 2.png · 1 KB' })).toBeVisible();
   const reply = (await notes(page)).find((n) => n.kind === 'reply');
   expect(reply.text).toBe('');
   expect(await listFiles(page, `${FILES}/${reply.id}`)).toEqual(['image 2.png', 'image.png']);

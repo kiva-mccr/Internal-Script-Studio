@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { IMAGE } from './Attached.svelte';
+  import Preview from './Preview.svelte';
   import SharedFiles from './SharedFiles.svelte';
   import { addAsset, assetFile } from '../lib/folder';
+  import { kindName, makePreview, previewKind, revokePreview, type Preview as Made } from '../lib/preview';
+  import { sizeText } from '../lib/comments';
   import { readFileRef } from '../lib/script';
 
   // files: the row's Files lines. root and here: the picked folder and this script's folder name, for "From other
@@ -28,34 +30,39 @@
   let browsing = $state(false);
   // The line last added from another script, and that script's title, shown under its chip.
   let copied = $state<{ line: string; from: string } | null>(null);
-  // Thumbnails: image files in the script's folder, by path, as short-lived blob URLs. Linked images use their link.
-  let previews = $state<Record<string, string>>({});
+  // Previews of files in the script's folder, by path (AP-19), and the size of each found file, named on chips with
+  // no preview. Linked images use their link.
+  let previews = $state<Record<string, Made | null>>({});
+  let sizes = $state<Record<string, number>>({});
 
   $effect(() => {
-    const paths = files.map(readFileRef).filter((ref) => ref.kind === 'path' && IMAGE.test(ref.target)).map((ref) => ref.target);
+    const paths = files.map(readFileRef).filter((ref) => ref.kind === 'path').map((ref) => ref.target);
     let gone = false;
-    const made: string[] = [];
+    const made: Made[] = [];
     (async () => {
-      const next: Record<string, string> = {};
+      const next: Record<string, Made | null> = {};
+      const found: Record<string, number> = {};
       for (const path of paths) {
         const file = await assetFile(dir, path);
         if (!file) continue;
-        const url = URL.createObjectURL(file);
-        if (gone) URL.revokeObjectURL(url);
-        else made.push((next[path] = url));
+        found[path] = file.size;
+        const preview = await makePreview(file, path);
+        if (gone) revokePreview(preview);
+        else if (preview) made.push((next[path] = preview));
       }
-      if (!gone) previews = next;
+      if (!gone) [previews, sizes] = [next, found];
     })();
     return () => {
       gone = true;
-      made.forEach((url) => URL.revokeObjectURL(url));
+      made.forEach(revokePreview);
     };
   });
 
-  function previewOf(ref: { kind: string; target: string }): string {
-    if (!IMAGE.test(ref.target)) return '';
-    return ref.kind === 'path' ? (previews[ref.target] ?? '') : ref.kind === 'link' ? ref.target : '';
+  // A video or sound the browser can't play after all: back to a chip with its kind and size.
+  function failed(path: string) {
+    previews = { ...previews, [path]: null };
   }
+
   let typed = $state('');
   let picker: HTMLInputElement;
 
@@ -101,18 +108,19 @@
 <div class="files">
   {#each files as line, i (i + line)}
     {@const ref = readFileRef(line)}
-    {@const preview = previewOf(ref)}
+    {@const preview = ref.kind === 'path' ? previews[ref.target] : null}
     {#if preview}
-      <button class="thumb" aria-label="Open {ref.label}"
-        onclick={() => (ref.kind === 'path' ? openAsset(ref.target) : window.open(ref.target, '_blank', 'noopener'))}>
-        <img src={preview} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).parentElement!.hidden = true)} />
+      <Preview {preview} name={ref.label} onOpen={() => openAsset(ref.target)} onFail={() => failed(ref.target)} />
+    {:else if ref.kind === 'link' && previewKind(ref.target) === 'image'}
+      <button class="thumb" aria-label="Open {ref.label}" onclick={() => window.open(ref.target, '_blank', 'noopener')}>
+        <img src={ref.target} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).parentElement!.hidden = true)} />
       </button>
     {/if}
     <span class="chip">
       {#if ref.kind === 'link'}
         <a href={ref.target} target="_blank" rel="noopener noreferrer" title={ref.target}>{ref.label}</a>
       {:else if ref.kind === 'path'}
-        <button class="open" title={ref.target} onclick={() => openAsset(ref.target)}>{ref.label}</button>
+        <button class="open" title={ref.target} onclick={() => openAsset(ref.target)}>{ref.label}{#if sizes[ref.target] !== undefined && (previews[ref.target] === null || !previewKind(ref.target))}<span class="kind">{` · ${kindName(ref.target)}, ${sizeText(sizes[ref.target])}`}</span>{/if}</button>
       {:else}
         <span class="words">{ref.label}</span>
       {/if}
@@ -148,6 +156,7 @@
   .chip > a { text-decoration: underline; text-decoration-color: var(--line-strong); }
   .open { border: 0; background: none; font-size: 13px; text-align: left; }
   .open:hover, .chip > a:hover { color: var(--accent); }
+  .kind { color: var(--muted); }
   .words { color: var(--muted); font-style: italic; }
   .remove { border: 0; background: none; color: var(--muted); padding: 4px 8px; font-size: 15px; opacity: 0; }
   .chip:hover .remove, .remove:focus-visible { opacity: 1; }
