@@ -1,5 +1,7 @@
 // Copy for Teams (EX-10): a short message about the script, as formatted text (Teams keeps the bold and the links)
 // and as plain text for anywhere else. A snapshot: it says what was true when it was copied.
+import { creditLine } from './fountain';
+import { shownCredits } from './people';
 import { clock, scriptWords, speaking } from './readtime.svelte';
 import type { Script } from './script';
 
@@ -32,14 +34,17 @@ export function share(facts: Facts, script: Script, now = Date.now()): Shared {
     facts.open ? `${facts.open} open ${facts.open === 1 ? 'comment' : 'comments'}` : '',
     facts.voice ? `Voice-over ${facts.voice} of ${rows} rows` : '',
   ].filter(Boolean);
+  // The credits (AP-31): names and blurbs only, never contact details.
+  const credits = shownCredits(script.front).map(creditLine).join(' · ');
   const link = escape(facts.link);
   const html = [
     `<a href="${link}"><b>${escape(title)}</b></a>`,
     [`<b>${status}</b>`, ...facts1].join(' · '),
     ...(facts2.length ? [escape(facts2.join(' · '))] : []),
+    ...(credits ? [escape(`Credits: ${credits}`)] : []),
     `<a href="${link}">Open in Script Studio</a>`,
   ].join('<br>');
-  const text = [title, [status, ...facts1].join(' · '), ...(facts2.length ? [facts2.join(' · ')] : []), facts.link].join('\n');
+  const text = [title, [status, ...facts1].join(' · '), ...(facts2.length ? [facts2.join(' · ')] : []), ...(credits ? [`Credits: ${credits}`] : []), facts.link].join('\n');
   return { html: `<p>${html}</p>`, text };
 }
 

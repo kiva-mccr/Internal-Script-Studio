@@ -3,6 +3,7 @@
 // the person picks for.
 
 import { frontList, frontValue, parseScript, setFrontValue, writeScript, type Block, type Row, type Script } from './script';
+import { mergeCredits, readCredits, writeCredits } from './people';
 
 export type Side = 'mine' | 'theirs';
 export type Clash = { key: string; where: string; mine: string; theirs: string };
@@ -107,6 +108,9 @@ export function merge(baseText: string, mineText: string, theirsText: string): M
   }
   const authors = [...new Set([...frontList(theirs.front, 'authors'), ...frontList(mine.front, 'authors')])];
   if (authors.length) front = setFrontValue(front, 'authors', `[${authors.join(', ')}]`);
+  // Credits (AP-31): combined person by person, never a clash.
+  const credits = mergeCredits(readCredits(base.front), readCredits(mine.front), readCredits(theirs.front));
+  if (JSON.stringify(credits) !== JSON.stringify(readCredits(front))) front = writeCredits(front, credits);
 
   return {
     clashes,

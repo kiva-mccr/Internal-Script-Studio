@@ -17,3 +17,5 @@ The script as a Fountain screenplay (EX-3, board 11), for Trelby, Highland and o
 - A blank line inside dialogue would end it, so it becomes a line of two spaces.
 - Underline is `_x_`; strike has no Fountain mark and is dropped; a link becomes "words (address)"; `$tex$` is left
   as its TeX.
+- Credits (AP-31) go on the title page as an indented `Credits:` value, one "Name, blurb" a line (`creditLine`,
+  shared with `lib/fdx.ts` and `lib/share.ts`). Whether screenplay apps show that key is unseen.

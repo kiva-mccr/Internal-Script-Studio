@@ -1,4 +1,5 @@
 <script lang="ts">
+  import People from './People.svelte';
   import SharedFiles from './SharedFiles.svelte';
   import { onMount } from 'svelte';
   import { countMissing } from '../lib/assets';
@@ -83,6 +84,7 @@
   }
 
   let browsing = $state(false); // Files in every script (AS-1b)
+  let meeting = $state(false); // People in the folder (AP-31)
   const label: Record<string, string> = { draft: 'Draft', 'in review': 'In review', approved: 'Approved' };
 </script>
 
@@ -92,9 +94,11 @@
   <span class="folder">{folder.name}</span>
   <button class="link" onclick={onChangeFolder}>Change folder</button>
   <button class="outline small" onclick={() => (browsing = true)}>Files</button>
+  <button class="outline small" onclick={() => (meeting = true)}>People</button>
   <button class="primary small" onclick={() => (adding = true)}>New script</button>
 </header>
 {#if browsing}<SharedFiles root={folder} onClose={() => (browsing = false)} />{/if}
+{#if meeting}<People root={folder} me={name} onClose={() => (meeting = false)} />{/if}
 
 <main>
   {#if adding}

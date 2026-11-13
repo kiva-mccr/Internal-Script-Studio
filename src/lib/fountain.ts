@@ -1,6 +1,7 @@
 // The script as Fountain (EX-3, mock-up 11), the plain-text screenplay format Trelby, Highland and Fade In open.
 // By default sections become scene headings; each row's On screen is an action line and its Dialogue is spoken by NARRATOR.
 // Files and row numbers are kept as [[notes]], which those apps keep but don't print.
+import type { Credit } from './people';
 import { frontList, type Script } from './script';
 
 export const SPEAKER = 'NARRATOR';
@@ -16,10 +17,12 @@ export function speakerName(name: string): string {
 }
 
 // `stand`: the version and status for the title page, as print shows them ("v3 · Approved"). `date`: "Nov 10, 2026".
-export function toFountain(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY): string {
+// `credits` (AP-31) go on the title page as an indented "Credits:" list, one "Name, blurb" a line.
+export function toFountain(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY, credits: Credit[] = []): string {
   const out: string[] = [`Title: ${oneLine(title)}`];
   const authors = frontList(script.front, 'authors');
   if (authors.length) out.push('Credit: Written by', `Author: ${authors.join(', ')}`);
+  if (credits.length) out.push('Credits:', ...credits.map((c) => `    ${creditLine(c)}`));
   out.push(`Draft date: ${stand} · ${date}`, '');
   if (script.intro.trim()) out.push(action(script.intro), '');
   let n = 0;
@@ -69,6 +72,11 @@ function dialogue(text: string): string {
     .split('\n')
     .map((line) => (line.trim() ? line : '  '))
     .join('\n');
+}
+
+// "Sam, Narrator", or just the name when there is no blurb.
+export function creditLine(credit: Credit): string {
+  return [oneLine(credit.name), oneLine(credit.role)].filter(Boolean).join(', ');
 }
 
 function oneLine(text: string): string {

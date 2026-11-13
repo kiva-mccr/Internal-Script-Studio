@@ -27,3 +27,4 @@ printing (the browser's print window makes the PDF, "Save as PDF"), and with `on
   a `<tfoot>` row just as tall (`.room`, same `--lines` height) repeats too and keeps the rows clear of them, also on
   the last page. Both heights come from one CSS rule, so they can't drift apart. On screen they show once, after the rows.
 - Tests replace `window.print` and look at the page with `emulateMedia({ media: 'print' })`.
+- The credits (AP-31, `credits`) follow the rows, names and blurbs only; the export's Credits switch passes none.

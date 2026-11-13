@@ -1,8 +1,8 @@
 <script lang="ts" module>
   import type { Column } from '../lib/printcolumns';
   // Print's choices: a Notes column on each row, Notes lines on every page (how many), the text size in %, the columns that
-  // print (EX-16), and the page turned sideways (EX-18).
-  export type PrintChoices = { column: boolean; lines: number; scale: number; hidden: Column[]; landscape: boolean };
+  // print (EX-16), the page turned sideways (EX-18), and the credits after the rows (AP-31).
+  export type PrintChoices = { column: boolean; lines: number; scale: number; hidden: Column[]; landscape: boolean; credits: boolean };
   export type Format = 'print' | 'fountain' | 'fdx' | 'voice';
 </script>
 
@@ -15,6 +15,7 @@
   import { toFdx } from '../lib/fdx';
   import { SCREENPLAY, speakerName, toFountain, type Screenplay } from '../lib/fountain';
   import { clock, countWords, speaking } from '../lib/readtime.svelte';
+  import { shownCredits } from '../lib/people';
   import { COLUMNS, readHidden } from '../lib/printcolumns';
   import { keep, recall } from '../lib/remember';
   import { frontValue, rows, type Script } from '../lib/script';
@@ -42,7 +43,7 @@
   const savedCount = Math.min(8, Math.max(2, Number(recall('print-line-count')) || 4));
   let lineCount = $state(savedCount);
   let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: recall('print-lines') ? savedCount : 0, scale: Number(recall('print-scale')) || 100,
-    hidden: readHidden(recall('print-hide')), landscape: recall('print-page') === 'landscape' });
+    hidden: readHidden(recall('print-hide')), landscape: recall('print-page') === 'landscape', credits: recall('export-credits') !== 'off' });
   let fountain = $state<Screenplay>(load('export-fountain', SCREENPLAY));
   let fdx = $state<Screenplay>(load('export-fdx', SCREENPLAY));
   let voiceHow = $state(load('export-voice', { gap: false, silence: false }));
@@ -53,6 +54,7 @@
     keep('print-scale', String(printing.scale));
     keep('print-hide', printing.hidden.join(','));
     keep('print-page', printing.landscape ? 'landscape' : '');
+    keep('export-credits', printing.credits ? '' : 'off');
     keep('export-fountain', JSON.stringify(fountain));
     keep('export-fdx', JSON.stringify(fdx));
     keep('export-voice', JSON.stringify(voiceHow));
@@ -83,7 +85,10 @@
     return [version || 'Draft', status && status !== 'draft' ? status[0].toUpperCase() + status.slice(1) : ''].filter(Boolean).join(' · ');
   });
   const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const fountainText = $derived(toFountain(script, title, stand, date, fountain));
+  // The script's credits (AP-31), in every export that has them unless the Credits switch (one for all of them) is off.
+  const credits = $derived(shownCredits(script.front));
+  const creditsShown = $derived(printing.credits ? credits : []);
+  const fountainText = $derived(toFountain(script, title, stand, date, fountain, creditsShown));
   const numbers = $derived.by(() => {
     let n = 0;
     return script.blocks.map((b) => (b.type === 'row' ? ++n : 0));
@@ -131,7 +136,7 @@
   function save() {
     if (format === 'print') return onPrint($state.snapshot(printing));
     if (format === 'fountain') return download(`${name}.fountain`, fountainText);
-    if (format === 'fdx') return download(`${name}.fdx`, toFdx(script, title, stand, date, fdx));
+    if (format === 'fdx') return download(`${name}.fdx`, toFdx(script, title, stand, date, fdx, creditsShown));
     if (file) download(`${name} voice-over.wav`, file);
   }
 
@@ -193,7 +198,7 @@
       <div class="page" class:landscape={printing.landscape} bind:clientWidth={pageWidth}>
         <!-- Drawn at the printed width and shrunk to fit, so the columns look as they will on paper. -->
         <div style:width="{sheetWidth}px" style:zoom={fit}>
-          <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} onScreen />
+          <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} credits={creditsShown} onScreen />
         </div>
       </div>
     {:else if format === 'fountain'}
@@ -286,6 +291,9 @@
       {:else}
         <label><input type="checkbox" bind:checked={voiceHow.gap} /> Half a second between takes</label>
         <label><input type="checkbox" bind:checked={voiceHow.silence} /> Silence for rows with no take</label>
+      {/if}
+      {#if credits.length && format !== 'voice'}
+        <label><input type="checkbox" bind:checked={printing.credits} /> {format === 'print' ? 'Credits after the rows' : 'Credits on the title page'}</label>
       {/if}
       <p class="kept">Remembered on this computer for next time.</p>
       <button class="primary" disabled={format === 'voice' && !file} onclick={save}>{FORMATS.find((f) => f.id === format)?.action}</button>
