@@ -2,7 +2,9 @@
   import { tick } from 'svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
-  import { plain, rangeOf } from '../lib/format';
+  import { plain, rangeOf, toHtml } from '../lib/format';
+  import type { Marks } from '../lib/visit';
+  import { at as when } from '../lib/when';
   import type { Flag, Thread } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
@@ -23,10 +25,11 @@
   // talk: the open comments and suggestions (RV-13): a bubble on their rows, their quotes marked; talking is the one
   // read in the Comments tab; onTalk opens the tab at one (from a bubble, or a click on its quote).
   // finding: the find and replace bar is open (AP-32; Ctrl+F, or ⋯ in the top bar).
-  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
+  // visit: rows others changed since this person last looked (RV-15), marked; the rows stay editable as ever.
+  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, visit, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
     script: Script; finding: boolean; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
-    talk: Thread[]; talking: string; onTalk: (id: string) => void;
+    talk: Thread[]; talking: string; onTalk: (id: string) => void; visit: Marks | null;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
@@ -325,6 +328,13 @@
     }
   }
 
+  // Rows others removed since your last look (RV-15): one grey line each, after the row they followed.
+  const removedAfter = $derived.by(() => {
+    const map = new Map<string, Block[]>();
+    for (const { after, row } of visit?.removed ?? []) map.set(after, [...(map.get(after) ?? []), row]);
+    return map;
+  });
+
   const focusIf = (node: HTMLInputElement, on: boolean) => {
     if (on) { node.focus(); fresh = null; }
   };
@@ -363,6 +373,7 @@
       {/if}
     {/each}
   </div>
+  {@render removedRows('')}
   {#each script.blocks as block, i (block)}
     {#if block.type === 'section'}
       <div class="section" data-block={i}>
@@ -384,8 +395,11 @@
       {@const sounding = voice.playing === block.id || (here && player.on)}
       {@const flag = flagged.get(block.id)}
       {@const said = talkByRow.get(block.id) ?? []}
+      {@const was = visit?.changed.get(block.id)}
+      {@const by = was !== undefined ? visit?.by.get(block.id) : undefined}
       <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && current === block.id} class:talking={talkRow === block.id}
-        class:talk={said.length} data-row={block.id} data-block={i}>
+        class:visited={by} class:visit-on={by && visit?.on === block.id} style:--down="{(said.length ? 34 : 0) + (by ? 58 : 0)}px"
+        data-row={block.id} data-block={i} data-visit={by ? block.id : undefined}>
         <div class="num">
           {#if canPlay}
             {#if here && player.on}
@@ -402,6 +416,10 @@
               onclick={() => onTalk(said[0].comment.id)}>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" /></svg>{said.length}
             </button>
+          {/if}
+          {#if by}
+            <span class="mark" title="{by.who} · {when(Date.parse(by.when))}"><b>{was ? 'Changed' : 'New'}</b><span>{by.who}</span></span>
+            <button class="seen" aria-label="Seen, row {n}" title="Seen: clear this mark" onclick={() => visit?.onSeen(block.id)}>✓</button>
           {/if}
           <span class="tools">
             <button aria-label="Move row {n} up" title="Move up" onclick={() => move(i, -1)}>↑</button>
@@ -426,6 +444,7 @@
         {#if folded.has('dialogue')}{@render dot(block.dialogue !== '', 'Dialogue')}{:else}
         <div>
           {#if block.note}<p class="note">{block.note}</p>{/if}
+          {#if visit?.edits && was && was.dialogue !== block.dialogue}{@render before(was.dialogue, 'Dialogue', n)}{/if}
           <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
           <div class="dialogue" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote(block.id, 'dialogue', e.target)}><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
             onparagraphs={(lines, head, tail) => pasteRows(block, lines, head, tail)} /></div>
@@ -446,8 +465,11 @@
         </div>
         {/if}
         {#if folded.has('screen')}{@render dot(block.onScreen !== '', 'On screen')}{:else}
-          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-          <div class="screen" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote(block.id, 'on_screen', e.target)}><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
+          <div>
+            {#if visit?.edits && was && was.onScreen !== block.onScreen}{@render before(was.onScreen, 'On screen', n)}{/if}
+            <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+            <div class="screen" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote(block.id, 'on_screen', e.target)}><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
+          </div>
         {/if}
         {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
           <FilesCell files={block.files} {dir} {root} here={folderName} row={n ?? 0} {onNotice}
@@ -468,6 +490,7 @@
           </div>
         {/if}
       </div>
+      {@render removedRows(block.id)}
     {/if}
   {/each}
   <div class="adds">
@@ -480,6 +503,19 @@
 <!-- A folded column's cell: a grey dot when the row has something in that column, so nothing is hidden silently. -->
 {#snippet dot(has: boolean, name: string)}
   <span class="dot">{#if has}<span title="{name} has something here">•</span>{/if}</span>
+{/snippet}
+
+<!-- Show the edits (RV-15): the old words in their own line above the box, never inside it, so typing is as ever. -->
+{#snippet before(text: string, name: string, n: number | undefined)}
+  <p class="was" aria-label="{name} before, row {n}">{@html toHtml(text) || '(empty)'}</p>
+{/snippet}
+
+{#snippet removedRows(after: string)}
+  {#each removedAfter.get(after) ?? [] as row (row)}
+    {#if row.type === 'row'}
+      <p class="removed"><span class="tag">Removed</span><span class="gone"><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s> · {visit?.by.get(row.id)?.who}</span></p>
+    {/if}
+  {/each}
 {/snippet}
 
 {#snippet micIcon()}
@@ -498,7 +534,7 @@
   /* Stays at the top while scrolling. No scrolling box around the table, or it would stick to that instead. */
   .find-wrap { position: sticky; top: 0; z-index: 4; }
   .head { position: sticky; top: var(--find-h, 0px); z-index: 2; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .row { align-items: start; min-height: 64px; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+  .row { align-items: start; min-height: calc(64px + var(--down, 0px)); padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   /* The row being played (AU-2). */
   .row.here { border-radius: 8px; background: #eef2fb; }
   .from { margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; }
@@ -509,7 +545,7 @@
   .row.here .from { color: var(--accent); }
   .num { position: relative; font-size: 13px; color: var(--muted); padding-top: 3px; }
   /* Row tools sit over the gutter below the number, so they never make a row taller. */
-  .num .tools { position: absolute; top: 24px; left: -6px; display: grid; grid-template-columns: 28px 28px; }
+  .num .tools { position: absolute; top: calc(24px + var(--down, 0px)); left: -6px; display: grid; grid-template-columns: 28px 28px; }
   .tools { display: flex; flex-wrap: wrap; gap: 2px; opacity: 0; }
   .row:hover .tools, .row:focus-within .tools, .section:hover .tools, .section:focus-within .tools { opacity: 1; }
   .tools button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; }
@@ -558,13 +594,13 @@
   .flags button { min-width: 36px; min-height: 36px; border: 0; border-radius: 6px; background: none; color: var(--flag); font-size: 16px; }
   .flags button:hover { background: #fdebd3; }
   /* In the third slot of the tools' top line, clear of the mic; seen on hover and focus, always once flagged. */
-  .flag { position: absolute; top: 24px; left: 50px; display: inline-flex; align-items: center; justify-content: center;
+  .flag { position: absolute; top: calc(24px + var(--down, 0px)); left: 50px; display: inline-flex; align-items: center; justify-content: center;
     width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: #8a8a8a; opacity: 0; }
   .row:hover .flag, .flag:focus-visible, .flag.on { opacity: 1; }
   .flag:hover { background: #f0f0f0; color: var(--ink); }
   .flag.on { color: var(--flag-mark); }
   /* Turn into a section (AP-30): under the flag, seen like the other row tools. */
-  .promote { position: absolute; top: 54px; left: 50px; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px;
+  .promote { position: absolute; top: calc(54px + var(--down, 0px)); left: 50px; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px;
     background: none; color: var(--muted); font-size: 14px; opacity: 0; }
   .row:hover .promote, .row:focus-within .promote { opacity: 1; }
   .promote:hover { background: #f0f0f0; color: var(--ink); }
@@ -573,10 +609,21 @@
   .bubble { display: flex; width: fit-content; align-items: center; gap: 3px; min-height: 28px; margin: 4px 0 0 -6px; padding: 0 6px; border: 1px solid #c9d6f5;
     border-radius: 6px; background: #eef2fb; color: var(--accent); font-size: 12px; font-weight: 600; }
   .bubble:hover { border-color: var(--accent); }
-  .row.talk { min-height: 96px; }
-  .talk .num .tools, .talk .flag { top: 58px; }
-  .talk .promote { top: 88px; }
   .row.talking { border-radius: 8px; background: #f7f9fe; }
+  /* Changed since you last looked (RV-15, board 45): RV-4's blue bar, "Changed" or "New" and who, ✓ Seen under it. */
+  .row.visited { box-shadow: inset 4px 0 0 var(--accent); }
+  .row.visit-on { background: #f5f8fe; }
+  .mark { display: flex; flex-direction: column; margin-top: 4px; font-size: 11px; line-height: 1.3; color: var(--muted); }
+  .mark b { font-weight: 600; color: var(--accent-dark); }
+  .mark span { max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seen { display: flex; align-items: center; justify-content: center; width: 26px; height: 24px; margin: 2px 0 0 -4px; padding: 0;
+    border: 1px solid #c9d5f2; border-radius: 6px; background: #fff; color: var(--accent); font-size: 13px; }
+  .seen:hover { border-color: var(--accent); }
+  .was { margin: 0 0 4px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; color: #8a2b2b; text-decoration: line-through; }
+  .removed { display: flex; align-items: center; gap: 16px; margin: 0; padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+    box-shadow: inset 4px 0 0 #9a9a9a; font-size: 14px; color: var(--muted); }
+  .removed .tag { flex: none; font-size: 11px; font-weight: 600; }
+  .removed .gone { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .flag-note { grid-column: 3 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px;
     padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
   .flag-note label { display: flex; flex: 1 1 280px; align-items: center; gap: 8px; min-width: 0; }

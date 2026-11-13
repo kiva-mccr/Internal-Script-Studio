@@ -23,6 +23,8 @@
   import Teleprompter from './Teleprompter.svelte';
   import Review from './Review.svelte';
   import Write from './Write.svelte';
+  import VisitBar from './VisitBar.svelte';
+  import { sinceVisit, visitKey, type Marks, type Visit } from '../lib/visit';
   import { addNote, flags, listNotes, threads, type Field, type Note } from '../lib/comments';
 
   // review: opened from a shared link, so it starts on the Review tab (RV-10).
@@ -154,9 +156,33 @@
   const since = new Date().toISOString();
   let lastWritten = ''; // fingerprint of what this page last wrote to script.md
 
+  // What changed since you last looked (RV-15, board 45): worked out once on opening, from History and the time
+  // this browser last opened the script. Seen marks and Got it last until the script is left.
+  let visit = $state<Visit | null>(null);
+  let visitSeen = $state(new Set<string>());
+  let visitOn = $state(''); // the changed row stepped to
+  let visitEdits = $state(!!recall('review-edits')); // Show the edits, shared with Review's (RV-4)
+  $effect(() => keep('review-edits', visitEdits ? '1' : ''));
+  const marks = $derived.by((): Marks | null => {
+    if (!visit || !script) return null;
+    const here = new Set(rows(script).map((row) => row.id));
+    const changed = new Map([...visit.changed].filter(([id]) => here.has(id) && !visitSeen.has(id)));
+    if (!changed.size && !visit.removed.length) return null;
+    return { ...visit, changed, on: visitOn, edits: visitEdits, onSeen: (id) => (visitSeen = new Set([...visitSeen, id])) };
+  });
+  const visitIds = $derived(script && marks ? rows(script).map((row) => row.id).filter((id) => marks.changed.has(id)) : []);
+  function stepVisit(by: number) {
+    const count = visitIds.length;
+    if (!count) return;
+    const at = visitIds.indexOf(visitOn);
+    visitOn = visitIds[at < 0 ? (by > 0 ? 0 : count - 1) : (at + by + count) % count];
+    document.querySelector(`[data-visit="${visitOn}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
   const title = $derived(script ? frontValue(script.front, 'title') || path.at(-1) : path.at(-1));
 
   onMount(async () => {
+    const opened = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     try {
       dir = await findScript(folder, path);
       if (!dir) {
@@ -169,6 +195,10 @@
       await started;
       await here();
       await lookForClashes(dir, text);
+      const key = visitKey(folder.name, path);
+      const before = recall(key);
+      keep(key, opened);
+      if (script) visit = sinceVisit(await listVersions(dir).catch(() => []), script, before, name);
       notes = await listNotes(dir).catch(() => []);
       await voice.load(dir);
       checker = setInterval(checkOutside, CHECK_EVERY);
@@ -392,6 +422,8 @@
   // browser sees a send back by someone else.
   let sent = $state<Version>();
   let reviewedAt = $state<Version>();
+  // RV-15's bar: in Write, and in Review only when that has no "What's changed" round of its own (RV-4).
+  const showVisit = $derived(!!marks && (mode === 'write' || (mode === 'review' && !reviewedAt)));
   let back = $state<Version>();
   let reading = 0; // only the newest read counts: an older one can finish later
   function readReview() {
@@ -663,16 +695,22 @@
     <Conflict clashes={clash.merged.clashes} heading={clash.heading} mineLabel={clash.mineLabel}
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={resolve} />
   {:else if script && dir && mode === 'review'}
-    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
+    {#if showVisit && marks}{@render visitBar(marks)}{/if}
+    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} visit={reviewedAt ? null : marks} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
+    {#if showVisit && marks}{@render visitBar(marks)}{/if}
     <Write bind:script bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
-      talk={openThreads} {talking} onTalk={showComment} />
+      talk={openThreads} {talking} onTalk={showComment} visit={marks} />
   {/if}
 </main>
+{#snippet visitBar(shown: Marks)}
+  <VisitBar visit={shown} left={visitSeen.size > 0} at={visitIds.indexOf(visitOn)} bind:edits={visitEdits} onStep={stepVisit}
+    onDone={() => ((visit = null), (visitOn = ''))} />
+{/snippet}
 {#if script && dir && !clash && (mode === 'write' || mode === 'review')}
   <Planning {dir} bind:open={sideOpen} bind:tab={sideTab} count={openCount} comments={mode === 'write' ? comments : undefined} />
 {/if}

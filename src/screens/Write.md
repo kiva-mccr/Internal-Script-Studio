@@ -56,10 +56,16 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.
 - Review comments (RV-13, board 37): a row with open ones (`talk`, from the Editor) shows a blue bubble with the count
   under its number (`.bubble`, `display: flex` or it sat over the number); the row tools, flag and § move down to
-  clear it (`.talk`), so such a row is a little taller. Quotes are marked with CSS highlights on the field's
+  clear it (`--down`), so such a row is a little taller. Quotes are marked with CSS highlights on the field's
   formatted text (`.shown`), so not while that box is focused; the effect reruns when those rows' text changes
   (`quoted`). A click in Dialogue or On screen with the cursor in a quote's words (found in the raw text, so not
   across marks) opens its card (`onTalk`). The row of the card being read is tinted (`.talking`).
 - Find and replace (AP-32): `Find.svelte` sits above the table in a sticky wrapper; the column headings stick below
   it (`--find-h`, its height). Ctrl+F is caught on the window (`findKey`): it opens the bar, or comes back to it, but
   from inside the bar it is left to the browser. ⋯ › Find and replace opens it through the Editor (`finding`).
+- Changed since you last looked (RV-15, board 45): `visit` (from the Editor) marks a row with RV-4's blue bar,
+  "Changed"/"New", who and a ✓ Seen under the number (`.mark`, `.seen`); `data-visit` is what the bar's ‹ › scroll to,
+  `.visit-on` the row stepped to. The row tools, flag and § sit below the bubble and the mark through `--down` (px,
+  set on the row), which also makes the row's min-height. The row stays fully editable: Show the edits puts the old
+  Dialogue or On screen in its own `.was` line above the box, never in it (Images & files shows no old names here;
+  Review does). Removed rows are a grey line after the row they followed (`removedRows`).
