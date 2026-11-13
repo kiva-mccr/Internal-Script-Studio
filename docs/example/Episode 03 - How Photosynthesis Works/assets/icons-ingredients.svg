@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="240" viewBox="0 0 480 240">
+  <rect width="480" height="240" fill="#F4F1E6"/>
+  <circle cx="100" cy="120" r="44" fill="#F2C14E"/>
+  <path d="M240 60 C262 100 276 122 276 144 A36 36 0 0 1 204 144 C204 122 218 100 240 60 Z" fill="#6BA6D9"/>
+  <text x="330" y="136" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#5F5F5F">CO₂</text>
+</svg>
