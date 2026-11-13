@@ -536,9 +536,10 @@ and suggestions, keeps every version, and exports them for production.
   shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
   empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
   Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
-- [ ] **EX-19** A DaVinci Resolve project from the timeline (asked by the user): the app builds a file that DaVinci
-  Resolve opens, with the timeline from SB-1 (images, takes and timings in order), so editors pick it up and keep
-  working on it in Resolve. Needs SB-1 first. Mock-up first.
+- [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
+  2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
+  (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
+  same timeline XML (Final Cut Pro 7 XML), so one file may serve both. Needs SB-1 first. Mock-up first.
 - [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
   shared tick boxes for each row's on-screen shots and files, for the day of filming.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
