@@ -28,6 +28,8 @@ there as steps land and keep the IDs stable.
 - Every code file gets a short note beside it (`name.md`): purpose, then "Rules and pitfalls". Read it before
   editing the file; add the rule or the bug there when you fix one.
 - Every new behaviour gets a test.
+- Keep screen files small: saving and History are `lib/saving.svelte.ts`, one row of Write is `WriteRow.svelte`;
+  a new screen, panel or chunk of logic gets its own file rather than growing `Editor.svelte` or `Write.svelte`.
 
 ## Before handing a round over
 Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as the change.
