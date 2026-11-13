@@ -435,6 +435,9 @@ and suggestions, keeps every version, and exports them for production.
   page should be centred in the part of the page on screen, not on the whole length of the page. The two pop-up
   windows in the code, Settings and Shared files, are pinned to the screen with a gap at the top, so which one the
   user saw (or a menu or panel inside the page) is to be confirmed first. Bug fix, no mock-up needed.
+- [ ] **EX-19** A DaVinci Resolve project from the timeline (asked by the user): the app builds a file that DaVinci
+  Resolve opens, with the timeline from SB-1 (images, takes and timings in order), so editors pick it up and keep
+  working on it in Resolve. Needs SB-1 first. Mock-up first.
 - [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
   shared tick boxes for each row's on-screen shots and files, for the day of filming.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
