@@ -18,7 +18,7 @@ const withCredits = (text: string, credits: Credit[]) => {
 
 describe('credits in the front matter', () => {
   it('are one line of JSON that reads back the same, and the line goes when there are none', () => {
-    const front = writeCredits('title: X\nstatus: draft', [kiva, lee]);
+    const front = writeCredits('title: X\nstatus: draft', [kiva, lee])!;
     expect(front.split('\n')).toHaveLength(3);
     expect(front).toContain('credits: [{"id":"k1","name":"Kiva","role":"Writer"},');
     expect(readCredits(front)).toEqual([kiva, lee]);
