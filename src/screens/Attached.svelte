@@ -7,30 +7,34 @@
 <script lang="ts">
   import { sizeText, type Attachment } from '../lib/comments';
   import { assetFile } from '../lib/folder';
+  import { makePreview, revokePreview, type Preview as Made } from '../lib/preview';
+  import Preview from './Preview.svelte';
 
-  // A comment's or reply's files on its card (RV-11, mock-up 25): images as a small preview, others as a chip with
-  // the size. Clicking opens one in a new tab.
+  // A comment's or reply's files on its card (RV-11, mock-up 25): a preview with the name and size under it (AP-19,
+  // mock-up 41: pictures, PDF, video, sound, text), others as a chip with the size. Clicking opens one in a new tab.
   let { dir, files }: { dir: FileSystemDirectoryHandle; files: Attachment[] } = $props();
 
   let problem = $state('');
-  let previews = $state<Record<string, string>>({});
+  let previews = $state<Record<string, Made | null>>({});
 
   $effect(() => {
-    const paths = files.filter((f) => IMAGE.test(f.name)).map((f) => f.path);
+    const items = files.map((f) => ({ ...f }));
     let gone = false;
-    const made: string[] = [];
+    const made: Made[] = [];
     (async () => {
-      const next: Record<string, string> = {};
-      for (const path of paths) {
-        const file = await assetFile(dir, path);
+      const next: Record<string, Made | null> = {};
+      for (const item of items) {
+        const file = await assetFile(dir, item.path);
         if (!file || gone) continue;
-        made.push((next[path] = URL.createObjectURL(file)));
+        const preview = await makePreview(file, item.name);
+        if (gone) revokePreview(preview);
+        else if (preview) made.push((next[item.path] = preview));
       }
       if (!gone) previews = next;
     })();
     return () => {
       gone = true;
-      made.forEach((url) => URL.revokeObjectURL(url));
+      made.forEach(revokePreview);
     };
   });
 
@@ -47,11 +51,12 @@
 
 <div class="attached">
   {#each files as item (item.path)}
-    {#if previews[item.path]}
-      <button type="button" class="thumb" title="Open {item.name}" onclick={() => open(item)}>
-        <img src={previews[item.path]} alt="Preview of {item.name}" />
-        <span>{item.name}</span>
-      </button>
+    {@const preview = previews[item.path]}
+    {#if preview}
+      <div class="previewed">
+        <Preview {preview} name={item.name} onOpen={() => open(item)} onFail={() => (previews = { ...previews, [item.path]: null })} />
+        <button type="button" class="under" title="Open {item.name}" onclick={() => open(item)}>{item.name} · {sizeText(item.size)}</button>
+      </div>
     {:else}
       <button type="button" class="chip" title="Open {item.name}" onclick={() => open(item)}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4z"></path><path d="M9.5 1.5V5H13"></path></svg>
@@ -65,13 +70,13 @@
 <style>
   .attached { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
   button { font: inherit; cursor: pointer; }
-  .thumb { display: flex; flex-direction: column; gap: 4px; width: 132px; padding: 0; border: 0; background: none; color: #3d3d3d;
-    font-size: 12px; text-align: left; }
-  .thumb img { width: 132px; height: 88px; object-fit: cover; border: 1px solid var(--line); border-radius: 6px; }
-  .thumb span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .previewed { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; max-width: 260px; }
+  .under { max-width: 100%; padding: 0; border: 0; background: none; color: var(--muted); font-size: 12px; text-align: left;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .under:hover { color: var(--accent); }
   .chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 10px;
     border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); font-size: 13px; }
-  .chip:hover, .thumb:hover img { border-color: var(--line-strong); }
+  .chip:hover { border-color: var(--line-strong); }
   .chip svg, .size { flex: none; color: var(--muted); }
   .name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .problem { margin: 0; font-size: 13px; color: var(--muted); }
