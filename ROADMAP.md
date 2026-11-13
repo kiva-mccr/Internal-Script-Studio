@@ -469,6 +469,9 @@ and suggestions, keeps every version, and exports them for production.
   rows stay editable in Write, the old words on their own line above the box (5a); a ✓ Seen per row clears that one
   ("2 changes left", 5b). Built so: `lib/visit.ts` credits each row to the last version that changed it (compared
   with its parent, merges skipped); the bar is `VisitBar.svelte`, shared by Write and Review.
+- [ ] **RV-16** Comments in line order (asked by the user): the comment lists (Review, and Write's Comments tab) show
+  comments in the order of the rows they are on, by default, with a switch to sort them by time instead. Placed by
+  the user after the current queue. Mock-up first.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
