@@ -13,7 +13,7 @@ Print… or Save on the right. Back to the script, the title in the breadcrumb, 
   text `toFountain` gives, voice-over plays the WAV that Save writes. Only the "screenplay look" (`look` snippet)
   is drawn here, roughly as the apps show it, and must follow `lib/fountain.ts` and `lib/fdx.ts` when they change.
 - Settings are remembered with `keep`/`recall`: Print keeps its keys from before (`print-notes`, `print-lines`,
-  `print-scale`); the others are JSON (`export-fountain`, `export-fdx`, `export-voice`), merged over the defaults so a
+  `print-scale`, and `print-hide` for EX-16's hidden columns, in the order they were unticked); the others are JSON (`export-fountain`, `export-fdx`, `export-voice`), merged over the defaults so a
   setting added later gets its default. Defaults are what the exports did before EX-9.
 - Final Draft's one checkbox, "Row numbers and files", sets both `numbers` and `files` (board 27 drew one).
 - Voice-over takes are decoded once, the first time the format is picked; the settings only line them up again

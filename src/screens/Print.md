@@ -2,7 +2,8 @@
 
 The print version (EX-1, mock-up 9): title, authors, version and status, then every row in a table (formatting and
 equations, files by name with image previews, links, "To find:" notes). Room for notes during production when
-asked: a blank Notes column on each row and a lined Notes space at the end. A text size (`scale`). It is seen when
+asked: a blank Notes column on each row and a lined Notes space at the end. A text size (`scale`). Columns can be
+left out (`hidden`, EX-16); widths come from `lib/printcolumns.ts`. It is seen when
 printing (the browser's print window makes the PDF, "Save as PDF"), and with `onScreen` as the export screen's preview (EX-9).
 
 - **Used by:** `screens/Editor.svelte` (to print) and `screens/Export.svelte` (the preview, and Print's choices). **Tests:** `tests/e2e/print.spec.ts`.
@@ -18,4 +19,6 @@ printing (the browser's print window makes the PDF, "Save as PDF"), and with `on
 - `<thead>` repeats the headings on every page, and `break-inside: avoid` keeps a row on one page.
 - Text sizes are in `em` from the page's font size, so the text size choice scales all of them; images don't.
 - `white-space: pre-wrap` sits on an inner `.text` only: on the cell it printed the template's spaces before the text.
+- Column widths are set on the `<th>`s (`table-layout: fixed` takes them from the first row); a row's note goes in
+  the first column that prints, and a section's `colspan` follows the columns printed.
 - Tests replace `window.print` and look at the page with `emulateMedia({ media: 'print' })`.

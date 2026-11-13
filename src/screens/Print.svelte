@@ -2,15 +2,17 @@
   import { onMount } from 'svelte';
   import { assetFile } from '../lib/folder';
   import { renderMath, toHtml } from '../lib/format';
+  import { COLUMNS, widths, type Column } from '../lib/printcolumns';
   import { frontList, frontValue, readFileRef, type Script } from '../lib/script';
 
   // The print version (EX-1, mock-up 9): only shown when printing. `version` is "v3", or "" for a draft.
   // For notes during production (asked by the user): column, a blank Notes column on each row; lines, a lined Notes
-  // space after the last row. scale: the text size, 1 = as drawn (asked by the user).
+  // space after the last row. scale: the text size, 1 = as drawn (asked by the user). hidden: the columns that don't
+  // print, in the order they were unticked (EX-16); their room goes to the others.
   // onReady: called once images and equations are in, so the print window shows the whole page.
   // onScreen: drawn on screen as the export screen's preview (EX-9), never printed.
-  let { script, dir, title, version, column, lines, scale, onScreen = false, onReady = () => {} }: {
-    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: boolean; scale: number;
+  let { script, dir, title, version, column, lines, scale, hidden, onScreen = false, onReady = () => {} }: {
+    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: boolean; scale: number; hidden: Column[];
     onScreen?: boolean; onReady?: () => void;
   } = $props();
 
@@ -27,6 +29,8 @@
 
   let page: HTMLElement;
   let previews = $state<Record<string, string>>({}); // image files in the script's folder, as blob URLs
+  const cols = $derived(COLUMNS.filter((c) => !hidden.includes(c.id)));
+  const width = $derived(widths(hidden, column));
   const numbers = $derived.by(() => {
     let n = 0;
     return script.blocks.map((b) => (b.type === 'row' ? ++n : 0));
@@ -73,31 +77,40 @@
     <p class="stand">{stand}<br />{today}</p>
   </div>
   {#if script.intro}<p class="note">{script.intro}</p>{/if}
-  <table class:notes={column}>
-    <thead><tr><th>#</th><th>Dialogue</th><th>On screen</th><th>Images &amp; files</th>{#if column}<th>Notes</th>{/if}</tr></thead>
+  <table>
+    <thead><tr>
+      <th style:width="{width.num}%">#</th>
+      {#each cols as c (c.id)}<th style:width="{width[c.id]}%">{c.name}</th>{/each}
+      {#if column}<th style:width="{width.notes}%">Notes</th>{/if}
+    </tr></thead>
     <tbody>
       {#each script.blocks as block, i (block)}
         {#if block.type === 'section'}
-          <tr class="section"><td colspan={column ? 5 : 4}>{block.title}</td></tr>
+          <tr class="section"><td colspan={cols.length + (column ? 2 : 1)}>{block.title}</td></tr>
         {:else}
           <tr>
             <td class="num">{numbers[i]}</td>
-            <td class="dialogue">
-              {#if block.note}<p class="note">{block.note}</p>{/if}
-              <div class="text">{@html toHtml(block.dialogue)}</div>
-            </td>
-            <td class="screen"><div class="text">{@html toHtml(block.onScreen)}</div></td>
-            <td class="files">
-              {#each block.files as line, j (j + line)}
-                {@const ref = readFileRef(line)}
-                {@const src = preview(line)}
-                <div class:words={ref.kind === 'words'}>
-                  {#if src}<img {src} alt="" />{/if}
-                  {ref.kind === 'words' ? `To find: ${ref.label}` : ref.label}
-                  {#if ref.kind === 'link' && ref.label !== ref.target}<span class="target">{ref.target}</span>{/if}
-                </div>
-              {/each}
-            </td>
+            {#each cols as c, k (c.id)}
+              <td class={c.id}>
+                <!-- A row's note goes in the first column that prints. -->
+                {#if k === 0 && block.note}<p class="note">{block.note}</p>{/if}
+                {#if c.id === 'dialogue'}
+                  <div class="text">{@html toHtml(block.dialogue)}</div>
+                {:else if c.id === 'screen'}
+                  <div class="text">{@html toHtml(block.onScreen)}</div>
+                {:else}
+                  {#each block.files as line, j (j + line)}
+                    {@const ref = readFileRef(line)}
+                    {@const src = preview(line)}
+                    <div class:words={ref.kind === 'words'}>
+                      {#if src}<img {src} alt="" />{/if}
+                      {ref.kind === 'words' ? `To find: ${ref.label}` : ref.label}
+                      {#if ref.kind === 'link' && ref.label !== ref.target}<span class="target">{ref.target}</span>{/if}
+                    </div>
+                  {/each}
+                {/if}
+              </td>
+            {/each}
             {#if column}<td class="blank"></td>{/if}
           </tr>
         {/if}
@@ -125,8 +138,6 @@
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   th { padding: 8px 6px 4px; text-align: left; font-size: 0.8em; font-weight: 600; color: #5f5f5f; text-transform: uppercase;
     letter-spacing: 0.04em; border-bottom: 1px solid #cfcfcf; }
-  th:nth-child(1) { width: 4%; } th:nth-child(2) { width: 38%; } th:nth-child(3) { width: 32%; }
-  .notes th:nth-child(2) { width: 29%; } .notes th:nth-child(3) { width: 23%; } .notes th:nth-child(5) { width: 22%; }
   .blank { border-left: 1px solid #e6e6e6; }
   tr { break-inside: avoid; }
   td { padding: 8px 6px; vertical-align: top; border-bottom: 1px solid #e6e6e6; overflow-wrap: break-word; }
