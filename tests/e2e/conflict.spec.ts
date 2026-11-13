@@ -59,7 +59,7 @@ test('“… is editing” shows who else has the script open', async ({ page })
 test('a copy OneDrive kept beside script.md is combined, then removed', async ({ page }) => {
   await openExample(page, { 'Episode 03/script-LAPTOP-SAM.md': example.replace('They turn it into sugar', 'From the copy') });
   await expect(page.getByLabel('Dialogue, row 4')).toHaveValue(/From the copy/);
-  expect(await readFile(page, SCRIPT)).toContain('From the copy');
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('From the copy');
   await expect.poll(() => listFiles(page, 'Episode 03')).not.toContain('script-LAPTOP-SAM.md');
 });
 

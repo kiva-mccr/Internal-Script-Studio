@@ -55,6 +55,8 @@ export class Saving {
   // ("Changed the status") beside it.
   #changingStatus: Promise<void> = Promise.resolve();
   #since = new Date().toISOString();
+  #backupKey = ''; // where typing not saved yet is kept in this browser, in case the page closes first
+  #backupTimer: ReturnType<typeof setTimeout> | undefined;
 
   // name: a getter, since the Editor's props can go before its leaving is done. notice: a message for the person.
   // onEntry: a status change's History entry was written (the Editor reads Review's notes again).
@@ -80,6 +82,8 @@ export class Saving {
     await this.readEditors();
     await this.#lookForCopies(dir, text);
     await this.#sync();
+    this.#backupKey = `unsaved:${this.folder.name}/${path.join('/')}`;
+    this.#restoreBackup();
     return true;
   }
 
@@ -351,6 +355,34 @@ export class Saving {
     if (this.status === 'conflict' || this.status === 'locked') return; // kept in the page, saved once that is settled
     if (this.status !== 'failed') this.status = 'waiting';
     this.#timer ??= setTimeout(() => this.save(), SAVE_EVERY);
+    clearTimeout(this.#backupTimer);
+    this.#backupTimer = setTimeout(() => this.#backup(), 1000);
+  }
+
+  // Typing not saved yet, kept in this browser (with what it was typed on), so a page closed before its save keeps
+  // it: the next opening here folds it back in and saves it.
+  #backup() {
+    if (!this.#backupKey || !this.script) return;
+    try {
+      const text = this.#pageText(false);
+      if (text === this.shared) localStorage.removeItem(this.#backupKey);
+      else localStorage.setItem(this.#backupKey, JSON.stringify({ base: this.shared, text }));
+    } catch {
+      // Storage full or blocked: the 30 s save still keeps it.
+    }
+  }
+
+  #restoreBackup() {
+    try {
+      const kept = JSON.parse(localStorage.getItem(this.#backupKey) ?? 'null') as { base: string; text: string } | null;
+      const delta = kept && diff(kept.base, kept.text);
+      if (!delta || this.status !== 'saved') return;
+      const merged = fold(delta, this.#pageText(false));
+      if (merged.clashes.length) return void this.#offer(merged, { heading: 'What you typed last time and a later change both changed the same place', mineLabel: 'Now', theirsLabel: 'Typed last time', mineName: 'the script now', theirsName: 'you, last time' });
+      this.#show(merged.text({}));
+    } catch {
+      // Nothing usable kept.
+    }
   }
 
   // One save at a time: a second one started mid-write would write the same change twice.
@@ -394,6 +426,7 @@ export class Saving {
         this.script.front = parseScript(text).front; // this person among the authors, in the page too
       }
       this.problem = '';
+      this.#backup();
       // Edits typed while saving start another save.
       if (this.status === 'saving') this.status = 'saved';
       await this.#keep();
