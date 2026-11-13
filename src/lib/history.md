@@ -12,6 +12,8 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
   versions lie before them); sorting by name alone put them in a random order (bug found while building).
 - A file that can't be read (half-synced) is skipped, never an error.
 - Rows are matched by id, so a moved row is not "edited".
+- A row's `Change` carries its `row` id and `field` (as comments name it, `on_screen`), so History can put a comment
+  under it (RV-6); a removed row has only `row`.
 - Official versions (kind `official`, or a send for review with `official: true`, RV-9: `isOfficial`) get their
   number from `officialNumbers`, by the order they were made; never stored. `officialNumber` says which one the
   script still is (printing), or 0 once anything has changed since the newest. "Changed" is `sameScript`: the

@@ -17,7 +17,8 @@ export type Version = {
   sha256: string;
   text: string;
 };
-export type Change = { where: string; old: string; new: string };
+// row and field (as comments name them) say which cell changed; a removed row has no field.
+export type Change = { where: string; old: string; new: string; row?: string; field?: 'dialogue' | 'on_screen' | 'files' };
 
 export const OUTSIDE = 'Outside the app';
 
@@ -234,12 +235,12 @@ export function changes(beforeText: string | undefined, afterText: string): Chan
     for (const [field, label] of FIELDS) {
       const was = old ? fieldText(old, field) : '';
       const is = fieldText(row, field);
-      if (was !== is) list.push({ where: `Row ${n} · ${label}`, old: was || '(empty)', new: is || '(empty)' });
+      if (was !== is) list.push({ where: `Row ${n} · ${label}`, old: was || '(empty)', new: is || '(empty)', row: row.id, field: FIELD_KEY[field] });
     }
   }
   const kept = new Set(newRows.map((r) => r.row.id));
   for (const { row, n } of oldRows.values()) {
-    if (!kept.has(row.id)) list.push({ where: `Row ${n} (removed)`, old: row.dialogue || row.onScreen || '(empty)', new: '' });
+    if (!kept.has(row.id)) list.push({ where: `Row ${n} (removed)`, old: row.dialogue || row.onScreen || '(empty)', new: '', row: row.id });
   }
   if (!list.length && sectionTitles(before) !== sectionTitles(after)) {
     list.push({ where: 'Sections', old: sectionTitles(before) || '(none)', new: sectionTitles(after) || '(none)' });
@@ -252,6 +253,7 @@ const FIELDS = [
   ['onScreen', 'On screen'],
   ['files', 'Images & files'],
 ] as const;
+const FIELD_KEY = { dialogue: 'dialogue', onScreen: 'on_screen', files: 'files' } as const;
 
 function fieldText(row: Row, field: (typeof FIELDS)[number][0]): string {
   return field === 'files' ? row.files.join('\n') : row[field];

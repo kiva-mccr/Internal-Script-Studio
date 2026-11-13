@@ -36,7 +36,7 @@ describe('summary', () => {
 describe('changes', () => {
   it('lists each changed field, old and new', () => {
     expect(changes(example, edit('Slow push-in on a sunlit leaf.', 'Wide shot.'))).toEqual([
-      { where: 'Row 1 · On screen', old: 'Slow push-in on a sunlit leaf.', new: 'Wide shot.' },
+      { where: 'Row 1 · On screen', old: 'Slow push-in on a sunlit leaf.', new: 'Wide shot.', row: 'k3f9a', field: 'on_screen' },
     ]);
     expect(changes(undefined, example)).toEqual([{ where: 'Script', old: '(new file)', new: 'How Photosynthesis Works' }]);
   });

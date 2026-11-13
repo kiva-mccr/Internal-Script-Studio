@@ -13,9 +13,11 @@ async function open(page: Page, files: Record<string, string> = {}) {
   await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
 }
 
-// Oldest first, by `when` (file names keep only seconds).
+// Oldest first, by `when` (file names keep only seconds). A file still being written reads empty: left out until done.
 const notes = async (page: Page) =>
-  (await Promise.all((await listFiles(page, COMMENTS)).filter((f) => f.endsWith('.json')).map(async (f) => JSON.parse(await readFile(page, `${COMMENTS}/${f}`)))))
+  (await Promise.all((await listFiles(page, COMMENTS)).filter((f) => f.endsWith('.json')).map((f) => readFile(page, `${COMMENTS}/${f}`))))
+    .filter((text) => text.trim())
+    .map((text) => JSON.parse(text))
     .sort((a, b) => (a.when < b.when ? -1 : 1));
 
 const flagFile = (row: string, who: string, text: string, when: string) => ({
