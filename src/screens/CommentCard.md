@@ -17,3 +17,4 @@ the same card.
 - Edit and Delete show only on `me`'s own while open. While its own edit box is open its other actions are hidden.
 - `use` (Write only, RV-12) passes "Use in script" to its files and its replies' files, naming who it came from.
 - A click anywhere on it calls `onActivate` (marks it, and in Write goes to its row), buttons included.
+- `active` is a solid blue outline, ring and tint (RV-20): a pale border alone was too hard to see.

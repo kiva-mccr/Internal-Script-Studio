@@ -473,15 +473,18 @@ and suggestions, keeps every version, and exports them for production.
   comments in the order of the rows they are on, by default, with a switch to sort them by time or by type instead.
   By type puts suggestions first, then comments on specific words, then comments on a whole row (the user's order).
   Placed by the user after the current queue. Mock-up first.
-- [ ] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
+- [x] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
   comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
-  comment back into view. Bug fix, no mock-up needed.
-- [ ] **RV-18** A resolved comment moves into Resolved by itself (a bug the user hit): today it stays in the open list
+  comment back into view. Bug fix, no mock-up needed. Built so: a click on a quote does the same.
+- [x] **RV-18** A resolved comment moves into Resolved by itself (a bug the user hit): today it stays in the open list
   until the comment panel is closed and opened again. The user likes the Undo, so a resolved comment stays in place
   for about 5 seconds with Undo showing, then moves into the Resolved dropdown on its own. Bug fix, no mock-up needed.
-- [ ] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
+  Built so: in Write's Comments tab, 5 seconds, accepted and rejected suggestions too; Review still moves it at once.
+- [x] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
   is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
-  RV-18: a before and after picture is shown to the user before it is merged.
+  RV-18: a before and after picture is shown to the user before it is merged. Built so (the user: "looks good"): a
+  solid blue outline with a soft ring and tint on the card, a short flash when you jump to it, and a darker tint
+  with a blue bar on its row in Write. Pictures: project files, comment-highlight/.
 - [ ] **RV-21** Tab counts that say what's new for you (asked by the user): today the Review tab's number is the open
   comments. Instead, Review counts the rows changed between Send back to writer and the next Send for review (what
   the reviewer has to look at), and Write counts the comments and suggestions made between Send for review and Send

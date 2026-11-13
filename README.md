@@ -40,7 +40,7 @@ Status: a first working version. What it does today:
   shows others' saves, but is not part of the script: no History versions and not in any export. The browser
   remembers whether it is open.
 - **Comments in Write:** in Write the same panel has a second tab, Comments, so the writer works through review
-  comments while rewriting: reply, resolve (Undo while the panel is open), and accept or reject suggestions. Rows
+  comments while rewriting: reply, resolve (Undo for 5 seconds, then it moves into Resolved), and accept or reject suggestions. Rows
   with something open show a small blue speech bubble with the count under the row number, and the quoted words are
   marked yellow; click either to open that card, and click a card to go to its row. New comments are still started
   in Review. After a send back, Write opens on Comments with the reviewer's note at the top. A file on a comment

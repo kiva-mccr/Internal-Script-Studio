@@ -80,7 +80,7 @@ test('in Write the writer accepts a suggestion, resolves with Undo and replies w
   await expect(page.getByRole('button', { name: /on row 3/ })).toHaveCount(0);
   await expect(panel.getByRole('button', { name: 'Comments · 2' })).toBeVisible();
 
-  // Resolve asks nothing; Undo is there while the panel is open.
+  // Resolve asks nothing; Undo is there for a few seconds (RV-18).
   const ben = panel.getByRole('article', { name: 'Comment by Ben' });
   await ben.getByRole('button', { name: 'Resolve' }).click();
   await expect(ben).toContainText('Resolved.');
@@ -101,6 +101,64 @@ test('in Write the writer accepts a suggestion, resolves with Undo and replies w
   const files = await readJsonFiles(page, COMMENTS);
   expect(files.map((f) => f.kind).sort()).toEqual(['accept', 'comment', 'comment', 'reopen', 'reply', 'resolve', 'suggestion']);
   expect(files.find((f) => f.kind === 'reply')).toMatchObject({ who: 'Sam', about: 'ana00001' });
+});
+
+test('a resolved or decided card waits 5 seconds with Undo, then moves into Resolved by itself (RV-18)', async ({ page }) => {
+  await page.clock.install();
+  await open(page, [SUGGEST, BEN]);
+  await page.clock.pauseAt(Date.now() + 60_000); // time moves only when the test says, so the waits can't overlap
+  await page.getByRole('button', { name: 'Open comments, 2 open' }).click();
+  const panel = page.getByRole('complementary', { name: 'Comments' });
+  const ben = panel.getByRole('article', { name: 'Comment by Ben' });
+  await ben.getByRole('button', { name: 'Resolve' }).click();
+  await expect(ben).toContainText('Resolved.');
+  await page.clock.runFor(3000);
+  await expect(ben.getByRole('button', { name: 'Undo' })).toBeVisible();
+  await expect(panel.getByRole('button', { name: /Resolved ·/ })).toHaveCount(0);
+  const ana = panel.getByRole('article', { name: 'Suggestion by Ana' });
+  await ana.getByRole('button', { name: 'Reject' }).click();
+  await expect(ana).toContainText('Rejected.');
+  // Five seconds after Resolve it moves on; the rejected one follows on its own five seconds.
+  await page.clock.runFor(2500);
+  await expect(ben).toHaveCount(0);
+  await expect(panel.getByRole('button', { name: 'Resolved · 1' })).toBeVisible();
+  await expect(ana).toContainText('Rejected.');
+  await page.clock.runFor(3000);
+  await expect(panel.getByRole('button', { name: 'Resolved · 2' })).toBeVisible();
+  await expect(panel).toContainText('No open comments.');
+
+  // Undo within the wait keeps it open, and a later wait does not take it away.
+  await panel.getByRole('button', { name: 'Resolved · 2' }).click();
+  // (Each step a second apart: notes are put in order by their time, and the clock is stopped.)
+  await panel.getByRole('article', { name: 'Comment by Ben' }).getByRole('button', { name: 'Reopen' }).click();
+  const again = panel.getByRole('article', { name: 'Comment by Ben' });
+  await page.clock.runFor(1000);
+  await again.getByRole('button', { name: 'Resolve' }).click();
+  await page.clock.runFor(1000);
+  await again.getByRole('button', { name: 'Undo' }).click();
+  await expect(again.getByRole('button', { name: 'Resolve' })).toBeVisible();
+  await page.clock.runFor(6000);
+  await expect(again.getByRole('button', { name: 'Resolve' })).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'Resolved · 1' })).toBeVisible();
+});
+
+test('clicking the bubble again scrolls back to the card, and the card stands out (RV-17, RV-20)', async ({ page }) => {
+  await open(page, [ANA, SUGGEST, BEN]);
+  await page.setViewportSize({ width: 1280, height: 420 });
+  await page.getByRole('button', { name: '1 open comment on row 4' }).click();
+  const ben = page.getByRole('complementary', { name: 'Comments' }).getByRole('article', { name: 'Comment by Ben' });
+  await expect(ben).toBeInViewport({ ratio: 0.9 });
+  expect(await ben.evaluate((el) => getComputedStyle(el).borderColor)).toBe('rgb(42, 91, 215)');
+  await expect(page.locator('.row.talking')).toHaveCSS('background-color', 'rgb(238, 243, 253)');
+  // Scroll the panel away, then click the same bubble while Ben's is still selected.
+  await ben.evaluate((el) => {
+    let box = el.parentElement;
+    while (box && box.scrollHeight <= box.clientHeight) box = box.parentElement;
+    box!.scrollTop = box!.scrollHeight;
+  });
+  await expect(ben).not.toBeInViewport({ ratio: 0.5 });
+  await page.getByRole('button', { name: '1 open comment on row 4' }).click();
+  await expect(ben).toBeInViewport({ ratio: 0.9 });
 });
 
 test('a card takes Write to its row', async ({ page }) => {

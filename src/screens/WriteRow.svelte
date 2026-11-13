@@ -239,7 +239,7 @@
   .bubble { display: flex; width: fit-content; align-items: center; gap: 3px; min-height: 28px; margin: 4px 0 0 -6px; padding: 0 6px; border: 1px solid #c9d6f5;
     border-radius: 6px; background: #eef2fb; color: var(--accent); font-size: 12px; font-weight: 600; }
   .bubble:hover { border-color: var(--accent); }
-  .row.talking { border-radius: 8px; background: #f7f9fe; }
+  .row.talking { border-radius: 8px; background: #eef3fd; box-shadow: inset 3px 0 0 var(--accent); }
   /* Changed since you last looked (RV-15, board 45): RV-4's blue bar, "Changed" or "New" and who, ✓ Seen under it. */
   .row.visited { box-shadow: inset 4px 0 0 var(--accent); }
   .row.visit-on { background: #f5f8fe; }

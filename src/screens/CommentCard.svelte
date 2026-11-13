@@ -218,7 +218,8 @@
 
 <style>
   .card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-  .card.active { border-color: #b9c7ee; }
+  /* The one being read (RV-20): a blue outline and tint that stand out, not just a pale border. */
+  .card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 0 5px #d9e3fb; background: #f5f8ff; }
   .card.done { background: #fafafa; }
   .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
   .who strong { color: var(--ink); font-weight: 600; }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { onDestroy, tick, untrack } from 'svelte';
   import { quoteGone, threads, type Attachment, type Field, type Note } from '../lib/comments';
   import type { Version } from '../lib/history';
   import type { Row, Script } from '../lib/script';
@@ -15,6 +15,7 @@
     me,
     back,
     active = $bindable(),
+    goTo = 0,
     onAdd,
     onApply,
     onShow,
@@ -26,6 +27,7 @@
     me: string;
     back?: Version; // the send back (its note at the top), while the script is a draft again
     active: string; // the card being read; its quote is marked darker in Write
+    goTo?: number; // bumped each time Write asks for `active` (a bubble or a quote), even the same one again (RV-17)
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
     onShow: (row: string) => void;
@@ -33,7 +35,7 @@
   } = $props();
 
   const LABELS: Record<Field, string> = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
-  let recent = $state<string[]>([]); // decided or resolved here: kept in place with Undo while the panel is open
+  let recent = $state<string[]>([]); // decided or resolved here: kept in place with Undo for a few seconds (RV-18)
   let gone = $state<string[]>([]); // deleted here: kept as "… deleted. Undo"
   let showResolved = $state(false);
   const all = $derived(
@@ -59,11 +61,30 @@
     return c.quote ? `row ${n}, ${LABELS[c.field ?? 'dialogue']}` : `row ${n}`;
   }
 
-  // A bubble or a quote in Write picked a card: bring it into view in the panel.
+  // Decided or resolved here: in place with Undo for 5 seconds, then into Resolved by itself (RV-18). Undo within
+  // that time leaves it open; deciding it again starts a new wait.
+  const WAIT = 5000;
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  function decided(id: string) {
+    clearTimeout(timers.get(id));
+    recent = [...recent.filter((r) => r !== id), id];
+    timers.set(id, setTimeout(() => (timers.delete(id), (recent = recent.filter((r) => r !== id))), WAIT));
+  }
+  onDestroy(() => timers.forEach(clearTimeout));
+
+  // A bubble or a quote in Write picked a card: bring it into view in the panel, every time it is asked for, even
+  // when it is already the one being read (RV-17), and flash its outline so the eye finds it (RV-20).
   let list = $state<HTMLElement>();
   $effect(() => {
-    const id = active;
-    tick().then(() => list?.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest' }));
+    void goTo;
+    const id = untrack(() => active);
+    tick().then(() => {
+      const card = list?.querySelector<HTMLElement>(`[data-id="${id}"]`);
+      if (!card) return;
+      card.scrollIntoView({ block: 'nearest' });
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches)
+        card.animate([{ boxShadow: '0 0 0 1px #2a5bd7, 0 0 0 10px #b9cbf5' }, {}], { duration: 700, easing: 'ease-out' });
+    });
   });
 </script>
 
@@ -77,7 +98,7 @@
   {#each shown as t (t.comment.id)}
     <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
       recent={recent.includes(t.comment.id)} undoResolve use={t.resolved ? undefined : use(t.comment)} onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
-      {onAdd} {onApply} onDecided={(id) => (recent = [...recent, id])}
+      {onAdd} {onApply} onDecided={decided}
       onGone={(id, deleted) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id))} />
   {:else}
     <p class="quiet">No open comments.</p>
