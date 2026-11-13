@@ -1,6 +1,8 @@
 <script lang="ts" module>
-  // Print's choices: a Notes column on each row, a Notes space at the end, and the text size in %.
-  export type PrintChoices = { column: boolean; lines: boolean; scale: number };
+  import type { Column } from '../lib/printcolumns';
+  // Print's choices: a Notes column on each row, a Notes space at the end, the text size in %, and the columns that
+  // print (EX-16).
+  export type PrintChoices = { column: boolean; lines: boolean; scale: number; hidden: Column[] };
   export type Format = 'print' | 'fountain' | 'fdx' | 'voice';
 </script>
 
@@ -13,6 +15,7 @@
   import { toFdx } from '../lib/fdx';
   import { SCREENPLAY, speakerName, toFountain, type Screenplay } from '../lib/fountain';
   import { clock, countWords, speaking } from '../lib/readtime.svelte';
+  import { COLUMNS, readHidden } from '../lib/printcolumns';
   import { keep, recall } from '../lib/remember';
   import { frontValue, rows, type Script } from '../lib/script';
   import { join, lineUp, readClips, wav, type Clip } from '../lib/voiceexport';
@@ -35,7 +38,8 @@
   const name = $derived(safeName(title) || 'script');
 
   // Settings, remembered. Print keeps its keys from before (they were in the Export menu).
-  let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: !!recall('print-lines'), scale: Number(recall('print-scale')) || 100 });
+  let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: !!recall('print-lines'), scale: Number(recall('print-scale')) || 100,
+    hidden: readHidden(recall('print-hide')) });
   let fountain = $state<Screenplay>(load('export-fountain', SCREENPLAY));
   let fdx = $state<Screenplay>(load('export-fdx', SCREENPLAY));
   let voiceHow = $state(load('export-voice', { gap: false, silence: false }));
@@ -43,10 +47,15 @@
     keep('print-notes', printing.column ? '1' : '');
     keep('print-lines', printing.lines ? '1' : '');
     keep('print-scale', String(printing.scale));
+    keep('print-hide', printing.hidden.join(','));
     keep('export-fountain', JSON.stringify(fountain));
     keep('export-fdx', JSON.stringify(fdx));
     keep('export-voice', JSON.stringify(voiceHow));
   });
+  // Ticks a column on or off; the hidden ones stay in the order they were unticked (their room goes in turns).
+  function showColumn(id: Column, on: boolean) {
+    printing.hidden = on ? printing.hidden.filter((c) => c !== id) : [...printing.hidden, id];
+  }
   function load<T extends object>(key: string, fallback: T): T {
     try {
       return { ...fallback, ...JSON.parse(recall(key) || '{}') };
@@ -169,7 +178,7 @@
     {#if format === 'print'}
       <p class="caption">As it will print. Print… opens the browser's print window, where "Save as PDF" makes the PDF.</p>
       <div class="page">
-        <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} onScreen />
+        <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} onScreen />
       </div>
     {:else if format === 'fountain'}
       <p class="caption">{name}.fountain</p>
@@ -221,6 +230,14 @@
     <div class="card">
       <h2>Settings</h2>
       {#if format === 'print'}
+        <fieldset>
+          <legend>Columns to print</legend>
+          {#each COLUMNS as c (c.id)}
+            {@const on = !printing.hidden.includes(c.id)}
+            <label><input type="checkbox" checked={on} disabled={on && printing.hidden.length === COLUMNS.length - 1} onchange={() => showColumn(c.id, !on)} /> {c.name}</label>
+          {/each}
+          {#if printing.hidden.length === COLUMNS.length - 1}<p class="kept">At least one column prints.</p>{/if}
+        </fieldset>
         <label><input type="checkbox" bind:checked={printing.column} /> Notes column on each row</label>
         <label><input type="checkbox" bind:checked={printing.lines} /> Notes space at the end</label>
         <label class="size">Text size <input type="range" min="60" max="140" step="5" bind:value={printing.scale} /> <span>{printing.scale}%</span></label>
@@ -294,6 +311,8 @@
   label.text input { min-height: 40px; padding: 0 10px; border: 1px solid #d6d6d6; border-radius: 6px; font: inherit; }
   .size input { flex: 1; min-width: 0; }
   .kept { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+  fieldset { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0 0 10px; border: 0; border-bottom: 1px solid var(--line); }
+  legend { padding: 0; margin-bottom: 4px; font-size: 12px; color: var(--muted); }
   .primary { min-height: 44px; font-size: 14px; }
   .primary:disabled { opacity: 0.5; cursor: default; }
 </style>

@@ -292,8 +292,12 @@ and suggestions, keeps every version, and exports them for production.
   one, Moonshine doesn't), so fewer misheard words pull the marker.
 - [ ] **EX-15** Print: notes on every page (asked by the user): the lined Notes space (EX-1) goes at the foot of every
   printed page instead of once at the end of the script. Mock-up first.
-- [ ] **EX-16** Print: collapse columns (asked by the user): choose which of the three columns print (for example the
-  dialogue only, or no Images & files), and the rest widen to fill the page; kept with Print's other choices. Mock-up first.
+- [x] **EX-16** Print: collapse columns (asked by the user): choose which of the three columns print (for example the
+  dialogue only, or no Images & files), and the rest widen to fill the page; kept with Print's other choices. Mock-up:
+  board 38, built as drawn: "Columns to print" ticks at the top of Print's settings, all on by default; the last one
+  can't be unticked. The user's widening rule: the first column unticked gives its room to Dialogue, the next to the
+  Notes column, in turns (no Notes column: all to Dialogue; Dialogue hidden: to Notes, or else the first column left).
+  # and section headings always print; a row's grey note goes in the first column that prints.
 - [x] **EX-3** Fountain (Trelby and other screenplay programs). Mock-up: board 11, built as drawn, under a new
   Export button (asked by the user: "an export button, that holds print, .fountain, and anything else we add");
   the ⋯ menu keeps Teleprompter and Copy link. A section is a scene heading (`.TITLE`), NARRATOR speaks the

@@ -86,3 +86,37 @@ test('the official version number is printed while the script is still that vers
   await page.emulateMedia({ media: 'screen' });
   await expect(page.getByLabel('Preview')).toContainText('v1 · In review'); // the preview says so too
 });
+
+test('columns to print: the rest widen (Dialogue first, then Notes), one always prints, remembered', async ({ page }) => {
+  await openExample(page);
+  await openPrint(page);
+  const preview = page.getByLabel('Preview');
+  const width = (name: string) => preview.locator('th', { hasText: name }).evaluate((th) => th.style.width);
+  await page.getByLabel('Notes column on each row').check();
+  await page.getByLabel('Images & files').uncheck();
+  expect(await width('Dialogue')).toBe('51%'); // 29 + the files' 22
+  expect(await width('Notes')).toBe('22%');
+  await page.getByLabel('On screen').uncheck();
+  expect(await width('Notes')).toBe('45%'); // 22 + on screen's 23
+  await expect(preview.locator('th')).toHaveText(['#', 'Dialogue', 'Notes']);
+  await expect(page.getByLabel('Dialogue', { exact: true })).toBeDisabled();
+  await expect(page.getByLabel('Settings')).toContainText('At least one column prints.');
+  await expect(preview).toContainText('Every leaf'); // the dialogue
+  await expect(preview).not.toContainText('Slow push-in on a sunlit leaf.');
+  await expect(preview.locator('tr.section td').first()).toHaveAttribute('colspan', '3');
+
+  // The printed page follows, and the choice is kept for next time.
+  await page.getByLabel('Settings').getByRole('button', { name: 'Print…' }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.print-view th')).toHaveText(['#', 'Dialogue', 'Notes']);
+  await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await page.getByRole('button', { name: 'Back to the script' }).click();
+  await openPrint(page);
+  await expect(page.getByLabel('On screen')).not.toBeChecked();
+  await expect(page.getByLabel('Images & files')).not.toBeChecked();
+  await page.getByLabel('Images & files').check();
+  await page.getByLabel('Dialogue', { exact: true }).uncheck();
+  await expect(preview.locator('th')).toHaveText(['#', 'Images & files', 'Notes']);
+});
