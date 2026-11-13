@@ -275,6 +275,9 @@ export class Saving {
   async leave() {
     await this.#changingStatus;
     await this.saveWaiting();
+    // Under load, typing can still be marked as waiting once that save is done (seen as a missing History entry in
+    // the "same second" test): saved again, at most twice more.
+    for (let i = 0; i < 2 && this.status === 'waiting'; i++) await this.saveWaiting();
     if (this.status !== 'saved') return;
     // In line with saves and the 5 s check: two History entries worked out at once could both be made.
     await (this.#saving = this.#saving.then(() => (this.#keeper() ? this.#keep(true) : this.#record(this.shared, '', true).catch(() => {}))));
