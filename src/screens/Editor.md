@@ -80,3 +80,9 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   (`talking`) live here, so a bubble in Write can open the panel at a card. `readReview` also runs in Write: the
   send back (`back`, from `backNote`) while the status is draft. It opens the panel on Comments once per send back
   (`seen-back` in this browser), and never for your own.
+- Changed since you last looked (RV-15): on opening (after History is started and clashes are combined, so their
+  entries count) the time this browser last opened the script is read and replaced by this opening's
+  (`visitKey`, localStorage), and `sinceVisit` works out the marks once. Seen (`visitSeen`), the stepped row
+  (`visitOn`) and Got it last until the script is left. `marks` drops rows that are no longer there. Show the edits is
+  `review-edits`, the same choice as Review's. The bar (`VisitBar.svelte`) is above Write, and above Review only when
+  that has no `reviewedAt` (`showVisit`).

@@ -15,7 +15,7 @@ export function ago(time: number, now = Date.now()): string {
 // "Today, 2:41 pm", "Yesterday, 4:20 pm", "Nov 6, 9:12 am" (and the year if not this one): History's times.
 export function at(time: number, now = Date.now()): string {
   const date = new Date(time);
-  const clock = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(' AM', ' am').replace(' PM', ' pm');
+  const clock = timeOf(date);
   const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const days = Math.round((day(new Date(now)) - day(date)) / 86400000);
   if (days === 0) return `Today, ${clock}`;
@@ -23,3 +23,18 @@ export function at(time: number, now = Date.now()): string {
   const sameYear = date.getFullYear() === new Date(now).getFullYear();
   return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' })}, ${clock}`;
 }
+
+// "since 2:41 pm" (today), "since yesterday", "since Tuesday" (this past week), then "since Nov 3" (RV-15).
+export function sinceDay(time: number, now = Date.now()): string {
+  const date = new Date(time);
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((day(new Date(now)) - day(date)) / 86400000);
+  if (days <= 0) return `since ${timeOf(date)}`;
+  if (days === 1) return 'since yesterday';
+  if (days < 7) return `since ${date.toLocaleDateString('en-US', { weekday: 'long' })}`;
+  const sameYear = date.getFullYear() === new Date(now).getFullYear();
+  return `since ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' })}`;
+}
+
+// "2:41 pm".
+const timeOf = (date: Date) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(' AM', ' am').replace(' PM', ' pm');

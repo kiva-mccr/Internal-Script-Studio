@@ -40,3 +40,6 @@ Comments tab (RV-13). Approve / Send back (RV-3) are in `Header.svelte`.
   Play carries on across the switch. The number button is `.playfrom`, not `.from`: `.sent .from` is the note's line.
   The row carries `data-play` for the page to follow it; `data-row` is the cells' (the highlights look them up).
 - Flagged rows (AP-9) show their note under the row, with no buttons: flags are set and cleared in Write.
+- Changed since you last looked (RV-15): with no `reviewedAt` the Editor passes `visit`, and its marks are drawn as
+  RV-4's (`marks`), plus who and ✓ Seen under the tag. Show the edits then follows the Editor's bar (`edits`), not
+  Review's own tick. The bar itself is the Editor's (`VisitBar.svelte`), so the RV-4 bar and it never show together.

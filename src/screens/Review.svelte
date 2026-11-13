@@ -13,6 +13,7 @@
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { at } from '../lib/when';
   import { sinceReview, type Version } from '../lib/history';
+  import type { Marks } from '../lib/visit';
 
   // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
   // change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
@@ -24,6 +25,7 @@
     me,
     sent,
     reviewedAt,
+    visit,
     voice,
     player,
     canPlay,
@@ -39,6 +41,7 @@
     me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
     sent?: Version; // the note sent with it for review (RV-8), shown at the top while it is in review
     reviewedAt?: Version; // when the last review ended (RV-4): rows changed since are marked
+    visit: Marks | null; // changed since you last looked (RV-15): marked instead when there is no reviewedAt
     // `files`: new files to attach to it (RV-11).
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     // Replaces `from` with `to` in a row's field (Write's text); false if `from` is no longer there.
@@ -104,7 +107,10 @@
   let showEdits = $state(!!recall('review-edits'));
   let onlyChanged = $state(false);
   const since = $derived(reviewedAt ? sinceReview(parseScript(reviewedAt.text), script) : null);
-  const marks = $derived(marking ? since : null);
+  // With no review round to compare with, the rows others changed since your last look are marked the same way.
+  const marks = $derived(since ? (marking ? since : null) : visit);
+  const edits = $derived(since ? showEdits : !!visit?.edits);
+  const visitBy = (id: string) => (since ? undefined : visit?.by.get(id));
   const removedAfter = $derived.by(() => {
     const map = new Map<string, Row[]>();
     for (const { after, row } of marks?.removed ?? []) map.set(after, [...(map.get(after) ?? []), row]);
@@ -146,7 +152,7 @@
   $effect(() => {
     const list = open;
     const on = active;
-    void [script, marks, showEdits, onlyChanged]; // each redraws the cells
+    void [script, marks, edits, onlyChanged]; // each redraws the cells
     tick().then(async () => {
       if (!table) return;
       await renderMath(table);
@@ -252,8 +258,9 @@
         {@const take = voice.takes[block.id]}
         {@const here = player.row === block.id}
         {@const sounding = voice.playing === block.id || (here && player.on)}
+        {@const by = was !== undefined ? visitBy(block.id) : undefined}
         <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}
-          class:changed={was !== undefined} class:here data-play={block.id}>
+          class:changed={was !== undefined} class:visit-on={by && visit?.on === block.id} class:here data-play={block.id} data-visit={by ? block.id : undefined}>
           <div class="num">
             {#if canPlay && here && player.on}
               <button class="playfrom" aria-label="Pause at row {n}" title="Pause" onclick={() => player.toggle()}>❚❚</button>
@@ -262,7 +269,11 @@
             {:else}
               <span>{n}</span>
             {/if}
-            {#if was !== undefined}<span class="tag">{was ? 'Changed' : 'New'}</span>{/if}
+            {#if was !== undefined}<span class="tag" title={by ? `${by.who} · ${at(Date.parse(by.when))}` : undefined}>{was ? 'Changed' : 'New'}</span>{/if}
+            {#if by}
+              <span class="by-who">{by.who}</span>
+              <button class="seen" aria-label="Seen, row {n}" title="Seen: clear this mark" onclick={() => visit?.onSeen(block.id)}>✓</button>
+            {/if}
             <button class="add" aria-label="Comment on row {n}" title="Comment on this row"
               onclick={() => start({ row: block.id, field: 'dialogue', quote: '' })}>Comment</button>
           </div>
@@ -273,7 +284,7 @@
                 onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
             {/snippet}
             {#snippet content()}
-              {#if showEdits && was && text(was, field) !== text(block, field)}
+              {#if edits && was && text(was, field) !== text(block, field)}
                 <!-- Show the edits (RV-4): the old text struck through above the new, as in History. -->
                 <div class="edited"><p class="was {field}" aria-label="{name} before, row {n}">{@html toHtml(text(was, field))}</p>{@render cell()}</div>
               {:else}
@@ -360,7 +371,7 @@
 <!-- Rows removed since the last review (RV-4): one grey struck line each, where they were. -->
 {#snippet removedRows(after: string)}
   {#each removedAfter.get(after) ?? [] as row (row.id)}
-    <p class="removed grid"><span class="tag">Removed</span><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s></p>
+    <p class="removed grid"><span class="tag">Removed</span><span class="gone"><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s>{#if visitBy(row.id)}{' · '}{visitBy(row.id)?.who}{/if}</span></p>
   {/each}
 {/snippet}
 
@@ -410,7 +421,12 @@
   .tag { font-size: 11px; font-weight: 600; color: var(--accent-dark); }
   .removed { align-items: center; margin: 0; padding-top: 8px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; box-shadow: inset 4px 0 0 #9a9a9a; }
   .removed .tag { color: var(--muted); }
-  .removed s { grid-column: 2 / -1; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .removed .gone { grid-column: 2 / -1; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Changed since you last looked (RV-15): who, and ✓ Seen, under the tag; the row stepped to is tinted. */
+  .by-who { margin-top: -4px; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+  .seen { width: 26px; height: 24px; margin-left: -4px; padding: 0; border: 1px solid #c9d5f2; border-radius: 6px; background: #fff; color: var(--accent); font-size: 13px; }
+  .seen:hover { border-color: var(--accent); }
+  .row.visit-on { background: #f5f8fe; }
   .folded { margin: 0; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: var(--muted); }
   .edited { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .was { margin: 0; line-height: 1.55; white-space: pre-wrap; color: #8a2b2b; text-decoration: line-through; }

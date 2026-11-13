@@ -433,9 +433,15 @@ and suggestions, keeps every version, and exports them for production.
   replacement takes the capitals it replaces. Enter / Shift+Enter step; Replace one moves on, Replace all has the Undo
   bar. An ordinary edit (saves on its own, no special History entry). Left out: every script at once, wildcards.
   Built: `lib/find.ts` and `Find.svelte`; equations are not searched (they show as maths).
-- [ ] **RV-15** What changed since you last looked (suggested, the user's third pick): on opening a script, rows
+- [x] **RV-15** What changed since you last looked (suggested, the user's third pick): on opening a script, rows
   others edited since your last visit get a small mark, with a line such as "3 changes since Tuesday" to step through
-  them. Mock-up first.
+  them. Agreed on board 45 ("looks good") with its suggested choices: RV-4's look plus who; only other people's edits
+  (never your own, even from another computer); the last visit is the last opening on this computer, kept in the
+  browser; in Write, and in Review unless it has its own RV-4 round; ‹ › step and tint; Show the edits as in Review;
+  marks last until you leave, Got it clears them; no dot on the script list for now. The user's additions: marked
+  rows stay editable in Write, the old words on their own line above the box (5a); a ✓ Seen per row clears that one
+  ("2 changes left", 5b). Built so: `lib/visit.ts` credits each row to the last version that changed it (compared
+  with its parent, merges skipped); the bar is `VisitBar.svelte`, shared by Write and Review.
 - [ ] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want

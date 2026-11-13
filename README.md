@@ -93,6 +93,12 @@ Status: a first working version. What it does today:
   bar and "Changed" or "New"; a removed row stays as one struck-through grey line), so a reviewer rereads only those.
   The bar above the script says how many; "Show the edits" puts the old text struck through above the new, and "Only
   changed rows" folds the rest to one line. Untick "What's changed" to read without marks (remembered on your computer).
+- **Changed since you last looked:** open a script and the rows other people changed since you last opened it on
+  this computer are marked the same way, with who changed each one ("3 changes since Tuesday by Ana and Jo"). Your
+  own edits are never marked. ‹ › step through them, "Show the edits" shows the old words above the box (you can still
+  type in the row, to fix a typo on the spot), ✓ under a mark clears that row, and Got it clears them all. The marks
+  go when you leave the script. It shows in Write, and in Review unless Review has its own "What's changed" round.
+  Nothing is written to the shared folder: your last visit is kept in this browser.
 - **Find and replace:** Ctrl+F in Write (or ⋯ › Find and replace) opens a bar above the script. It finds in section
   titles, Dialogue, On screen and the notes and link names in Images & files, never in file names or links, and marks
   every match (the one you're on darker). Enter and Shift+Enter step through; Match case and Whole words narrow it.
