@@ -27,5 +27,9 @@ rows (AP-9) are kept here too (`flag`, `unflag`; `flags()` says which rows are f
   them to `entry.files`. Two with the same name in one note become "image.png" and "image 2.png" (pasted screenshots
   are all "image.png"). An edit's `files` is the whole new list; an edit without `files` keeps them. Files are never
   deleted. Note `safeName` strips leading dots, so the extension is cleaned separately.
+- On hold (RV-19): `hold` sets `held` (who, when); any later resolve, reopen or decision ends it, a reply doesn't.
+  `threads(notes, withDeleted, ends)` ends a hold made before one of `ends` (sends for review and official versions,
+  `holdEnds` in `lib/history.ts`), and marks the thread `back` with who had held it. Nothing is written when it
+  comes back. Callers without `ends` see every hold as still on.
 - Flags: the newest `flag` or `unflag` about a row wins, by `when` (file names keep only seconds, so a flag and its
   note written in the same second sort at random by name; a test caught this). Flags are not threads.

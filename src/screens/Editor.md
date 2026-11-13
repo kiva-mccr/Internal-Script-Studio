@@ -77,3 +77,5 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - The Credits window (`Credits.svelte`, AP-31) is mounted here (`crediting`) and changes `script.front` through
   `bind:script`, then `changed()`, so credits save like any edit. Print gets the credits only when the export's
   Credits switch is on.
+- On hold (RV-19): `ends` (sends for review and official versions) is read with the review state (`readReview`) and
+  passed to Review and Comments; `openThreads` (bubbles, tab counts) leaves held ones out, Approve's check lists them.

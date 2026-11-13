@@ -128,3 +128,27 @@ describe('files on comments (RV-11)', () => {
   });
 });
 
+
+describe('on hold (RV-19)', () => {
+  const base = [
+    note('a', 'comment', '00:00', { text: 'Recap here?' }),
+    note('h', 'hold', '01:00', { about: 'a', who: 'Sam' }),
+  ];
+  it('is held until the next send for review or official version after the hold, then back', () => {
+    expect(threads(base)[0]).toMatchObject({ resolved: false, held: { who: 'Sam', when: '2026-11-09T14:01:00Z' } });
+    expect(threads(base, false, ['2026-11-09T14:00:30Z'])[0].held).toBeTruthy(); // a send before the hold
+    const back = threads(base, false, ['2026-11-09T14:00:30Z', '2026-11-09T14:05:00Z'])[0];
+    expect(back.held).toBeUndefined();
+    expect(back.back).toBe('Sam');
+  });
+  it('ends with a reopen (Take off hold), a resolve or a decision; a reply keeps it', () => {
+    expect(threads([...base, note('r', 'reply', '02:00', { about: 'a' })])[0].held).toBeTruthy();
+    const off = threads([...base, note('o', 'reopen', '02:00', { about: 'a' })])[0];
+    expect([off.held, off.back, off.resolved]).toEqual([undefined, undefined, false]);
+    const done = threads([...base, note('x', 'resolve', '02:00', { about: 'a' })], false, ['2026-11-09T14:05:00Z'])[0];
+    expect([done.held, done.back, done.resolved]).toEqual([undefined, undefined, true]);
+    // Held again after coming back: held, no longer marked back.
+    const again = threads([...base, note('h2', 'hold', '06:00', { about: 'a' })], false, ['2026-11-09T14:05:00Z'])[0];
+    expect([!!again.held, again.back]).toEqual([true, undefined]);
+  });
+});

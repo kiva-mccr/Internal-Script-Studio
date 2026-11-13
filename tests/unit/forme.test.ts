@@ -41,6 +41,13 @@ describe('forMe', () => {
     expect(forMe('Sam', 'draft', [], notes).replies).toBe(1); // c
   });
 
+  it('leaves out comments on hold until a send or a version brings them back (RV-19)', () => {
+    const notes = [note('a', 'Kiva', 'comment', 0), note('a1', 'Sam', 'reply', 1, 'a'), note('ah', 'Sam', 'hold', 2, 'a')];
+    expect(forMe('Kiva', 'draft', [], notes).replies).toBe(0);
+    const sent = { ...version('Sam', 'Sent for review'), when: '2026-11-09T14:05:00Z' };
+    expect(forMe('Kiva', 'in review', [sent], notes).replies).toBe(1);
+  });
+
   it('with no name, nothing waits', () => {
     const f = forMe('', 'in review', [], []);
     expect(waiting(f)).toBe(false);

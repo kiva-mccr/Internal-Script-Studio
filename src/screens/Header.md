@@ -53,3 +53,4 @@ Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over
   report what a real shared folder said.
 - While someone's changes are being folded in (`folding`, FX-2), a small spinner shows inside "… is editing" (the
   user's ask), with "Bringing in Ana's changes" for screen readers and on hover.
+- `heldCount` (RV-19): with comments on hold, the Send for review box says they come back into the open list.

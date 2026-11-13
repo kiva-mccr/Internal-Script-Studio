@@ -12,8 +12,10 @@ the script is a draft again. New comments are started in Review only.
   scrolls that card into view and flashes it. The scroll follows `goTo`, not `active`, so asking for the card that is
   already selected scrolls back to it (RV-17); clicking a card sets it and asks the Editor to scroll Write to its
   row (`onShow`).
-- Decided and resolved cards stay in place with Undo (`recent`) for 5 seconds, each on its own timer, then move into
-  Resolved (RV-18). Deciding the same one again restarts its timer; the timers are cleared when the tab unmounts.
-  Tests drive the wait with `page.clock`.
+- Decided, resolved and held cards stay in place with Undo (`recent`, a `Linger`) for 5 seconds, each on its own
+  timer, then move into Resolved or On hold (RV-18, RV-19), sliding away (`out:slideAway` on the `.slot` wrapper).
+  Deciding the same one again restarts its timer; the timers are cleared when the tab unmounts. Tests drive the
+  wait with `page.clock`: wait for "On hold." (the note written) before running it, since the wait starts only then.
+- On hold (RV-19): a folded "On hold · n" between the open cards and Resolved; `ends` comes from the Editor.
 - "Use in script" (RV-12) is on open cards whose row still exists; the Editor copies the file (`onUse`).
 - Where a card is: "row 3, Dialogue", or "row 3" for a comment on the whole row.

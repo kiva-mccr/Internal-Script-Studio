@@ -17,4 +17,7 @@ the same card.
 - Edit and Delete show only on `me`'s own while open. While its own edit box is open its other actions are hidden.
 - `use` (Write only, RV-12) passes "Use in script" to its files and its replies' files, naming who it came from.
 - A click anywhere on it calls `onActivate` (marks it, and in Write goes to its row), buttons included.
+- On hold (RV-19): Put on hold on open comments and undecided suggestions writes `hold`, then `onHeld` (the parent
+  keeps it with Undo). A held card (not `recent`) is dashed, says who and when, and has Take off hold (a `reopen`)
+  and Reply. `t.back` shows "Back from hold · put on hold by …".
 - `active` is a solid blue outline, ring and tint (RV-20): a pale border alone was too hard to see.

@@ -3,6 +3,8 @@
 // Editing your own (RV-7) is the same: an `edit` (new text or replace) or a `delete` / `undelete` about one; only the
 // author's count, and the newest counts.
 // Flags on rows (AP-9) live there too: a `flag` (with its note) or an `unflag`; the newest about a row counts.
+// On hold (RV-19): a `hold` about a comment or suggestion shelves it; a `reopen` takes it off hold. A hold lasts
+// until the next send for review or official version after it (`ends`), then the comment is open again, marked `back`.
 // Files on comments (RV-11): a comment's or reply's attached files are kept in .studio/files/<its id>/, written once;
 // an edit lists the files it keeps and adds its own new ones under its own id.
 
@@ -19,7 +21,7 @@ export type Note = {
   id: string;
   kind:
     | 'comment' | 'reply' | 'resolve' | 'reopen' | 'suggestion' | 'accept' | 'reject' | 'flag' | 'unflag'
-    | 'edit' | 'delete' | 'undelete';
+    | 'edit' | 'delete' | 'undelete' | 'hold';
   who: string;
   when: string; // 2026-11-09T14:30:00.123Z
   row?: string;
@@ -27,14 +29,18 @@ export type Note = {
   quote?: string; // the selected text; empty for a comment on the whole field
   text?: string; // a comment's words, or a flag's note (may be empty)
   replace?: string; // a suggestion's new text for `quote`
-  about?: string; // the comment a reply, resolve, reopen, edit or delete is about
+  about?: string; // the comment a reply, resolve, reopen, hold, edit or delete is about
   files?: Attachment[]; // a comment's or reply's files; on an edit, the whole new list
   // Worked out by threads(), never written: when its author last edited it, and whether it is deleted.
   edited?: string;
   deleted?: boolean;
 };
 // resolved: done with (a resolved comment, or an accepted or rejected suggestion); by: who resolved or decided it.
-export type Thread = { comment: Note; replies: Note[]; resolved: boolean; by?: string; decision?: 'accepted' | 'rejected'; deleted?: boolean };
+// held: put on hold (RV-19), by whom and when; back: who had put it on hold, once a send or a version brought it back.
+export type Thread = {
+  comment: Note; replies: Note[]; resolved: boolean; by?: string; decision?: 'accepted' | 'rejected'; deleted?: boolean;
+  held?: { who: string; when: string }; back?: string;
+};
 export type Flag = { row: string; text: string; who: string; when: string };
 
 // Every note, oldest first. Files that can't be read (half-synced) are skipped.
@@ -77,8 +83,9 @@ export async function addNote(
 
 // Comments and suggestions with their replies, newest first; the newest resolve, accept, reject or reopen about
 // each says where it stands. Edits by the author change the text; deleted ones (and a deleted comment's replies) are
-// left out, unless `withDeleted` (Review keeps them for Undo, marked `deleted`).
-export function threads(notes: Note[], withDeleted = false): Thread[] {
+// left out, unless `withDeleted` (Review keeps them for Undo, marked `deleted`). `ends` are the times of sends for
+// review and official versions (`holdEnds`): a hold made before one of them is over (RV-19).
+export function threads(notes: Note[], withDeleted = false, ends: string[] = []): Thread[] {
   const list: Thread[] = notes
     .filter((n) => n.kind === 'comment' || n.kind === 'suggestion')
     .map((comment) => ({ comment: { ...comment }, replies: [], resolved: false }));
@@ -102,7 +109,11 @@ export function threads(notes: Note[], withDeleted = false): Thread[] {
       const reply = { ...note };
       thread.replies.push(reply);
       own.set(reply.id, reply);
-    } else if (note.kind === 'reopen') (thread.resolved = false), (thread.decision = undefined), (thread.by = undefined);
+      continue;
+    }
+    thread.held = thread.back = undefined; // whatever happens to it next ends a hold
+    if (note.kind === 'hold') thread.held = { who: note.who, when: note.when };
+    else if (note.kind === 'reopen') (thread.resolved = false), (thread.decision = undefined), (thread.by = undefined);
     else if (note.kind === 'resolve') (thread.resolved = true), (thread.by = note.who);
     else if (note.kind === 'accept' || note.kind === 'reject') {
       thread.resolved = true;
@@ -110,7 +121,9 @@ export function threads(notes: Note[], withDeleted = false): Thread[] {
       thread.decision = note.kind === 'accept' ? 'accepted' : 'rejected';
     }
   }
+  const times = ends.map(Date.parse);
   for (const t of list) {
+    if (t.held && times.some((end) => end > Date.parse(t.held!.when))) (t.back = t.held.who), (t.held = undefined);
     t.deleted = !!t.comment.deleted;
     if (!withDeleted) t.replies = t.replies.filter((r) => !r.deleted);
   }

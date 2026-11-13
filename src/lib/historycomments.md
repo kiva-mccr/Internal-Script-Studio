@@ -15,3 +15,5 @@ the label History shows (Open, Resolved by Sam, Accepted by Sam …).
 - Comment times keep milliseconds and version times seconds: both are compared as times, never as strings.
 - A comment made before the first version (the folder had comments before History) goes on the first version.
 - Nothing is stored: it is all worked out from the versions and the comments each time History opens.
+- A comment on hold (RV-19) shows "On hold by …"; History passes `holdEnds` of its loaded versions, so one held before
+  a send it hasn't loaded yet (HI-3) can still show as on hold.
