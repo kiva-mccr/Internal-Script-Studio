@@ -11,6 +11,9 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
 - File names only sort to the second. Versions made in the same second are ordered parent first (by how many
   versions lie before them); sorting by name alone put them in a random order (bug found while building).
 - A file that can't be read (half-synced) is skipped, never an error.
+- Each file is read once (HI-3, `lib/versioncache.ts`): later calls only list the folder and read new files, so
+  calling `listVersions` often is cheap. Calls for one script wait for each other: when a script opens several
+  screens ask at once, and without that each did the slow first read (2,000 versions: about 3 s each).
 - Rows are matched by id, so a moved row is not "edited".
 - A row's `Change` carries its `row` id and `field` (as comments name it, `on_screen`), so History can put a comment
   under it (RV-6); a removed row has only `row`.

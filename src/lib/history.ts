@@ -2,6 +2,7 @@
 // changed. Also what changed between two versions, in words.
 
 import { frontValue, parseScript, type Row, type Script } from './script';
+import { fileKey, keepVersions, recallVersions, remembered } from './versioncache';
 
 export type Kind = 'edit' | 'review' | 'restore' | 'merge' | 'outside' | 'restart' | 'official';
 export type Version = {
@@ -24,19 +25,51 @@ export const OUTSIDE = 'Outside the app';
 
 // Every version, oldest first. Files that can't be read (half-synced) are skipped.
 export async function listVersions(dir: FileSystemDirectoryHandle): Promise<Version[]> {
+  // One read of a script at a time: several screens ask at once when it opens, and the first read is the slow one.
+  const before = reading.get(dir);
+  const mine = (async () => {
+    await before?.catch(() => {});
+    return readVersions(dir);
+  })();
+  reading.set(dir, mine);
+  return mine;
+}
+const reading = new WeakMap<FileSystemDirectoryHandle, Promise<Version[]>>();
+
+async function readVersions(dir: FileSystemDirectoryHandle): Promise<Version[]> {
   const folder = await versionsFolder(dir, false);
   if (!folder) return [];
   const names: string[] = [];
   for await (const name of folder.keys()) if (name.endsWith('.json')) names.push(name);
-  const versions: Version[] = [];
-  for (const name of names.sort()) {
+  // Files never change, so only files not read before are read (HI-3): first this visit's, then this browser's.
+  const known = remembered(dir);
+  const files = new Map<string, File>();
+  for (const name of names) {
+    if (known.has(name)) continue;
     try {
-      const version = JSON.parse(await (await (await folder.getFileHandle(name)).getFile()).text());
-      if (version.v === 1 && typeof version.text === 'string') versions.push(version);
+      files.set(name, await (await folder.getFileHandle(name)).getFile());
     } catch {
       // Skipped: OneDrive may still be bringing it in.
     }
   }
+  const kept = await recallVersions([...files].map(([name, file]) => fileKey(name, file)));
+  const fresh: [string, Version][] = [];
+  for (const [name, file] of files) {
+    const key = fileKey(name, file);
+    let version = kept.get(key);
+    if (!version) {
+      try {
+        version = JSON.parse(await file.text());
+      } catch {
+        continue; // Half-synced: read again next time.
+      }
+      if (version?.v !== 1 || typeof version.text !== 'string') continue;
+      fresh.push([key, version]);
+    }
+    known.set(name, version);
+  }
+  void keepVersions(fresh);
+  const versions = names.sort().flatMap((name) => known.get(name) ?? []);
   // Names sort by the second they were made; within the same second, by how many versions lie before (parents first).
   const byId = new Map(versions.map((v) => [v.id, v]));
   const depth = new Map<string, number>();
