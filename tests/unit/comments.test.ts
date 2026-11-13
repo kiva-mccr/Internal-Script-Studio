@@ -19,6 +19,7 @@ describe('threads', () => {
       ['b', false, []],
       ['a', true, ['Agreed']],
     ]);
+    expect(list.map((t) => t.by)).toEqual([undefined, 'Ana']); // who resolved it, gone again on reopen
   });
 });
 

@@ -230,8 +230,14 @@ and suggestions, keeps every version, and exports them for production.
   under it listing each open comment and suggestion and the missing files (one line); a line goes to it, Keep
   reviewing or Esc closes, Approve anyway approves and History says "Approved, N still open". Nothing open: Approve
   approves at once, as before. Flags joined the list with AP-9; sources join it when AP-8 is built.
-- [ ] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
-  made on it, so it is clear why a line changed.
+- [x] **RV-6** Comments in History (suggested, the user agreed; left out of RV-1): a version shows the comments
+  made on it, so it is clear why a line changed. Built as board 48 ("looks good", every suggested choice): each
+  comment and suggestion shows once, under the first change to its cell made after it, else at the bottom of the
+  version current when it was made ("Comments on this version, nothing changed for them yet"). An accepted
+  suggestion names itself in its change's header. The version list says "· 2 comments". Read-only: the state
+  (Open, Resolved by Sam, Accepted by Sam), replies folded behind "1 reply", files as in Review, "Open in Review" on
+  an open one; deleted ones left out, edited ones show their newest text. An official version gathers the comments
+  of the saves folded under it. No switch to hide them. Worked out each time, nothing stored.
 - [x] **RV-7** Edit your own comments and suggestions (asked by the user). `.studio/` files are written once, so
   an edit is a new note that replaces the old one. Mock-up: board 24, built as drawn ("Looks perfect", every
   suggestion taken): Edit and Delete only on what you wrote (comments, replies, suggestions), only while it is open

@@ -10,6 +10,10 @@ official version (mock-up 7): a named version, v1, v2 …; with any, the small s
 
 - Old and new text show formatting, as Write does.
 - A send for review with a note shows the note under its entry (`message`, RV-8), lines kept.
+- Comments (RV-6, board 48): placed by `lib/historycomments.ts`; a version shows those placed on every version since
+  the one it is compared with, so an official one gathers its folded saves. One placed under a cell the picked
+  version's changes don't show (changed back since) goes to the bottom list. Read-only; "Open in Review" calls
+  `onOpen`, which Editor sends to Review's card. `notes` come from Editor, read again as History opens.
 - The newest version is the current one: no Restore button on it.
 - An official version is compared with the official one before it (v1 with the version it was made from).
 - With official versions, History opens on the newest official one, not the newest save.

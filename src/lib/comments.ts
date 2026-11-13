@@ -33,8 +33,8 @@ export type Note = {
   edited?: string;
   deleted?: boolean;
 };
-// resolved: done with (a resolved comment, or an accepted or rejected suggestion).
-export type Thread = { comment: Note; replies: Note[]; resolved: boolean; decision?: 'accepted' | 'rejected'; deleted?: boolean };
+// resolved: done with (a resolved comment, or an accepted or rejected suggestion); by: who resolved or decided it.
+export type Thread = { comment: Note; replies: Note[]; resolved: boolean; by?: string; decision?: 'accepted' | 'rejected'; deleted?: boolean };
 export type Flag = { row: string; text: string; who: string; when: string };
 
 // Every note, oldest first. Files that can't be read (half-synced) are skipped.
@@ -102,10 +102,11 @@ export function threads(notes: Note[], withDeleted = false): Thread[] {
       const reply = { ...note };
       thread.replies.push(reply);
       own.set(reply.id, reply);
-    } else if (note.kind === 'reopen') (thread.resolved = false), (thread.decision = undefined);
-    else if (note.kind === 'resolve') thread.resolved = true;
+    } else if (note.kind === 'reopen') (thread.resolved = false), (thread.decision = undefined), (thread.by = undefined);
+    else if (note.kind === 'resolve') (thread.resolved = true), (thread.by = note.who);
     else if (note.kind === 'accept' || note.kind === 'reject') {
       thread.resolved = true;
+      thread.by = note.who;
       thread.decision = note.kind === 'accept' ? 'accepted' : 'rejected';
     }
   }

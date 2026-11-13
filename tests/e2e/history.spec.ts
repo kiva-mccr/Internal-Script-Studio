@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { listFiles, readFile, setUp, writeFile } from './folder';
 
@@ -198,4 +199,60 @@ test('Send for review makes the next official version, and none when nothing cha
   await expect(page.getByRole('heading', { name: 'v3 · Sent for review' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Changes' })).toContainText('compared with v2');
   await expect(versions(page).getByText('Sent for review (still v2)')).toBeVisible();
+});
+
+test('a change shows the comments that led to it, and a version the ones nothing changed yet (RV-6)', async ({ page }) => {
+  const absorb = example.replace('chloroplasts catch the light', 'chloroplasts absorb the light');
+  const fade = absorb.replace('slide in one at a time', 'fade in one at a time');
+  const COMMENTS = 'Episode 03/.studio/comments';
+  const version = (id: string, parent: string, when: string, text: string) => ({
+    [`${VERSIONS}/${when.replace(/[-:]/g, '')}_${id}.json`]: JSON.stringify({ v: 1, id, parents: parent ? [parent] : [], who: 'Jo', when, kind: 'edit', note: '', sha256: createHash('sha256').update(text).digest('hex'), text }),
+  });
+  const note = (id: string, when: string, fields: object) => ({
+    [`${COMMENTS}/${when.replace(/[-:]/g, '').replace(/\.\d+/, '')}_${id}.json`]: JSON.stringify({ v: 1, id, when, ...fields }),
+  });
+  await setUp(page, '#/Episode%2003', {
+    [SCRIPT]: fade,
+    ...version('one00000', '', '2026-11-09T10:00:00Z', example),
+    ...version('two00000', 'one00000', '2026-11-09T11:00:00Z', absorb),
+    ...version('three000', 'two00000', '2026-11-09T12:00:00Z', fade),
+    ...note('cmnt0001', '2026-11-09T10:30:00.000Z', { kind: 'comment', who: 'Ana', row: 't1q7c', field: 'dialogue', quote: 'catch', text: '“Absorb” is more accurate.' }),
+    ...note('rply0001', '2026-11-09T10:50:00.000Z', { kind: 'reply', who: 'Jo', about: 'cmnt0001', text: 'Changed, thanks.' }),
+    ...note('rslv0001', '2026-11-09T11:01:00.000Z', { kind: 'resolve', who: 'Jo', about: 'cmnt0001' }),
+    ...note('sugg0001', '2026-11-09T11:10:00.000Z', { kind: 'suggestion', who: 'Ana', row: 'p8x2m', field: 'on_screen', quote: 'slide in', replace: 'fade in' }),
+    ...note('acpt0001', '2026-11-09T11:59:00.000Z', { kind: 'accept', who: 'Jo', about: 'sugg0001' }),
+    ...note('open0001', '2026-11-09T12:30:00.000Z', { kind: 'comment', who: 'Ana', row: 'k3f9a', field: 'on_screen', quote: '', text: 'Could we shoot a real leaf?' }),
+  });
+  await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
+  await page.getByRole('button', { name: 'History' }).click();
+  await expect(versions(page)).toHaveCount(3);
+  await expect(versions(page).nth(0)).toContainText(/Jo · Nov 9, 12:00 pm · 2 comments/);
+  await expect(versions(page).nth(1)).toContainText('· 1 comment');
+  await expect(versions(page).nth(2)).not.toContainText('comment');
+
+  // The newest: Ana's accepted suggestion under the change it made, and her open comment at the bottom.
+  const changes = page.getByRole('region', { name: 'Changes' });
+  await expect(changes.locator('.change')).toHaveCount(1);
+  await expect(changes.locator('.change .where')).toHaveText('Row 2 · On screen · Ana’s suggestion, accepted by Jo');
+  await expect(changes.getByRole('group', { name: 'Suggestion by Ana' })).toContainText('Accepted by Jo');
+  const rest = page.getByRole('region', { name: 'Comments with no change yet' });
+  await expect(rest.getByRole('group')).toHaveCount(1);
+  await expect(rest).toContainText('Ana commented · row 1, On screen');
+  await expect(rest).toContainText('Open');
+
+  // The one before: the comment that led to the change, its reply folded away; resolved, so no Open in Review.
+  await versions(page).nth(1).click();
+  const comment = changes.getByRole('group', { name: 'Comment by Ana' });
+  await expect(comment).toContainText('Resolved by Jo');
+  await expect(comment).toContainText('“Absorb” is more accurate.');
+  await expect(comment).not.toContainText('Changed, thanks.');
+  await comment.getByRole('button', { name: '1 reply' }).click();
+  await expect(comment).toContainText('Changed, thanks.');
+  await expect(comment.getByRole('button', { name: 'Open in Review' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Comments with no change yet' })).toHaveCount(0);
+
+  // Open in Review goes to that comment's card.
+  await versions(page).nth(0).click();
+  await rest.getByRole('button', { name: 'Open in Review' }).click();
+  await expect(page.locator('article[data-id="open0001"]')).toHaveClass(/active/);
 });

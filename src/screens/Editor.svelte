@@ -349,7 +349,15 @@
 
   async function showHistory() {
     await leave();
+    if (dir) notes = await listNotes(dir).catch(() => notes);
     mode = 'history';
+  }
+
+  // From History (RV-6): a still-open comment, in Review.
+  async function openComment(id: string) {
+    await showReview();
+    await tick();
+    showLoose(id);
   }
 
   async function restore(version: Version) {
@@ -738,7 +746,7 @@
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
-    <History {dir} onRestore={restore} onPublish={publish} />
+    <History {dir} {notes} onRestore={restore} onPublish={publish} onOpen={openComment} />
   {:else if script && dir}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
     <Write bind:script bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}

@@ -1,17 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { changes, isOfficial, listVersions, officialNumber, officialNumbers, summary, type Version } from '../lib/history';
+  import { threads, type Note, type Thread } from '../lib/comments';
   import { renderMath, toHtml } from '../lib/format';
+  import { cellKey, placeComments, stateText } from '../lib/historycomments';
+  import { parseScript, rows } from '../lib/script';
   import { at } from '../lib/when';
+  import Attached from './Attached.svelte';
 
   let {
     dir,
+    notes,
     onRestore,
     onPublish,
+    onOpen,
   }: {
     dir: FileSystemDirectoryHandle;
+    notes: Note[];
     onRestore: (version: Version) => void;
     onPublish: (name: string) => Promise<Version | null>;
+    onOpen: (id: string) => void; // a still-open comment, in Review
   } = $props();
 
   let versions = $state<Version[] | null>(null); // newest first
@@ -22,6 +30,7 @@
   let officialName = $state('');
   let nameMissing = $state(false);
   let nameInput = $state<HTMLInputElement>();
+  let repliesOpen = $state<Record<string, boolean>>({}); // comments whose replies are shown, by id
 
   onMount(load);
 
@@ -110,6 +119,51 @@
   const selected = $derived(versions?.[picked]);
   const selectedChanges = $derived(versions && selected ? changes(before(picked)?.text, selected.text) : []);
   const selectedNumber = $derived(selected ? numbers.get(selected.id) : undefined);
+
+  // Comments in History (RV-6, board 48): each on the version whose change it led to, or on the one current when it
+  // was made. A version shows those of every version since the one it is compared with (an official one gathers
+  // the small saves folded under it).
+  const placed = $derived(placeComments([...(versions ?? [])].reverse(), threads(notes)));
+  function covered(i: number): number[] {
+    const b = before(i);
+    const end = b ? versions!.indexOf(b) : versions!.length;
+    return Array.from({ length: Math.max(end - i, 1) }, (_, k) => i + k);
+  }
+  function commentCount(i: number): number {
+    return covered(i).reduce((n, k) => {
+      const p = placed.get(versions![k].id);
+      return n + (p ? p.open.length + [...p.changed.values()].reduce((m, list) => m + list.length, 0) : 0);
+    }, 0);
+  }
+  const why = $derived.by(() => {
+    const under = new Map<number, Thread[]>();
+    const rest: Thread[] = [];
+    if (!versions || !selected) return { under, rest };
+    for (const k of covered(picked)) {
+      const p = placed.get(versions[k].id);
+      if (!p) continue;
+      for (const [key, list] of p.changed) {
+        const i = selectedChanges.findIndex((c) => c.row && (c.field ? key === cellKey(c.row, c.field) : key.startsWith(`${c.row}:`)));
+        if (i < 0) rest.push(...list);
+        else under.set(i, [...(under.get(i) ?? []), ...list]);
+      }
+      rest.push(...p.open);
+    }
+    const byTime = (a: Thread, b: Thread) => (a.comment.when < b.comment.when ? -1 : 1);
+    for (const list of under.values()) list.sort(byTime);
+    return { under, rest: rest.sort(byTime) };
+  });
+  const rowNumbers = $derived(new Map(selected ? rows(parseScript(selected.text)).map((r, i) => [r.id, i + 1]) : []));
+  const FIELD = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
+  function cell(t: Thread): string {
+    const n = rowNumbers.get(t.comment.row ?? '');
+    return n ? `row ${n}, ${FIELD[t.comment.field ?? 'dialogue']}` : 'a removed row';
+  }
+  // An accepted suggestion says so in its change's header.
+  function heading(where: string, list: Thread[] | undefined): string {
+    const t = list?.find((t) => t.decision === 'accepted');
+    return t ? `${where} · ${t.comment.who}’s suggestion, accepted${t.by ? ` by ${t.by}` : ''}` : where;
+  }
 </script>
 
 {#if error}
@@ -120,10 +174,11 @@
   {#snippet entry(i: number)}
     {@const version = versions![i]}
     {@const n = numbers.get(version.id)}
+    {@const c = commentCount(i)}
     <button class="entry" class:official={n} class:picked={i === picked} aria-current={i === picked ? 'true' : undefined}
       onclick={() => (picked = i)}>
       <span class="note">{#if n}<span class="tag">v{n}</span>{version.note}{:else}{title(i)}{/if}</span>
-      <span class="meta">{version.kind === 'official' ? 'Published by ' : ''}{version.who} · {at(Date.parse(version.when))}</span>
+      <span class="meta">{version.kind === 'official' ? 'Published by ' : ''}{version.who} · {at(Date.parse(version.when))}{c ? ` · ${c === 1 ? '1 comment' : `${c} comments`}` : ''}</span>
       {#if version.message}<span class="message">{version.message}</span>{/if}
     </button>
   {/snippet}
@@ -177,17 +232,55 @@
           : ''}
         {#if picked === 0}<br />This is the current version.{/if}
       </p>
+      {#snippet thread(t: Thread, inRest: boolean)}
+        {@const suggestion = t.comment.kind === 'suggestion'}
+        <div class="comment" role="group" aria-label="{suggestion ? 'Suggestion' : 'Comment'} by {t.comment.who}">
+          <div class="who"><span><strong>{t.comment.who}</strong> {suggestion ? 'suggested' : 'commented'}{inRest ? ` · ${cell(t)}` : ''} · {at(Date.parse(t.comment.when))}{t.comment.edited ? ' · edited' : ''}</span><span class="state">{stateText(t)}</span></div>
+          {#if suggestion}
+            <p class="text">Replace “<span class="was">{t.comment.quote}</span>” with “<span class="is">{t.comment.replace}</span>”.</p>
+          {:else}
+            {#if t.comment.quote}<blockquote>{t.comment.quote}</blockquote>{/if}
+            {#if t.comment.text}<p class="text">{t.comment.text}</p>{/if}
+            {#if t.comment.files?.length}<Attached {dir} files={t.comment.files} />{/if}
+          {/if}
+          {#if t.replies.length}
+            {@const shown = !!repliesOpen[t.comment.id]}
+            <button class="link replies" aria-expanded={shown} onclick={() => (repliesOpen[t.comment.id] = !shown)}>
+              {shown ? 'Hide ' : ''}{t.replies.length === 1 ? '1 reply' : `${t.replies.length} replies`}
+            </button>
+            {#if shown}
+              {#each t.replies as r (r.id)}
+                <div class="reply">
+                  <div class="who"><span><strong>{r.who}</strong> · {at(Date.parse(r.when))}{r.edited ? ' · edited' : ''}</span></div>
+                  {#if r.text}<p class="text">{r.text}</p>{/if}
+                  {#if r.files?.length}<Attached {dir} files={r.files} />{/if}
+                </div>
+              {/each}
+            {/if}
+          {/if}
+          {#if inRest && !t.resolved}<button class="link" onclick={() => onOpen(t.comment.id)}>Open in Review</button>{/if}
+        </div>
+      {/snippet}
       {#each selectedChanges as change, i (i)}
         <div class="change">
-          <div class="where">{change.where}</div>
+          <div class="where">{heading(change.where, why.under.get(i))}</div>
           <div class="body">
             {#if change.old}<p class="old"><span class="sign" aria-label="Removed">−</span><span class="struck" use:math={change.old}>{@html toHtml(change.old)}</span></p>{/if}
             {#if change.new}<p class="new"><span class="sign" aria-label="Added">+</span><span use:math={change.new}>{@html toHtml(change.new)}</span></p>{/if}
           </div>
+          {#if why.under.get(i)?.length}
+            <div class="why">{#each why.under.get(i)! as t (t.comment.id)}{@render thread(t, false)}{/each}</div>
+          {/if}
         </div>
       {:else}
         <p class="meta">Nothing in the rows changed.</p>
       {/each}
+      {#if why.rest.length}
+        <section class="rest" aria-label="Comments with no change yet">
+          <h3>Comments on this version, nothing changed for them yet</h3>
+          {#each why.rest as t (t.comment.id)}<div class="card">{@render thread(t, true)}</div>{/each}
+        </section>
+      {/if}
     </section>
   </div>
 {/if}
@@ -230,6 +323,20 @@
   .struck { text-decoration: line-through; }
   .new { color: #1b6b3e; }
   .sign { display: inline-block; width: 18px; font-weight: 600; }
+  .why { display: flex; flex-direction: column; gap: 12px; padding: 12px 16px 16px; border-top: 1px dashed var(--line); }
+  .rest { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+  .rest h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  .card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; }
+  .comment { display: flex; flex-direction: column; gap: 6px; }
+  .comment .who { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; font-size: 13px; color: var(--muted); }
+  .comment strong { color: var(--ink); font-weight: 600; }
+  .state { padding: 1px 8px; border-radius: 999px; background: #f2f2f2; color: #3d3d3d; font-size: 12px; font-weight: 500; }
+  .comment blockquote { margin: 0; padding-left: 10px; border-left: 3px solid #e0b100; font-size: 13px; color: #3d3d3d; }
+  .comment .text { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .was { color: #8a2b2b; text-decoration: line-through; }
+  .is { color: var(--accent); }
+  .comment .link { align-self: flex-start; min-height: 32px; padding: 0 4px; color: var(--accent); font-size: 13px; }
+  .reply { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 2px solid var(--line); }
   .empty, .error { color: var(--muted); }
   .error { color: var(--danger); }
 </style>
