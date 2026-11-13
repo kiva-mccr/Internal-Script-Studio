@@ -1,8 +1,8 @@
 # `src/screens/Attached.svelte`
 
-A comment's or reply's files on its card (RV-11, mock-up 25): images as a small preview with the name, other files
-as a chip with the size. Clicking opens one in a new tab. Also exports `IMAGE` (which names are images), shared with
-`FilesCell.svelte` and `AttachBox.svelte`.
+A comment's or reply's files on its card (RV-11, mock-up 25): files with a preview (`Preview.svelte`, AP-19) show
+it with the name and size under it, other files a chip with the size. Clicking opens one in a new tab. Also exports `IMAGE` (which names are images), used by
+`AttachBox.svelte` and `SharedFiles.svelte`.
 
 - **Used by:** `screens/Review.svelte`. **Tests:** `tests/e2e/attach.spec.ts`.
 

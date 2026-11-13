@@ -1,6 +1,7 @@
 <script lang="ts">
   import { assetFile } from '../lib/folder';
   import { assetList, assetRows, type Asset } from '../lib/assets';
+  import { makePreview, previewKind, revokePreview, type Preview } from '../lib/preview';
   import { keep, recall } from '../lib/remember';
   import type { Script } from '../lib/script';
 
@@ -10,7 +11,6 @@
     script: Script; dir: FileSystemDirectoryHandle; missing: Set<string>; onJump: (row: number) => void; onNotice: (message: string) => void;
   } = $props();
 
-  const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i;
   let byRow = $state(recall('assets-order') === 'row');
   const rows = $derived(assetRows(script));
   const all = $derived(assetList(script));
@@ -19,23 +19,27 @@
   const here = $derived(all.filter((a) => a.kind === 'link' || (a.kind === 'path' && !missing.has(a.target))));
   const used = $derived(rows.filter((r) => r.assets.length).length);
 
-  // Thumbnails of the images that are in the folder, as short-lived blob URLs; linked images use their link.
-  let previews = $state<Record<string, string>>({});
+  // Thumbnails (AP-19): pictures, TIFFs, a PDF's page 1 and a frame of a video in the folder, as short-lived blob
+  // URLs; linked images use their link.
+  const THUMBS = ['image', 'tif', 'pdf', 'video'];
+  let previews = $state<Record<string, Preview>>({});
   $effect(() => {
-    const paths = here.filter((a) => a.kind === 'path' && IMAGE.test(a.target)).map((a) => a.target);
+    const paths = here.filter((a) => a.kind === 'path' && THUMBS.includes(previewKind(a.target) ?? '')).map((a) => a.target);
     let gone = false;
-    const made: string[] = [];
+    const made: Preview[] = [];
     (async () => {
-      const next: Record<string, string> = {};
+      const next: Record<string, Preview> = {};
       for (const path of paths) {
         const file = await assetFile(dir, path);
-        if (file && !gone) made.push((next[path] = URL.createObjectURL(file)));
+        const preview = file && (await makePreview(file, path));
+        if (gone) revokePreview(preview);
+        else if (preview) made.push((next[path] = preview));
       }
       if (!gone) previews = next;
     })();
     return () => {
       gone = true;
-      made.forEach((url) => URL.revokeObjectURL(url));
+      made.forEach(revokePreview);
     };
   });
 
@@ -53,13 +57,20 @@
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  const thumb = (a: Asset) => (a.kind === 'path' ? (previews[a.target] ?? '') : a.kind === 'link' && IMAGE.test(a.target) ? a.target : '');
+  function thumb(a: Asset): { url: string; video: boolean } | null {
+    const preview = a.kind === 'path' ? previews[a.target] : null;
+    if (preview && 'url' in preview) return { url: preview.url, video: preview.kind === 'video' };
+    return a.kind === 'link' && previewKind(a.target) === 'image' ? { url: a.target, video: false } : null;
+  }
 </script>
 
 {#snippet item(asset: Asset, kind: 'lost' | 'find' | 'here')}
+  {@const t = thumb(asset)}
   <li class={kind}>
     <span class="thumb" aria-hidden="true">
-      {#if thumb(asset)}<img src={thumb(asset)} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)} />{:else if asset.kind === 'link'}↗{/if}
+      {#if t?.video}<video src="{t.url}#t=0.1" preload="metadata" muted onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)}></video>
+      {:else if t}<img src={t.url} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)} />
+      {:else if asset.kind === 'link'}↗{/if}
     </span>
     <span class="name">
       {#if kind === 'find'}
@@ -144,7 +155,7 @@
   .box > ul > li { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid #f0f0f0; }
   .thumb { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 32px;
     border-radius: 4px; background: #f2f2f2; overflow: hidden; color: var(--accent); font-size: 13px; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
   .lost .thumb { border: 1px dashed #d08a84; box-sizing: border-box; }
   .find .thumb { background: #fff4e5; }
   .name { flex: 1; min-width: 0; display: flex; flex-direction: column; }

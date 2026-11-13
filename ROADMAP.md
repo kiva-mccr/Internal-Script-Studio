@@ -137,9 +137,14 @@ and suggestions, keeps every version, and exports them for production.
   description and links use the app's name and address, not "Internal Script Studio".
   Built: README, roadmap and notes are titled P2P Script Studio, the package is p2p-script-studio, and the app's
   GitHub link points at github.com/kiva-mccr/p2p-script-studio. The user renamed the repository in its settings.
-- [ ] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
+- [x] **AP-19** More files previewed in Images & files (asked by the user): .tif, .svg, .gif, .mp4 and other video,
   audio, .pdf, .docx, .txt, .md, and other useful kinds, shown as a picture, a player or the first lines of text,
-  where the browser can draw them. Mock-up first.
+  where the browser can draw them. Mock-up 41, agreed as drawn. Built: video shows a still and its length, ▶ plays
+  it small in the cell; sound gets a slim player; PDF a picture of page 1 and "Page 1 of N" (pdf.js, fetched only
+  when a PDF is shown); Word, .txt, .md, .csv their first 3 lines (Word read with the browser's own unzip); .tif a
+  picture (UTIF, fetched only when needed); PowerPoint, Excel, zip and the like, or a video the browser can't play,
+  a chip with the kind and size. The same previews on comment files, and Assets thumbnails for .tif, PDF and video.
+  Previews are at most 120 px tall.
 - [x] **AP-20** First-time screen without OneDrive in its wording (asked by the user): "Pick the shared folder your
   team keeps scripts in", since a team may sync another way.
 - [ ] **AP-21** Set-up help for other ways of syncing (asked by the user, later): the "Before you start"
