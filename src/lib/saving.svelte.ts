@@ -71,6 +71,9 @@ export class Saving {
   async open(path: string[]): Promise<boolean> {
     const dir = (this.dir = await findScript(this.folder, path));
     if (!dir) return false;
+    // Set before the page shows, since typing can start before opening is done; what was kept is read first.
+    this.#backupKey = `unsaved:${this.folder.name}/${path.join('/')}`;
+    const kept = this.#readBackup();
     const text = await readScript(dir);
     const folded = await readFolded(dir).catch(() => null);
     for (const name of folded?.changes ?? []) this.#seen.add(name);
@@ -82,8 +85,7 @@ export class Saving {
     await this.readEditors();
     await this.#lookForCopies(dir, text);
     await this.#sync();
-    this.#backupKey = `unsaved:${this.folder.name}/${path.join('/')}`;
-    this.#restoreBackup();
+    this.#restoreBackup(kept);
     return true;
   }
 
@@ -274,8 +276,8 @@ export class Saving {
     await this.#changingStatus;
     await this.saveWaiting();
     if (this.status !== 'saved') return;
-    if (this.#keeper()) await this.#keep(true);
-    else await this.#record(this.shared, '', true).catch(() => {});
+    // In line with saves and the 5 s check: two History entries worked out at once could both be made.
+    await (this.#saving = this.#saving.then(() => (this.#keeper() ? this.#keep(true) : this.#record(this.shared, '', true).catch(() => {}))));
   }
 
   // Puts an older version back as the script. False if it couldn't be written (a message is shown).
@@ -372,9 +374,16 @@ export class Saving {
     }
   }
 
-  #restoreBackup() {
+  #readBackup(): { base: string; text: string } | null {
     try {
-      const kept = JSON.parse(localStorage.getItem(this.#backupKey) ?? 'null') as { base: string; text: string } | null;
+      return JSON.parse(localStorage.getItem(this.#backupKey) ?? 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  #restoreBackup(kept: { base: string; text: string } | null) {
+    try {
       const delta = kept && diff(kept.base, kept.text);
       if (!delta || this.status !== 'saved') return;
       const merged = fold(delta, this.#pageText(false));
