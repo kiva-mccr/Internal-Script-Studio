@@ -14,8 +14,10 @@ Status: a first working version. What it does today:
 
 - **First time:** type your name and choose your team's scripts folder (it explains how to add the shared OneDrive
   folder with "Add shortcut to My files"). The browser remembers both. New here? "Open the example" under it opens a
-  made-up script (with pictures, two comments and History) to click around in first; your changes stay in this
-  browser, Start over puts it back as new, and the – folds the offer to one line for good.
+  made-up script (one file of each kind the app previews, a voice-over take on every row, two comments and History)
+  to click around in first; your changes stay in this browser, Start over puts it back as new, and the – folds the
+  offer to one line for good. Inside it, a short guided tour shows each tab the first time you open it: Next (or →)
+  moves on, Skip tour (or Esc) stops the tours on every tab, and Take the tour in the blue strip plays it again.
 - **The list:** every script in the folder, its status, and who last edited it and when. New script starts one.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
   add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Enter adds a row below, Alt+Up and

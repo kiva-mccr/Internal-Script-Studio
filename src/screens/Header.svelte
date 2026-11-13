@@ -105,7 +105,7 @@
     </a>
     <span class="title">{title}</span>
     <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
-    {#if ready}<span class="status" class:bad role="status">{statusText[status]}</span>{/if}
+    {#if ready}<span class="status" class:bad role="status" data-tour="saved">{statusText[status]}</span>{/if}
     <!-- The length follows Saved as one grey line (mock-up 30, A), and steps aside for a red message. -->
     {#if ready && voiceText && !bad}<span class="voice" title={voiceText.includes('/') ? 'Voice-over recorded so far / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
     <!-- The browser took back its OK to edit the folder: only a click can ask again (mock-up 18, option A). -->
@@ -122,7 +122,7 @@
         Assets{#if missingCount}<span class="count bad" aria-label="{missingCount} missing">{missingCount}</span>{/if}
       </button>
     </nav>
-    <div class="right">
+    <div class="right" data-tour="actions">
       {#if editors.length}
         <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
       {/if}

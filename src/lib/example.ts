@@ -11,7 +11,8 @@ const BEFORE = 'Example before start over'; // the copy kept for Undo
 const FOLDED = 'studio.example-folded';
 
 const files = import.meta.glob('../../docs/example/*/script.md', { query: '?raw', import: 'default', eager: true });
-const assets = import.meta.glob('../../docs/example/*/assets/*', { query: '?url', import: 'default', eager: true });
+// The drawings and other made-up files (one of each kind the app previews), and the voice-over takes (AU-1).
+const assets = import.meta.glob(['../../docs/example/*/assets/*', '../../docs/example/*/voice/*'], { query: '?url', import: 'default', eager: true });
 
 // Whether the offer on the first-time screen is folded to one line (remembered by this browser).
 export function exampleFolded(): boolean {
@@ -50,14 +51,14 @@ export async function startOver(): Promise<{ folder: FileSystemDirectoryHandle; 
   };
 }
 
-// The script, its drawings, two History entries and two comments, so Write, Review and History all have something.
+// The script, its files and takes, two History entries and two comments, so every tab has something to show.
 async function fill(folder: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
   const dir = await folder.getDirectoryHandle(SCRIPT, { create: true });
   const text = Object.entries(files).find(([path]) => path.includes(`/${SCRIPT}/`))![1] as string;
   for (const [path, url] of Object.entries(assets)) {
-    const name = path.split('/').at(-1)!;
+    const [sub, name] = path.split('/').slice(-2);
     const blob = await (await fetch(url as string)).blob();
-    await write(await dir.getDirectoryHandle('assets', { create: true }), name, blob);
+    await write(await dir.getDirectoryHandle(sub, { create: true }), name, blob);
   }
   const draft = text.replace('status: in review', 'status: draft');
   const first = await addVersion(dir, { parents: [], who: 'Kiva', kind: 'edit', text: draft }, new Date('2026-11-09T14:20:00Z'));

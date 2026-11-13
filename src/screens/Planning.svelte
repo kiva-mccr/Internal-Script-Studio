@@ -100,7 +100,7 @@
 <svelte:document onvisibilitychange={() => document.hidden && status === 'waiting' && save()} />
 
 {#if open}
-  <aside class="panel" aria-label={showing === 'comments' ? 'Comments' : 'Planning'} bind:this={panel} style:height={height ? `${height}px` : null}>
+  <aside class="panel" data-tour="side" aria-label={showing === 'comments' ? 'Comments' : 'Planning'} bind:this={panel} style:height={height ? `${height}px` : null}>
     <div class="top">
       {#if comments}
         <div class="tabs" role="group" aria-label="Panel">
@@ -127,7 +127,7 @@
     {/if}
   </aside>
 {:else}
-  <aside class="edge">
+  <aside class="edge" data-tour="side">
     <button class="tab" aria-label="Open planning" title="Open planning" onclick={() => show('planning')}>
       <span aria-hidden="true">‹</span><span class="word">Planning</span>
     </button>

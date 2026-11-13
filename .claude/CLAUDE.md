@@ -55,11 +55,10 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
-  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14 (done), AP-32 (done), RV-15 (done), AP-33 (done). AP-34 (a tutorial in the example) waits: remind the user of it when
-  they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
+  AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14 (done), AP-32 (done), RV-15 (done), AP-33 (done). Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
 - Now (the user's queue, 2026-11-13): flaky tests (done), split Editor.svelte and Write.svelte (done), HI-3 History at
-  scale (done). Next the bug fixes (AP-36; RV-17, RV-18, RV-20 done), then AP-34 (the tutorial in the example) first
-  among new features. The user is running the real-world checks (two computers, real files, printing) with the field
+  scale (done), AP-34 the tour in the example (done, moved ahead by the user). Next the bug fixes (AP-36; RV-17, RV-18,
+  RV-20 done). The user is running the real-world checks (two computers, real files, printing) with the field
   test checklist: https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. The next-round picks (AP-15, AP-8, AP-26, SB-1,
   and the new RV-16, RV-19, AP-37, AP-38, AP-39 …) wait until then; "Last" in ROADMAP.md (EX-5, CC-1) waits until
   everything else is done.
@@ -69,6 +68,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
 - e2e tests run as "Sam": use other names for other people's versions and editing files.
+- e2e tests start with the example's tour skipped (playwright.config.ts); a feature named in the tour keeps its
+  `data-tour` mark, and its step in `lib/tour.ts` changes with it.
 - A file being written shows in a folder listing as "name.crswap" until it closes, and its real name is there, empty
   (or briefly gone), from the start. Tests read a folder's JSON files with `readJsonFiles` (waits for whole files)
   and count them with `expect.poll`, never `listFiles` + `readFile` + `JSON.parse`.
@@ -113,4 +114,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   their files in tests.
 - History at scale (HI-3) on real OneDrive with "online only" files: only a made-up 2,000-version script in test
   Chromium was timed; a first visit on a new computer still reads every file.
+- The example's tour (AP-34) in real Chrome/Edge at other window sizes: only 1280 × 800 and 1920 × 1080 test Chromium
+  were seen. Its takes are a made-up voice (espeak-ng); nothing was heard here.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.

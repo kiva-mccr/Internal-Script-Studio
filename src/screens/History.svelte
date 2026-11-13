@@ -209,9 +209,9 @@
     <div class="versions">
       <div class="nav-top">
         <h2>Versions</h2>
-        <button class="primary small" onclick={startPublish}>Publish official version</button>
+        <button class="primary small" data-tour="publish" onclick={startPublish}>Publish official version</button>
       </div>
-      <nav aria-label="Versions">
+      <nav aria-label="Versions" data-tour="versions">
         {#each items as item (item.kind === 'one' ? versions[item.i].id : `g${item.first}`)}
           {#if item.kind === 'one'}
             {@render entry(item.i)}
@@ -295,7 +295,7 @@
         </div>
       {/snippet}
       {#each selectedChanges as change, i (i)}
-        <div class="change">
+        <div class="change" data-tour="changes">
           <div class="where">{heading(change.where, why.under.get(i))}</div>
           <div class="body">
             {#if change.old}<p class="old"><span class="sign" aria-label="Removed">−</span><span class="struck" use:math={change.old}>{@html toHtml(change.old)}</span></p>{/if}

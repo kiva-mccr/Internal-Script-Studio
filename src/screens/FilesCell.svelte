@@ -108,7 +108,7 @@
   }
 </script>
 
-<div class="files">
+<div class="files" data-tour="files">
   {#each files as line, i (i + line)}
     {@const ref = readFileRef(line)}
     {@const preview = ref.kind === 'path' ? previews[ref.target] : null}

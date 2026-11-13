@@ -16,7 +16,7 @@ describe('parseScript and writeScript', () => {
     expect(third.dialogue).toBe(
       'Inside each cell, tiny parts called chloroplasts catch the light.\n\nThey are packed with chlorophyll, the green that makes leaves look green.',
     );
-    expect(third.files).toEqual(['[Chloroplast zoom animation](https://example.com/chloroplast-zoom.mp4)', 'assets/storyboard-p4.pdf']);
+    expect(third.files).toEqual(['[Chloroplast zoom animation](https://example.com/chloroplast-zoom.mp4)', 'assets/storyboard-p4.pdf', 'assets/cell-micrograph.tif']);
   });
 
   it('writes the example back exactly', () => {

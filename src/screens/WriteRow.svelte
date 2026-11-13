@@ -71,7 +71,7 @@
 
 <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && stepped} class:talking
   class:visited={by} class:visit-on={by && visit?.on === block.id} style:--down="{(said.length ? 34 : 0) + (by ? 58 : 0)}px"
-  data-row={block.id} data-block={i} data-visit={by ? block.id : undefined}>
+  data-row={block.id} data-block={i} data-visit={by ? block.id : undefined} data-tour="row">
   <div class="num">
     {#if canPlay}
       {#if here && player.on}
@@ -93,20 +93,20 @@
       <span class="mark" title="{by.who} · {when(Date.parse(by.when))}"><b>{was ? 'Changed' : 'New'}</b><span>{by.who}</span></span>
       <button class="seen" aria-label="Seen, row {n}" title="Seen: clear this mark" onclick={() => visit?.onSeen(block.id)}>✓</button>
     {/if}
-    <span class="tools">
+    <span class="tools" data-tour="row-tools">
       <button aria-label="Move row {n} up" title="Move up" onclick={() => onMove(-1)}>↑</button>
       <button aria-label="Move row {n} down" title="Move down" onclick={() => onMove(1)}>↓</button>
       <button aria-label="Add a row below row {n}" title="Add a row below" onclick={onInsert}>+</button>
       <button aria-label="Delete row {n}" title="Delete" onclick={onRemove}>×</button>
     </span>
-    <button class="flag" class:on={flag} disabled={!block.id} onclick={onToggleFlag}
+    <button class="flag" data-tour="row-tools" class:on={flag} disabled={!block.id} onclick={onToggleFlag}
       aria-label={flag ? `Clear the flag on row ${n}` : `Flag row ${n}`} aria-pressed={!!flag} title={flag ? 'Clear the flag' : 'Flag this row'}>
       <FlagIcon filled={!!flag} size={15} />
     </button>
-    <button class="promote" aria-label="Turn row {n} into a section" title="Turn into a section" onclick={onToSection}>§</button>
+    <button class="promote" data-tour="row-tools" aria-label="Turn row {n} into a section" title="Turn into a section" onclick={onToSection}>§</button>
   </div>
   <div class="mic-cell">
-    <button class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}
+    <button data-tour="take" class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}
       onclick={onMic} aria-label={recording ? `Stop recording row ${n}` : take ? `Record row ${n} again` : `Record row ${n}`}>
       {#if recording && voice.cue}
         <svg class="ring" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" /></svg>{@render micIcon()}

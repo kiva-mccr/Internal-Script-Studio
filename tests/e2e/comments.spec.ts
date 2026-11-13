@@ -240,7 +240,7 @@ test('Use in script copies a file on a comment into its row, only in Write (RV-1
   await expect(cell).toContainText("From Ana's comment");
   await card.getByRole('button', { name: 'Use in script: notes.pdf' }).click();
   await expect(card.getByRole('button', { name: /Use in script/ })).toHaveCount(0);
-  await expect.poll(() => readFile(page, SCRIPT)).toContain('- assets/leaf-closeup.jpg\n- assets/notes.pdf\n- assets/leaf-real.png\n- assets/notes 2.pdf\n');
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('- assets/notes.pdf\n- assets/leaf-push-in.mp4\n- assets/leaf-real.png\n- assets/notes 2.pdf\n');
   expect(await readFile(page, 'Episode 03/assets/leaf-real.png')).toBe('leaf');
   expect(await readFile(page, 'Episode 03/assets/notes 2.pdf')).toBe('new notes!');
   expect(await readFile(page, 'Episode 03/assets/notes.pdf')).toBe('old notes');
