@@ -25,6 +25,12 @@ messages are the Editor's: `notice` hands a message back, `onEntry` says a statu
   save already being written: checking only for `waiting` skipped one mid-save, so it got no History entry (the same
   test, flaky again under load).
 - Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
+- One save at a time (`save` waits for the one being written): two at once wrote script.md twice over.
+- A failed save names the browser's error (`problem`, "Writing script.md: NoModificationAllowedError: …") for the
+  top bar, so a failure on a real shared folder can be reported (the field test, FX-1). Quiet retries come first, in
+  `readScript` and `writeScriptFile` (`lib/folder.ts`).
+- The 5 s check reads script.md only when its time or size changed (`scriptStamp`): on a Windows network share a
+  save can't replace a file another computer has open, and reading it every 5 s kept it open (FX-1).
 - A failed save tries again every 6 s, unless the browser took back its OK to edit the folder (`hasAccess` false):
   retrying can't fix that (the browser asks only from a click), so the status is `locked` and the top bar's Allow
   editing calls `allow()`. Changes go on in the page meanwhile and are saved once allowed. The 5 s check and coming

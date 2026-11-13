@@ -56,7 +56,9 @@ Status: a first working version. What it does today:
   version they were made on if nothing has changed for them yet (with "Open in Review" while still open).
   A long History lists the newest 50 first; "Show 50 older" loads more, and after that older ones load as you
   scroll. Each History file is read once and remembered by the browser, so big histories stay quick.
-- **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed.
+- **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed
+  (after a few quiet tries, since a shared folder can hold the file for a moment), with the browser's reason: hover
+  for all of it.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
   Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter, Credits and Settings.
 - **Credits and contacts:** ⋯ › Credits lists who worked on the script, each with a short blurb on what they did on

@@ -49,3 +49,5 @@ Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over
   time, which the tests read. It is hidden while the status is red (`bad`), so the warning is never pushed off.
 - The folder is only an icon: its name is in `aria-label` and `title` ("Back to Video Scripts"); tests click the link
   by that name (a part match on "Video Scripts" still finds it).
+- A failed save shows the browser's error name in the bar and all of it on hover (`problem`, FX-1), so the user can
+  report what a real shared folder said.

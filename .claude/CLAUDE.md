@@ -57,6 +57,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
   AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14 (done), AP-32 (done), RV-15 (done), AP-33 (done). Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
 - Done 2026-11-13: flaky tests, the screen split, HI-3, AP-34, RV-17, RV-18, RV-20 (AP-36 shelved by the user).
+- FX-1 (saves failing on the user's mapped network drive) went ahead of the round; FX-2 waits on the user's retest.
 - Now (the user's ranking, 2026-11-13), mock-ups first, built in this order: RV-19, RV-22, RV-16, AP-38, RV-21,
   AP-39. The user is running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. The rest (AP-15, AP-8, AP-37, AP-35, SB-1 then EX-19 …) waits
@@ -76,10 +77,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   before handing over anything that touches saving, History or the folder. Fix the race, never add retries.
 
 ## Known gaps (never seen for real; confirm when the user can)
-- Since 2026-11-13 the user's team keeps the scripts on a networked file server (a Windows mapped drive, SMB), not OneDrive,
-  because OneDrive wouldn't sync. The first two-computer test there: saves kept showing "Couldn't save, trying
-  again" while typing (one person typing, and two people on different rows). Being fixed in its own thread.
-- Nothing has been tried on a real OneDrive synced folder yet.
+- The team now uses a Windows mapped network drive (SMB), not OneDrive. The first field test there failed saves
+  (FX-1); whether the quiet retries fix it is unseen, since there is no SMB share here.
 - The editor's saves and the 5 s check for others' saves with real OneDrive sync delays.
 - Conflicts and "… is editing" with two real computers (only simulated by writing files in tests).
 - Follow my voice (EX-8, EX-12) with real Moonshine, WebGPU and a real microphone: this container can't reach

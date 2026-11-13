@@ -8,6 +8,9 @@ and the files in its `assets/`.
 
 ## Rules and pitfalls
 
+- `readScript` and `writeScriptFile` try again quietly for about 5.5 s (`patiently`) before throwing: a Windows
+  network share refuses to replace script.md while another computer has it open, and OneDrive can hold it while
+  syncing (FX-1). A lost OK (`NotAllowedError`) isn't retried. A write that fails is aborted, or its .crswap stays.
 - Names are checked case-blind (Windows and OneDrive treat `Trailer` and `trailer` as the same folder) and lose
   the characters OneDrive refuses (`safeName`).
 - `isCopyOf` tells whether a Files line is a copy `addAsset` made of a file of that name (RV-12's "In row").

@@ -450,7 +450,7 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} {reviewStatus} {status}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} {reviewStatus} {status} problem={file.problem}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
   onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />

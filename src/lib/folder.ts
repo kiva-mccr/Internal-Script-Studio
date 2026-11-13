@@ -41,13 +41,46 @@ export async function findScript(root: FileSystemDirectoryHandle, path: string[]
 }
 
 export async function readScript(dir: FileSystemDirectoryHandle): Promise<string> {
-  return (await (await dir.getFileHandle(SCRIPT)).getFile()).text();
+  return patiently(async () => (await (await dir.getFileHandle(SCRIPT)).getFile()).text());
+}
+
+// When script.md last changed, without opening it ('' if it can't be seen): the 5 s check reads it only when this
+// differs, since every read holds the file open for a moment on the other computers' shared folder.
+export async function scriptStamp(dir: FileSystemDirectoryHandle): Promise<string> {
+  try {
+    const file = await (await dir.getFileHandle(SCRIPT)).getFile();
+    return `${file.lastModified}:${file.size}`;
+  } catch {
+    return '';
+  }
 }
 
 export async function writeScriptFile(dir: FileSystemDirectoryHandle, text: string): Promise<void> {
-  const writable = await (await dir.getFileHandle(SCRIPT, { create: true })).createWritable();
-  await writable.write(text);
-  await writable.close();
+  await patiently(async () => {
+    const writable = await (await dir.getFileHandle(SCRIPT, { create: true })).createWritable();
+    try {
+      await writable.write(text);
+      await writable.close();
+    } catch (e) {
+      await writable.abort().catch(() => {}); // or the unfinished .crswap file stays behind, holding script.md
+      throw e;
+    }
+  });
+}
+
+// A network share or OneDrive can hold script.md for a moment (another computer reading it, a sync), so a read or
+// write is tried again quietly before it counts as failed. A lost OK to edit the folder isn't: only a click helps.
+const WAITS = [300, 700, 1500, 3000]; // ms, about 5.5 s in all
+export async function patiently<T>(work: () => Promise<T>, waits = WAITS): Promise<T> {
+  for (const wait of waits) {
+    try {
+      return await work();
+    } catch (e) {
+      if (e instanceof DOMException && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+      await new Promise((done) => setTimeout(done, wait));
+    }
+  }
+  return work();
 }
 
 // Makes a new script folder with one empty row. Returns the folder's name, or throws a plain-language Error.
