@@ -12,7 +12,7 @@ export type Version = {
   when: string; // 2026-11-09T14:41:00Z
   kind: Kind;
   note: string;
-  message?: string; // the note for the reviewers, with "Sent for review" (RV-8); absent when none was written
+  message?: string; // the note with "Sent for review" (RV-8) or "Sent back to writer" (RV-13); absent when none was written
   sha256: string;
   text: string;
 };
@@ -53,6 +53,12 @@ export async function listVersions(dir: FileSystemDirectoryHandle): Promise<Vers
 export function reviewNote(versions: Version[]): Version | undefined {
   const newest = versions.findLast((v) => v.kind === 'review');
   return newest?.note === 'Sent for review' && newest.message ? newest : undefined;
+}
+
+// The newest review entry when it is a send back (RV-13): Write shows it, and its note, at the top of Comments.
+export function backNote(versions: Version[]): Version | undefined {
+  const newest = versions.findLast((v) => v.kind === 'review');
+  return newest?.note.startsWith('Sent back') ? newest : undefined;
 }
 
 // The version from when the last review ended (RV-4): the newest "Sent back to writer" or "Approved" (also

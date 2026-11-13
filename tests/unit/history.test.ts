@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { ancestor, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sinceReview, summary, type Version } from '../../src/lib/history';
+import { ancestor, backNote, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sinceReview, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -93,6 +93,16 @@ describe('reviewNote', () => {
     expect(reviewNote([sent('a', 'Look at row 2'), sent('b')])).toBeUndefined();
     expect(reviewNote([sent('a', 'Look at row 2'), version(example, { id: 'b', kind: 'review', note: 'Sent back to writer' })])).toBeUndefined();
     expect(reviewNote([])).toBeUndefined();
+  });
+});
+
+describe('backNote (RV-13)', () => {
+  it('is the newest review entry while it is a send back, with or without a note', () => {
+    const back = (id: string, message?: string) => version(example, { id, kind: 'review', note: 'Sent back to writer', message });
+    expect(backNote([back('a', 'Fix row 3'), version(example, { id: 'b' })])?.message).toBe('Fix row 3');
+    expect(backNote([back('a')])?.id).toBe('a');
+    expect(backNote([back('a', 'Fix row 3'), version(example, { id: 'b', kind: 'review', note: 'Sent for review' })])).toBeUndefined();
+    expect(backNote([])).toBeUndefined();
   });
 });
 

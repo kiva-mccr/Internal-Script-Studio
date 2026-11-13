@@ -14,8 +14,9 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
 - Rows are matched by id, so a moved row is not "edited".
 - Official versions (kind `official`) get their number from `officialNumbers`, by publish order; never stored.
   `officialNumber` says which one the script still is (printing), or 0 once anything has changed since.
-- `message` (RV-8) is written only when there is one. `reviewNote` is the newest review change, if it was a send
-  with a note; sent back or approved since means none.
+- `message` (RV-8, RV-13) is written only when there is one. `reviewNote` is the newest review change, if it was a send
+  with a note; sent back or approved since means none. `backNote` is the newest review change if it was a send back
+  (note or not), for the top of Write's Comments tab.
 - `reviewEnd` is the newest `review` entry whose note starts "Sent back" or "Approved" (also "Approved, 2 still
   open"), never a send: a second round compares with when the first ended. `sinceReview` matches rows by id, like
   `describe`, so a moved row is not changed (RV-4).

@@ -2,7 +2,8 @@
 
 The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell, or use
 Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
-suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / Send back (RV-3) are in `Header.svelte`.
+suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). The cards are `CommentCard.svelte`, shared with Write's
+Comments tab (RV-13). Approve / Send back (RV-3) are in `Header.svelte`.
 
 - **Used by:** `Editor.svelte` (the Write · Review · History switch). **Tests:** `tests/e2e/review.spec.ts`, `play.spec.ts` (AU-9).
 
@@ -19,6 +20,7 @@ suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). Approve / S
 - Images & files shows names, as Write does, so a quote there is of the name.
 - Cells show formatting (`lib/format.ts`), so a quote is of the text as it reads, marks taken out. Quotes are
   marked with CSS highlights (`CSS.highlights`, Chrome and Edge), not by changing the page; tests read them there.
+  Their colours are in `app.css`, shared with Write (RV-13).
 - Accepting goes through `Editor.svelte` (`onApply`): the quote is replaced in Write's text, then saved as usual. It
   only works if the quote is there as typed (not across formatting marks); otherwise a message, nothing changed.
 - A suggestion decided here stays in the open list with Undo until the screen is left (`recent`).

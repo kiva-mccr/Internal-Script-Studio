@@ -54,3 +54,9 @@ script as it plays (AU-2). Any column but the last one open folds to a thin stri
   section's tools. Both go through the Undo bar (`onDeleted`). The Undo message is worked out before the splice: after
   it the row has no number. A section turned into a row gets a fresh id (no take, flag or comments).
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.
+- Review comments (RV-13, board 37): a row with open ones (`talk`, from the Editor) shows a blue bubble with the count
+  under its number (`.bubble`, `display: flex` or it sat over the number); the row tools, flag and § move down to
+  clear it (`.talk`), so such a row is a little taller. Quotes are marked with CSS highlights on the field's
+  formatted text (`.shown`), so not while that box is focused; the effect reruns when those rows' text changes
+  (`quoted`). A click in Dialogue or On screen with the cursor in a quote's words (found in the raw text, so not
+  across marks) opens its card (`onTalk`). The row of the card being read is tinted (`.talking`).

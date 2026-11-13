@@ -37,6 +37,11 @@ Status: a first working version. What it does today:
   lines are added, removed or moved (in Dialogue and On screen too, for a list typed as `1. `). It is kept in `plan.md` beside the script, saves on its own and
   shows others' saves, but is not part of the script: no History versions and not in any export. The browser
   remembers whether it is open.
+- **Comments in Write:** in Write the same panel has a second tab, Comments, so the writer works through review
+  comments while rewriting: reply, resolve (Undo while the panel is open), and accept or reject suggestions. Rows
+  with something open show a small blue speech bubble with the count under the row number, and the quoted words are
+  marked yellow; click either to open that card, and click a card to go to its row. New comments are still started
+  in Review. After a send back, Write opens on Comments with the reviewer's note at the top.
 - **History:** Write · History at the top of a script. Every few minutes of editing is kept as a version: who, when
   and what changed, word for word. Restore any version. Changes made outside the app (say, in Notepad) are noted.
   Publish official version names the script as it is now (v1, v2 …); History then shows those, with the small
@@ -80,7 +85,8 @@ Status: a first working version. What it does today:
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
   50 MB each; bigger things go in OneDrive as a link). They show the same previews as Images & files, with the name
   and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the
-  reviewers that they see at the top of Review, then Approve or Send back to writer; each step (and the note)
+  reviewers that they see at the top of Review, then Approve or Send back to writer (with an optional note for the
+  writer, shown at the top of Comments in Write); each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,
   Approve first lists them (click one to go to it); "Approve anyway" still approves, and History notes how many were open.
   **What's changed:** once a script has been sent back or approved, Review marks the rows changed since then (a blue

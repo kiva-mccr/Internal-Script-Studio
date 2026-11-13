@@ -7,6 +7,8 @@
 // an edit lists the files it keeps and adds its own new ones under its own id.
 
 import { safeName } from './folder';
+import { plain } from './format';
+import { readFileRef, type Row } from './script';
 
 export type Field = 'dialogue' | 'on_screen' | 'files';
 // An attached file (RV-11): `path` is inside the script's folder, `.studio/files/<note id>/<name>`.
@@ -125,6 +127,17 @@ export function flags(notes: Note[], rows: string[]): Map<string, Flag> {
     if (note?.kind === 'flag') found.set(row, { row, text: note.text ?? '', who: note.who, when: note.when });
   }
   return found;
+}
+
+// What a cell shows; files by their names, as in Write (a quote in Images & files is of what is shown).
+export function fieldText(row: Row, field: Field): string {
+  return field === 'files' ? row.files.map((f) => readFileRef(f).label).join('\n') : field === 'on_screen' ? row.onScreen : row.dialogue;
+}
+
+// A comment's quote is no longer in its row: it is on text that has since changed.
+export function quoteGone(comment: Note, rows: Row[]): boolean {
+  const row = rows.find((r) => r.id === comment.row);
+  return !!comment.quote && (!row || !plain(fieldText(row, comment.field ?? 'dialogue')).includes(comment.quote));
 }
 
 // A size as people say it: 180 KB, 2.4 MB, 1.8 GB.

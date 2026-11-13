@@ -148,6 +148,7 @@ test('approve, send for review again, and send back to the writer; each is in Hi
   await expect(page.getByText('In review', { exact: true })).toBeVisible(); // Write shows where it stands
   await page.getByRole('button', { name: /^Review/ }).click();
   await page.getByRole('button', { name: 'Send back to writer' }).click();
+  await page.getByRole('region', { name: 'Send back to writer' }).getByRole('button', { name: 'Send back to writer' }).click(); // no note
   await expect(page.getByRole('button', { name: 'Send for review' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Write', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Send for review' })).toBeVisible();
@@ -197,6 +198,7 @@ test('a note for the reviewers with Send for review: shown at the top of Review 
   // Once sent back, Review no longer shows it.
   await page.getByRole('button', { name: /^Review/ }).click();
   await page.getByRole('button', { name: 'Send back to writer' }).click();
+  await page.getByRole('region', { name: 'Send back to writer' }).getByRole('button', { name: 'Send back to writer' }).click(); // no note
   await expect(note).toHaveCount(0);
   await expect(page.getByRole('button', { name: "Sam's note" })).toHaveCount(0);
   // An empty note sends too, and shows nothing in Review.

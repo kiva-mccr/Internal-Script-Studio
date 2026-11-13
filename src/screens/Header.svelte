@@ -29,9 +29,12 @@
   // Fountain, Final Draft and later exports, each opening the export screen, EX-9) and ⋯ (Teleprompter).
   // 'approve': what is still open, before approving (RV-5, mock-up 20). It warns and never blocks.
   // 'send': a note for the reviewers, before sending (RV-8, mock-up 26). Optional; kept while the page is open.
-  let menu = $state<'' | 'more' | 'export' | 'approve' | 'send'>('');
+  // 'back': a note for the writer, before sending back (RV-13); they see it at the top of Comments in Write.
+  let menu = $state<'' | 'more' | 'export' | 'approve' | 'send' | 'back'>('');
   let sendNote = $state('');
+  let backNote = $state('');
   let sendEl = $state<HTMLElement>();
+  let backEl = $state<HTMLElement>();
   let settings = $state(false); // the Settings window (AU-3), opened from ⋯
   let moreEl = $state<HTMLElement>();
   let exportEl = $state<HTMLElement>();
@@ -47,6 +50,11 @@
     menu = '';
     onStatus('in review', 'Sent for review', sendNote.trim());
     sendNote = '';
+  }
+  function sendBack() {
+    menu = '';
+    onStatus('draft', 'Sent back to writer', backNote.trim());
+    backNote = '';
   }
   async function copyLink() {
     await copy('link', () => navigator.clipboard.writeText(shareLink(location.href)));
@@ -73,7 +81,7 @@
   // A click outside the menu or Esc closes it.
   function away(event: Event) {
     const inside = (el?: HTMLElement) => el?.contains(event.target as Node);
-    if (menu && !inside(moreEl) && !inside(exportEl) && !inside(approveEl) && !inside(sendEl)) menu = '';
+    if (menu && !inside(moreEl) && !inside(exportEl) && !inside(approveEl) && !inside(sendEl) && !inside(backEl)) menu = '';
   }
 </script>
 
@@ -109,7 +117,20 @@
         <span class="editing"><span class="dot" aria-hidden="true"></span>{editingText(editors)}</span>
       {/if}
       {#if reviewStatus === 'in review' && mode === 'review'}
-        <button class="outline" onclick={() => onStatus('draft', 'Sent back to writer')}>Send back to writer</button>
+        <span class="more" bind:this={backEl}>
+          <button class="outline" aria-expanded={menu === 'back'} onclick={() => (menu = menu === 'back' ? '' : 'back')}>Send back to writer</button>
+          {#if menu === 'back'}
+            <div class="menu approve-menu" role="region" aria-label="Send back to writer">
+              <label class="lead" for="back-note">A note for the writer</label>
+              <textarea id="back-note" rows="4" bind:value={backNote} {@attach (el) => el.focus()} placeholder="What should they fix first? (optional)"></textarea>
+              <p class="quiet">They see it at the top of Comments in Write. It is kept in History.</p>
+              <div class="actions">
+                <button class="outline" onclick={() => (menu = '')}>Cancel</button>
+                <button class="dark" onclick={sendBack}>Send back to writer</button>
+              </div>
+            </div>
+          {/if}
+        </span>
         <span class="more" bind:this={approveEl}>
           <button class="dark" aria-expanded={loose.length ? menu === 'approve' : undefined} onclick={() => approve()}>Approve</button>
           {#if menu === 'approve'}
