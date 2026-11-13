@@ -544,6 +544,13 @@ and suggestions, keeps every version, and exports them for production.
   shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
   empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
   Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
+- [ ] **AP-40** The script list reads only what it needs (asked by the user): today the list, after showing names,
+  reads every script's script file, take notes, all comment files and History (not approved ones) one after another,
+  and again whenever the window gets focus. Instead: (1) only the scripts on screen are read, the rest as you scroll
+  to them; (2) the counts (length, missing, flagged, For me) are remembered per script in the browser, and a script
+  is read again only when its files changed (a folder listing with file dates, no file opened); (3) coming back to
+  the window checks dates only. Goes with AP-39 and HI-3. Explore and measure on a big folder first; the list looks
+  the same, so no mock-up unless something visible changes.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
