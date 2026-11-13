@@ -482,6 +482,11 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
   is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
   RV-18: a before and after picture is shown to the user before it is merged.
+- [ ] **RV-21** Tab counts that say what's new for you (asked by the user): today the Review tab's number is the open
+  comments. Instead, Review counts the rows changed between Send back to writer and the next Send for review (what
+  the reviewer has to look at), and Write counts the comments and suggestions made between Send for review and Send
+  back to writer (what the writer has to deal with). A count clears once you open its tab, then counts only what is
+  new since (remembered per browser, like RV-15). Placed by the user after the current queue. Mock-up first.
 - [ ] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
   dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
   how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
