@@ -99,7 +99,8 @@ export async function listFiles(page: Page, path: string): Promise<string[]> {
       let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
       for (const part of path.split('/')) dir = await dir.getDirectoryHandle(part);
       const names: string[] = [];
-      for await (const name of dir.keys()) names.push(name);
+      // A file being written shows as "name.crswap" until it is closed, then is gone: never list it.
+      for await (const name of dir.keys()) if (!name.endsWith('.crswap')) names.push(name);
       return names.sort();
     } catch {
       return [];

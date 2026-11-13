@@ -15,6 +15,8 @@ printing (the browser's print window makes the PDF, "Save as PDF"), and with `on
   messages and the GitHub link never print. It must stay a direct child of `#app` (Editor's top level).
 - `onReady` waits for the image previews and equations, or the print window shows the page half drawn. A missing
   or broken image is hidden, never waited for.
+- `landscape` (EX-18) sets `@page { size }`, which turns the print window's page; Chrome then hides its own Layout
+  choice. Paper size stays the browser's.
 - The footer (title, version, page N of M) is an `@page` margin box, so the title goes in as an escaped CSS string.
 - `<thead>` repeats the headings on every page, and `break-inside: avoid` keeps a row on one page.
 - Text sizes are in `em` from the page's font size, so the text size choice scales all of them; images don't.

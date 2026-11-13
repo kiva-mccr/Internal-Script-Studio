@@ -687,7 +687,7 @@
 {/if}
 
 {#if printing && script && dir}
-  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} onReady={() => window.print()} />
+  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} onReady={() => window.print()} />
 {/if}
 
 <!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->

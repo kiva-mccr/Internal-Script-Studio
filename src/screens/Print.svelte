@@ -8,11 +8,11 @@
   // The print version (EX-1, mock-up 9): only shown when printing. `version` is "v3", or "" for a draft.
   // For notes during production (asked by the user): column, a blank Notes column on each row; lines, how many
   // Notes lines go at the foot of every page (EX-15, board 42; 0 = none). scale: the text size, 1 = as drawn (asked by the user). hidden: the columns that don't
-  // print, in the order they were unticked (EX-16); their room goes to the others.
+  // print, in the order they were unticked (EX-16); their room goes to the others. landscape: the page turned sideways (EX-18).
   // onReady: called once images and equations are in, so the print window shows the whole page.
   // onScreen: drawn on screen as the export screen's preview (EX-9), never printed.
-  let { script, dir, title, version, column, lines, scale, hidden, onScreen = false, onReady = () => {} }: {
-    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: number; scale: number; hidden: Column[];
+  let { script, dir, title, version, column, lines, scale, hidden, landscape = false, onScreen = false, onReady = () => {} }: {
+    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: number; scale: number; hidden: Column[]; landscape?: boolean;
     onScreen?: boolean; onReady?: () => void;
   } = $props();
 
@@ -64,7 +64,7 @@
 </script>
 
 <svelte:head>
-  {#if !onScreen}{@html `<style>@page { margin: 14mm 12mm 16mm; @bottom-left { content: "${footer}"; font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; }
+  {#if !onScreen}{@html `<style>@page { size: ${landscape ? 'landscape' : 'portrait'}; margin: 14mm 12mm 16mm; @bottom-left { content: "${footer}"; font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; }
     @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt Inter, system-ui, sans-serif; color: #8a8a8a; } }</style>`}{/if}
 </svelte:head>
 

@@ -52,7 +52,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
   AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14, AP-32 (done), RV-15 (done), AP-33 (done). AP-34 (a tutorial in the example) waits: remind the user of it when
-  they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6, RV-12 (done), EX-18, AP-31 (mock-ups on boards 47 to 51). The user prioritizes
+  they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6, RV-12 (done), EX-18 (done), AP-31 (mock-ups on boards 47 to 51). The user prioritizes
   what comes next; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
@@ -60,6 +60,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
 - e2e tests run as "Sam": use other names for other people's versions and editing files.
+- A file being written shows in a folder listing as "name.crswap" until it closes: `listFiles` in tests skips them.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.
@@ -75,6 +76,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Play the script (AU-2, AU-7, AU-9) with real takes: tests play the fake WAV takes, and nothing was heard here. Whether the
   shown time keeps up with real webm takes is unseen.
 - Notes lines on every printed page (EX-15) in real Chrome/Edge printing to paper: only Chromium's PDF was seen here.
+- Landscape print (EX-18) in real Chrome/Edge print windows and on paper: only Chromium's PDF (11 × 8.5 in) was seen here.
 - Copy for Teams (EX-10) pasted into real Microsoft Teams: only the clipboard's HTML and text were checked here.
 - Paste a draft (AP-13) from real Word: tests paste plain text with Windows line ends through the clipboard.
 - Remembering the folder across visits (IndexedDB) and the "Welcome back" permission prompt, in real Chrome/Edge.

@@ -1,8 +1,8 @@
 <script lang="ts" module>
   import type { Column } from '../lib/printcolumns';
-  // Print's choices: a Notes column on each row, Notes lines on every page (how many), the text size in %, and the columns that
-  // print (EX-16).
-  export type PrintChoices = { column: boolean; lines: number; scale: number; hidden: Column[] };
+  // Print's choices: a Notes column on each row, Notes lines on every page (how many), the text size in %, the columns that
+  // print (EX-16), and the page turned sideways (EX-18).
+  export type PrintChoices = { column: boolean; lines: number; scale: number; hidden: Column[]; landscape: boolean };
   export type Format = 'print' | 'fountain' | 'fdx' | 'voice';
 </script>
 
@@ -42,7 +42,7 @@
   const savedCount = Math.min(8, Math.max(2, Number(recall('print-line-count')) || 4));
   let lineCount = $state(savedCount);
   let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: recall('print-lines') ? savedCount : 0, scale: Number(recall('print-scale')) || 100,
-    hidden: readHidden(recall('print-hide')) });
+    hidden: readHidden(recall('print-hide')), landscape: recall('print-page') === 'landscape' });
   let fountain = $state<Screenplay>(load('export-fountain', SCREENPLAY));
   let fdx = $state<Screenplay>(load('export-fdx', SCREENPLAY));
   let voiceHow = $state(load('export-voice', { gap: false, silence: false }));
@@ -52,6 +52,7 @@
     keep('print-line-count', String(lineCount));
     keep('print-scale', String(printing.scale));
     keep('print-hide', printing.hidden.join(','));
+    keep('print-page', printing.landscape ? 'landscape' : '');
     keep('export-fountain', JSON.stringify(fountain));
     keep('export-fdx', JSON.stringify(fdx));
     keep('export-voice', JSON.stringify(voiceHow));
@@ -61,6 +62,10 @@
     lineCount = Math.min(8, Math.max(2, count));
     printing.lines = on ? lineCount : 0;
   }
+  // The preview's page is drawn at the printed width (a Letter page less Print's margins, in CSS px) and shrunk to fit.
+  let pageWidth = $state(0);
+  const sheetWidth = $derived(printing.landscape ? 965 : 725);
+  const fit = $derived(pageWidth ? Math.min(1, (pageWidth - 64) / sheetWidth) : 1);
   function showColumn(id: Column, on: boolean) {
     printing.hidden = on ? printing.hidden.filter((c) => c !== id) : [...printing.hidden, id];
   }
@@ -184,9 +189,12 @@
 
   <section class="preview" aria-label="Preview">
     {#if format === 'print'}
-      <p class="caption">As it will print{printing.lines ? ', with the Notes lines at the foot of every page' : ''}. Print… opens the browser's print window, where "Save as PDF" makes the PDF.</p>
-      <div class="page">
-        <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} onScreen />
+      <p class="caption">As it will print, {printing.landscape ? 'landscape' : 'portrait'}{printing.lines ? ', with the Notes lines at the foot of every page' : ''}. Print… opens the browser's print window, where "Save as PDF" makes the PDF.</p>
+      <div class="page" class:landscape={printing.landscape} bind:clientWidth={pageWidth}>
+        <!-- Drawn at the printed width and shrunk to fit, so the columns look as they will on paper. -->
+        <div style:width="{sheetWidth}px" style:zoom={fit}>
+          <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} onScreen />
+        </div>
       </div>
     {:else if format === 'fountain'}
       <p class="caption">{name}.fountain</p>
@@ -238,6 +246,15 @@
     <div class="card">
       <h2>Settings</h2>
       {#if format === 'print'}
+        <fieldset>
+          <legend>Page</legend>
+          <div class="turns">
+            <label><input type="radio" name="page" checked={!printing.landscape} onchange={() => (printing.landscape = false)} />
+              <svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><rect x="1" y="1" width="12" height="16" rx="1.5" /></svg> Portrait</label>
+            <label><input type="radio" name="page" checked={printing.landscape} onchange={() => (printing.landscape = true)} />
+              <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="1" y="1" width="16" height="12" rx="1.5" /></svg> Landscape</label>
+          </div>
+        </fieldset>
         <fieldset>
           <legend>Columns to print</legend>
           {#each COLUMNS as c (c.id)}
@@ -294,7 +311,8 @@
   .caption { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
   .preview > * + .caption { margin-top: 8px; }
   .message { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
-  .page { max-width: 760px; max-height: 75vh; overflow: auto; padding: 32px; background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+  .page { box-sizing: border-box; max-width: 790px; max-height: 75vh; overflow: auto; padding: 32px; background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+  .page.landscape { max-width: 1030px; aspect-ratio: 11 / 8.5; }
   .pair { display: flex; flex-wrap: wrap; gap: 16px; }
   .pair > :global(*) { flex: 1 1 280px; min-width: 0; }
   .file { margin: 0; max-height: 75vh; overflow: auto; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px;
@@ -325,6 +343,11 @@
   label.text { flex-direction: column; align-items: stretch; gap: 4px; }
   label.text input { min-height: 40px; padding: 0 10px; border: 1px solid #d6d6d6; border-radius: 6px; font: inherit; }
   .size input { flex: 1; min-width: 0; }
+  .turns { display: flex; gap: 8px; }
+  .turns label { flex: 1; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--line-strong); border-radius: 8px; cursor: pointer; }
+  .turns label:has(input:checked) { border-color: var(--accent); background: #f3f6fd; }
+  .turns input { margin: 0; }
+  .turns svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
   .count { display: flex; align-items: center; gap: 8px; min-height: 32px; padding-left: 26px; color: var(--muted); }
   .count button { width: 32px; height: 32px; padding: 0; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--ground); color: var(--ink); font-size: 16px; }
   .count button:disabled { color: var(--line-strong); }

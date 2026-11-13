@@ -59,6 +59,8 @@ Status: a first working version. What it does today:
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
   blank Notes column on each row or Notes lines at the foot of every page (2 to 8 lines), and set the text size. Untick any of the three
   columns (for example to print the dialogue only); the others widen to fill the page, Dialogue first, then Notes.
+  Pick Portrait or Landscape for the page: landscape gives the columns more room, and the print window opens already
+  turned.
 - **Fountain:** saves the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
   Sections become scene headings, the dialogue is spoken by NARRATOR, the On screen column is the action, and row
   numbers, notes and files are kept as Fountain notes. The title page carries the version and status. Settings: the
