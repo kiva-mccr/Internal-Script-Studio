@@ -519,6 +519,10 @@ and suggestions, keeps every version, and exports them for production.
   show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
   OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
   (beside "… is editing"?). Mock-up first.
+- [ ] **AP-39** No blank page when scrolling fast (a bug the user hit, not urgent): scrolling quickly through a script
+  shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
+  empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
+  Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
 - [ ] **EX-19** A DaVinci Resolve project from the timeline (asked by the user): the app builds a file that DaVinci
   Resolve opens, with the timeline from SB-1 (images, takes and timings in order), so editors pick it up and keep
   working on it in Resolve. Needs SB-1 first. Mock-up first.
