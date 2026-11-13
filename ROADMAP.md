@@ -479,6 +479,9 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-18** A resolved comment moves into Resolved at once (a bug the user hit): resolving a comment should
   fold it into the Resolved dropdown straight away, not only after the comment panel is closed and opened again. Bug
   fix, no mock-up needed.
+- [ ] **RV-20** The selected comment stands out (asked by the user): when you jump to a comment, its light blue line
+  is hard to see; the selected comment needs a clearly stronger highlight. A small look change done with RV-17 and
+  RV-18: a before and after picture is shown to the user before it is merged.
 - [ ] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
   be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
   are on hold, and held comments come back into view when the script is sent for review or a version is made, so they

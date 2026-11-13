@@ -55,7 +55,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   they set priorities after each round. Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
 - Now (the user's queue, 2026-11-13): fix the flaky tests, split Editor.svelte and Write.svelte, then ideas for History
   that holds up with very large histories. AP-34 (the tutorial in the example) is first among new features after
-  that; bug fixes (AP-36, RV-17, RV-18) go ahead of it. The user is running the real-world checks (two computers, real
+  that; bug fixes (AP-36, RV-17, RV-18, RV-20) go ahead of it. The user is running the real-world checks (two computers, real
   files, printing) with the field test checklist: https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. The next-round
   picks (AP-15, AP-8, AP-26, SB-1 …) wait until this queue is done; "Last" in ROADMAP.md (EX-5, CC-1) waits until
   everything else is done.
