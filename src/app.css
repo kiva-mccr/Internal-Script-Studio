@@ -39,3 +39,6 @@ button { font: inherit; cursor: pointer; }
 ::highlight(comment) { background: #fff1c2; text-decoration: underline 2px #e0b100; }
 ::highlight(suggestion) { background: #fdecec; color: #8a2b2b; text-decoration: line-through; }
 ::highlight(comment-on) { background: #ffe38a; text-decoration: underline 2px #e0b100; }
+/* Find and replace (AP-32): every match, and the one you're on. */
+::highlight(find) { background: #fff1a8; }
+::highlight(find-on) { background: #ffb547; }

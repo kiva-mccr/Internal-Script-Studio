@@ -9,6 +9,7 @@
   import { chosenMic } from '../lib/mic';
   import type { VoiceOver } from '../lib/voice.svelte';
   import FilesCell from './FilesCell.svelte';
+  import Find from './Find.svelte';
   import FlagIcon from './FlagIcon.svelte';
   import Take from './Take.svelte';
   import TextField from './TextField.svelte';
@@ -21,8 +22,9 @@
   // root and folderName: the picked folder and this script's folder name, for "From other scripts…" (AS-1).
   // talk: the open comments and suggestions (RV-13): a bubble on their rows, their quotes marked; talking is the one
   // read in the Comments tab; onTalk opens the tab at one (from a bubble, or a click on its quote).
-  let { script = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
-    script: Script; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
+  // finding: the find and replace bar is open (AP-32; Ctrl+F, or ⋯ in the top bar).
+  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
+    script: Script; finding: boolean; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
     talk: Thread[]; talking: string; onTalk: (id: string) => void;
     onChange: () => void; onPlayFrom: (id: string) => void;
@@ -49,6 +51,23 @@
   if (stored.size === COLUMNS.length) stored.delete('dialogue');
   let folded = $state(stored);
   const columns = $derived(`40px 28px ${COLUMNS.map((c) => (folded.has(c.key) ? '28px' : `minmax(0, ${c.fr}fr)`)).join(' ')}`);
+
+  // Find and replace (AP-32, board 44): Ctrl+F opens the bar; with it open, Ctrl+F from elsewhere comes back to it,
+  // and from inside it gives the browser's own find.
+  let finder = $state<{ focus: () => void }>();
+  let findHeight = $state(0);
+  let titles = $state({ found: new Set<number>(), on: -1 });
+  function findKey(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'f') return;
+    if (finding && (e.target as HTMLElement).closest?.('.find')) return;
+    e.preventDefault();
+    if (finding) finder?.focus();
+    else finding = true;
+  }
+  const unfold = (field: 'dialogue' | 'onScreen' | 'files') => {
+    const key: Column = field === 'onScreen' ? 'screen' : field;
+    if (folded.has(key)) fold(key);
+  };
 
   function fold(key: Column) {
     const next = new Set(folded);
@@ -311,6 +330,12 @@
   };
 </script>
 
+<svelte:window onkeydown={findKey} />
+{#if finding}
+  <div class="find-wrap" bind:offsetHeight={findHeight}>
+    <Find bind:this={finder} {script} {table} bind:titles onUnfold={unfold} {onChange} {onDeleted} onClose={() => (finding = false)} />
+  </div>
+{/if}
 {#if script.intro}<p class="note">{script.intro}</p>{/if}
 {#if flagIds.length}
   <div class="flags">
@@ -323,7 +348,7 @@
   </div>
 {/if}
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="table" bind:this={table} onkeydown={keys}>
+<div class="table" bind:this={table} onkeydown={keys} style:--find-h="{finding ? findHeight : 0}px">
   <div class="head grid" style:grid-template-columns={columns}>
     <span>#</span><span></span>
     {#each COLUMNS as col (col.key)}
@@ -341,7 +366,7 @@
   {#each script.blocks as block, i (block)}
     {#if block.type === 'section'}
       <div class="section" data-block={i}>
-        <input class="section-title" bind:value={block.title} oninput={onChange} onblur={() => left(block)}
+        <input class="section-title" class:found={titles.found.has(i)} class:found-on={titles.on === i} bind:value={block.title} oninput={onChange} onblur={() => left(block)}
           use:focusIf={fresh === block} placeholder="New section" aria-label="Section title" />
         {#if words.get(block)}<span class="time" title="{words.get(block)} words at {speaking.wpm} words a minute">{clock((words.get(block)! / speaking.wpm) * 60)}</span>{/if}
         <span class="tools">
@@ -471,7 +496,8 @@
   /* Its columns are set on the element (`columns`), as a folded column is a thin strip. */
   .grid { display: grid; gap: 0 24px; padding-left: 12px; padding-right: 12px; }
   /* Stays at the top while scrolling. No scrolling box around the table, or it would stick to that instead. */
-  .head { position: sticky; top: 0; z-index: 2; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
+  .find-wrap { position: sticky; top: 0; z-index: 4; }
+  .head { position: sticky; top: var(--find-h, 0px); z-index: 2; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
   .row { align-items: start; min-height: 64px; padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   /* The row being played (AU-2). */
   .row.here { border-radius: 8px; background: #eef2fb; }
@@ -517,6 +543,9 @@
   .section { display: flex; align-items: center; gap: 12px; padding: 28px 12px 8px; border-bottom: 1px solid var(--line); }
   .section-title { flex: 1; border: 0; padding: 4px 0; font: inherit; font-size: 18px; font-weight: 600; background: none; }
   .section-title:focus { outline: none; background: #f7f9ff; }
+  /* A match in a title (AP-32): highlights can't reach inside a box, so the box is tinted. */
+  .section-title.found { border-radius: 4px; background: #fff1a8; }
+  .section-title.found-on { background: #ffb547; box-shadow: 0 0 0 2px #c26a00; }
   .section .tools { flex-wrap: nowrap; }
   .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .note { margin: 0 0 8px; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
