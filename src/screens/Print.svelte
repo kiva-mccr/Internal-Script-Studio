@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { assetFile } from '../lib/folder';
   import { renderMath, toHtml } from '../lib/format';
+  import type { Credit } from '../lib/people';
   import { COLUMNS, widths, type Column } from '../lib/printcolumns';
   import { frontList, frontValue, readFileRef, type Script } from '../lib/script';
 
@@ -9,10 +10,11 @@
   // For notes during production (asked by the user): column, a blank Notes column on each row; lines, how many
   // Notes lines go at the foot of every page (EX-15, board 42; 0 = none). scale: the text size, 1 = as drawn (asked by the user). hidden: the columns that don't
   // print, in the order they were unticked (EX-16); their room goes to the others. landscape: the page turned sideways (EX-18).
+  // credits: listed after the rows, names and blurbs only (AP-31; none when the export's Credits switch is off).
   // onReady: called once images and equations are in, so the print window shows the whole page.
   // onScreen: drawn on screen as the export screen's preview (EX-9), never printed.
-  let { script, dir, title, version, column, lines, scale, hidden, landscape = false, onScreen = false, onReady = () => {} }: {
-    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: number; scale: number; hidden: Column[]; landscape?: boolean;
+  let { script, dir, title, version, column, lines, scale, hidden, landscape = false, credits = [], onScreen = false, onReady = () => {} }: {
+    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: number; scale: number; hidden: Column[]; landscape?: boolean; credits?: Credit[];
     onScreen?: boolean; onReady?: () => void;
   } = $props();
 
@@ -118,6 +120,12 @@
     </tbody>
     {#if lines && !onScreen}<tfoot><tr><td class="room" colspan={cols.length + (column ? 2 : 1)} style:--lines={lines}></td></tr></tfoot>{/if}
   </table>
+  {#if credits.length}
+    <section class="credits">
+      <h2>Credits</h2>
+      {#each credits as credit (credit.id)}<p><span>{credit.name}</span><span class="role">{credit.role}</span></p>{/each}
+    </section>
+  {/if}
   {#if lines}
     <!-- Printed, it is fixed to the foot of every page; the table's <tfoot> keeps that much room free on each one. -->
     <section class="lines" style:--lines={lines}>
@@ -164,4 +172,7 @@
   h2 { margin: 0; font-size: 1.1em; line-height: 1.6; font-weight: 600; }
   .line { height: 8mm; border-bottom: 1px solid #cfcfcf; }
   .sheet :global(a) { color: inherit; }
+  .credits { padding-top: 1.2em; break-inside: avoid; }
+  .credits p { display: grid; grid-template-columns: 30% 1fr; gap: 1em; margin: 0.3em 0 0; }
+  .credits .role { color: #3d3d3d; }
 </style>

@@ -15,6 +15,8 @@
   import Assets from './Assets.svelte';
   import Comments from './Comments.svelte';
   import Conflict from './Conflict.svelte';
+  import Credits from './Credits.svelte';
+  import { shownCredits } from '../lib/people';
   import Export, { type Format, type PrintChoices } from './Export.svelte';
   import Header, { type Loose } from './Header.svelte';
   import History from './History.svelte';
@@ -61,6 +63,7 @@
     if (fileLines) untrack(checkFiles);
   });
   let prompting = $state(false); // the teleprompter is open (EX-2)
+  let crediting = $state(false); // the Credits window is open (AP-31)
   let promptFrom = $state(0); // the block it opens at (AU-7)
   let cursorBlock = -1; // the block the cursor was last in, in Write
   // The teleprompter opens at the block the cursor was last in, or else the first one on screen (AU-7). The cursor's
@@ -686,8 +689,12 @@
   <Teleprompter {script} from={promptFrom} onClose={() => (prompting = false)} />
 {/if}
 
+{#if crediting && script}
+  <Credits root={folder} bind:script={script} me={name} onChange={changed} onClose={() => (crediting = false)} />
+{/if}
+
 {#if printing && script && dir}
-  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} onReady={() => window.print()} />
+  <Print {script} {dir} title={title ?? ''} version={printing.version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} landscape={printing.landscape} credits={printing.credits ? shownCredits(script.front) : []} onReady={() => window.print()} />
 {/if}
 
 <!-- Messages sit at the bottom of the window, so they are seen wherever you have scrolled to. -->
@@ -712,7 +719,7 @@
 <Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} {editors} {reviewStatus} {status}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={(to) => (to === 'review' ? showReview() : to === 'history' ? showHistory() : to === 'assets' ? ((mode = 'assets'), checkFiles()) : (mode = 'write'))}
-  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => ((mode = 'write'), (finding = true))} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
+  onAllow={allow} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} {nextVersion} onFind={() => ((mode = 'write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
 
 <div class="page">
 <main>

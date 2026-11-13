@@ -16,3 +16,4 @@ first; New script; Change folder; Files, to browse every script's files (`Shared
 - The length is read with the missing count (the script and its takes, `read`), and worked out as Play times it:
   takes, plus read time for rows with none, at the speaking speed. It shows a mic, "recorded", only once every row
   with dialogue or a take has a take. Two scripts with the same title can't be told apart by tests: give them others.
+- People (AP-31) opens `People.svelte`, beside Files.

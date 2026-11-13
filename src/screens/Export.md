@@ -25,3 +25,5 @@ Print… or Save on the right. Back to the script, the title in the breadcrumb, 
 - Print's preview is drawn at the printed width (a Letter page less Print's margins: 725 px, 965 px landscape) and
   shrunk with `zoom` to fit the box, so the columns wrap as they will on paper. Change both if Print's margins change.
 - Messages (no takes, takes that can't be read) are shown in the preview, not as the Editor's toasts.
+- The Credits switch (AP-31) is one setting for Print, Fountain and Final Draft (`printing.credits`, kept as
+  `export-credits`), shown only when the script has credits.

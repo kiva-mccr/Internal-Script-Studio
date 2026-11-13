@@ -2,12 +2,14 @@
 // Laid out as Fountain is (EX-3): sections become scene headings, each row's On screen is action and its Dialogue
 // is spoken by NARRATOR. The row number, its note and its files go in a General paragraph above the row, since
 // Final Draft's own notes are pinned to character positions and easy to get wrong.
-import { SCREENPLAY, speakerName, type Screenplay } from './fountain';
+import { creditLine, SCREENPLAY, speakerName, type Screenplay } from './fountain';
+import type { Credit } from './people';
 import { frontList, type Script } from './script';
 
 // `stand`: the version and status ("v3 · Approved"). `date`: "Nov 10, 2026". Both go on the title page.
 // `how`: the export screen's settings (EX-9). With `scenes` off a section is a General paragraph.
-export function toFdx(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY): string {
+// `credits` (AP-31) go on the title page, "Credits" and then one "Name, blurb" a line.
+export function toFdx(script: Script, title: string, stand: string, date: string, how: Screenplay = SCREENPLAY, credits: Credit[] = []): string {
   const body: string[] = [];
   if (script.intro.trim()) body.push(...paragraphs('Action', script.intro));
   let n = 0;
@@ -23,7 +25,8 @@ export function toFdx(script: Script, title: string, stand: string, date: string
     if (block.dialogue.trim()) body.push(paragraph('Character', runs(speakerName(how.speaker))), ...paragraphs('Dialogue', block.dialogue));
   }
   const authors = frontList(script.front, 'authors');
-  const front = [title.trim() && oneLine(title), authors.length && 'Written by', authors.length && authors.join(', '), '', `${stand} · ${date}`];
+  const front = [title.trim() && oneLine(title), authors.length && 'Written by', authors.length && authors.join(', '),
+    ...(credits.length ? ['', 'Credits', ...credits.map(creditLine)] : []), '', `${stand} · ${date}`];
   const titlePage = front.map((line) => `<Paragraph Alignment="Center" Type="General">${runs(line || '')}</Paragraph>`);
   return [
     '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',

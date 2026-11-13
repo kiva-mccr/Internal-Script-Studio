@@ -184,11 +184,15 @@ and suggestions, keeps every version, and exports them for production.
   line ends a list. Enter in the middle of a list line splits it into two items; Backspace just after a list mark
   takes the mark off. Ctrl+Z undoes the renumbering, then the change. Cells get this for lists typed by hand, with no
   list buttons. Not in this step: lists inside lists, letters or Roman numerals.
-- [ ] **AP-31** Credits and contacts (asked by the user): the people who work on the scripts are kept once for the
+- [x] **AP-31** Credits and contacts (asked by the user): the people who work on the scripts are kept once for the
   whole folder, each with their contact details, so the team always knows where to find someone; each script's
   credits pick from them and only add a short blurb on what that person did on it or their role, so the credits stay
-  accurate. Anyone can add and edit. To agree at the mock-up: where it opens from, whether exports carry the credits,
-  and which contact details. Mock-up first.
+  accurate. Anyone can add and edit. Mock-up 50, agreed with contact details cut to email and LinkedIn (no phone).
+  Built: ⋯ › Credits in a script, People on the script list; people in the folder's `.studio/people/` (written once,
+  newest counts), a script's credits a `credits:` line in its front matter, combined person by person when two save at
+  once. A new person's first blurb becomes their usual role. Print (after the rows), Fountain and Final Draft (title
+  page) and Copy for Teams carry names and blurbs, never contacts; one export switch leaves them out. Not in this
+  step: renaming a person (a typo means removing and adding again once no script credits them).
 
 - [x] **AP-30** Turn a row into a section and back (asked by the user, first in the round): a row can become a
   section heading where it is, and a section a row, without reaching for "+ Add section" at the bottom of a long

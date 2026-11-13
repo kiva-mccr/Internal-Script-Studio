@@ -11,13 +11,14 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onExport, onShare, onPlay, onStop, nextVersion }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, reviewStatus, status, onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText; onAllow: () => void; onLoose: (id: string) => void; onMode: (to: Mode) => void;
     onStatus: (to: 'draft' | 'in review' | 'approved', note: string, message?: string) => void; onPrompt: () => void;
     onFind: () => void; // ⋯ › Find and replace, in Write (AP-32)
+    onCredits: () => void; // ⋯ › Credits (AP-31)
     onExport: (to: Format) => void; onShare: () => Promise<Shared>;
     nextVersion: () => Promise<{ n: number; still: boolean }>; // what Send for review makes (RV-9)
   } = $props();
@@ -28,7 +29,7 @@
   // What was just copied, said in the menu for a moment before it closes.
   let copied = $state<'' | 'link' | 'teams' | 'failed'>('');
   // Two menus, to keep the bar short (asked by the user): Export / Share (Copy link and Copy for Teams, then Print,
-  // Fountain, Final Draft and later exports, each opening the export screen, EX-9) and ⋯ (Find and replace in Write, Teleprompter, Settings).
+  // Fountain, Final Draft and later exports, each opening the export screen, EX-9) and ⋯ (Find and replace in Write, Teleprompter, Credits, Settings).
   // 'approve': what is still open, before approving (RV-5, mock-up 20). It warns and never blocks.
   // 'send': a note for the reviewers, before sending (RV-8, mock-up 26). Optional; kept while the page is open.
   // 'back': a note for the writer, before sending back (RV-13); they see it at the top of Comments in Write.
@@ -207,6 +208,7 @@
           <div class="menu">
             {#if mode === 'write'}<button onclick={() => ((menu = ''), onFind())}>Find and replace</button>{/if}
             <button onclick={() => ((menu = ''), onPrompt())}>Teleprompter</button>
+            <button onclick={() => ((menu = ''), onCredits())}>Credits</button>
             <button onclick={() => ((menu = ''), (settings = true))}>Settings</button>
           </div>
         {/if}

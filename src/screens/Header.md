@@ -3,7 +3,7 @@
 The bar at the top of a script: a folder icon (back to the list, AP-27), the title, and the save status and length beside it, the Write · Review · History · Assets
 switch with the number of open comments and of missing files, "… is editing", the review buttons (Send for review, Send back to writer,
 Approve), Play (AU-2: ▶ Play, then the time and ■, shown in Write once a row has a take), and two menus (asked by the user, to keep the bar short): Export / Share, with Share (Copy link,
-Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over and later exports, each opening the export screen, EX-9), and ⋯ with Find and replace (Write only, AP-32), Teleprompter and Settings (AU-3, `Settings.svelte`).
+Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over and later exports, each opening the export screen, EX-9), and ⋯ with Find and replace (Write only, AP-32), Teleprompter, Credits (AP-31, `Credits.svelte`, mounted by the Editor) and Settings (AU-3, `Settings.svelte`).
 
 - **Used by:** `screens/Editor.svelte`. **Tests:** `tests/e2e/editor.spec.ts`, `review.spec.ts`, `print.spec.ts`,
   `conflict.spec.ts`, `settings.spec.ts`.

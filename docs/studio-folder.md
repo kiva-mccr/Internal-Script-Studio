@@ -14,6 +14,24 @@ Episode 03 - How Photosynthesis Works/
     files/      files attached to comments, one folder per comment or reply
 ```
 
+The picked folder itself has a `.studio/` too, for what every script shares (AP-31):
+
+```
+Video Scripts/
+  .studio/
+    people/     one file per person added, or change to one: name, usual role, email, LinkedIn
+```
+
+`people/20261113T101500Z_ab12cd34_x9y8z7w6.json` (time, the person's id, then a random id so two changes never share a name):
+
+```json
+{ "v": 1, "id": "ab12cd34", "name": "Priya", "role": "Science reviewer", "email": "priya@example.org",
+  "linkedin": "linkedin.com/in/priya", "who": "Sam", "when": "2026-11-13T10:15:00.000Z" }
+```
+
+The newest file about a person counts. `"removed": true` takes them out of the list (only offered once no script
+credits them). A script's credits (who, and a blurb on what they did) are in its own `script.md`.
+
 ## The one rule: new files, never edits
 
 Every file in `.studio/` is written once and never changed afterwards (the `editing/` files are the only

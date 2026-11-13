@@ -89,3 +89,6 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   (`visitOn`) and Got it last until the script is left. `marks` drops rows that are no longer there. Show the edits is
   `review-edits`, the same choice as Review's. The bar (`VisitBar.svelte`) is above Write, and above Review only when
   that has no `reviewedAt` (`showVisit`).
+- The Credits window (`Credits.svelte`, AP-31) is mounted here (`crediting`) and changes `script.front` through
+  `bind:script`, then `changed()`, so credits save like any edit. Print gets the credits only when the export's
+  Credits switch is on.

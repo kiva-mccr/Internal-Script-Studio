@@ -14,3 +14,4 @@ links when it is pasted) and as plain text (Notepad, a text message): the title 
 - Comments, voice-over and "Last edited" are left out when there are none (or nobody is known).
 - Read-aloud time is the Dialogue's words at `SPEED` (150 a minute), the speed read time (AP-12) starts from.
 - Everything put in the HTML is escaped: titles and names are typed by people.
+- The credits (AP-31) are one line, "Credits: Kiva, Writer · Sam, Narrator": names and blurbs, never contact details.

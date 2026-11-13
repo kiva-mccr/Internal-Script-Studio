@@ -15,3 +15,4 @@ line's marks into Final Draft's styled `<Text>` runs.
 - Each line of a field is its own paragraph; blank lines are dropped.
 - Every piece of text goes through `escape`: one stray `&` or `<` and Final Draft won't open the file.
 - The unit tests run in Node, which has no DOMParser; the e2e test is the one that parses the XML.
+- Credits (AP-31) go on the title page under "Credits", one centred "Name, blurb" a line.
