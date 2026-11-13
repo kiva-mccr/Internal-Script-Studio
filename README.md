@@ -56,9 +56,10 @@ Status: a first working version. What it does today:
   version they were made on if nothing has changed for them yet (with "Open in Review" while still open).
   A long History lists the newest 50 first; "Show 50 older" loads more, and after that older ones load as you
   scroll. Each History file is read once and remembered by the browser, so big histories stay quick.
-- **Saved:** beside the script's name at the top, it says Saved, Editing… or Saving…, and in red when a save failed
-  (after a few quiet tries, since a shared folder can hold the file for a moment), with the browser's reason: hover
-  for all of it.
+- **Saved:** beside the script's name at the top, it says Editing… while what you typed waits to be saved (within 30
+  seconds, or at once with Ctrl+S), then Saved. It's red when a save failed (after a few quiet tries), with the
+  browser's reason: hover for all of it. What you typed is also kept in the browser until it's saved, so closing the
+  page first doesn't lose it.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
   Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter, Credits and Settings.
 - **Credits and contacts:** ⋯ › Credits lists who worked on the script, each with a short blurb on what they did on
@@ -156,9 +157,10 @@ Status: a first working version. What it does today:
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it, with a thumbnail for pictures, PDFs and videos: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.
-- **Two people:** the top of a script says who else is editing it. Their saved changes appear on their own. If you
-  both saved at the same time, the two are combined row by row; only a place you both changed is shown side by
-  side for you to pick.
+- **Two people:** the top of a script says who else is editing it, with a small spinner while their changes come in.
+  Each person saves only their own small change files, so two computers never write the same file; their changes
+  appear on their own, row by row, and only a place you both changed is shown side by side for you to pick. Works
+  on a network drive, OneDrive or any shared folder.
 
 Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom-right corner). The bottom-left corner shows the live version, "PR #62" for
 example: after a refresh it tells you whether a new version is live, hovering shows what that version added and when,

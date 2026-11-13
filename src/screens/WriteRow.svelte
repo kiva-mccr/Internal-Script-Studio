@@ -49,7 +49,7 @@
   // A row's own ▶: while the script is playing that row, it pauses and carries on.
   async function play() {
     if (here) return player.toggle();
-    await voice.play(dir, block.id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, OneDrive may still be syncing."));
+    await voice.play(dir, block.id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing."));
   }
 
   // A note is written when the box is left or Enter is pressed, not on every key.

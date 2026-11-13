@@ -49,7 +49,7 @@ async function readVersions(dir: FileSystemDirectoryHandle): Promise<Version[]> 
     try {
       files.set(name, await (await folder.getFileHandle(name)).getFile());
     } catch {
-      // Skipped: OneDrive may still be bringing it in.
+      // Skipped: the shared folder may still be bringing it in.
     }
   }
   const kept = await recallVersions([...files].map(([name, file]) => fileKey(name, file)));

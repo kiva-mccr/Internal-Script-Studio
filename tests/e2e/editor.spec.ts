@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { readFile, setUp, writeFile } from './folder';
+import { listFiles, readFile, setUp, writeFile } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const SCRIPT = 'Episode 03/script.md';
@@ -344,13 +344,13 @@ test('lost access shows before a save fails, with the 5 s check', async ({ page 
   expect(await page.evaluate(() => (window as unknown as { asked: number }).asked)).toBe(1);
 });
 
-// Fails the next `times` writes of script.md, as a network share does while another computer has it open.
+// Fails the next `times` writes of Sam's change files, as a busy shared folder might.
 async function failWrites(page: Page, times: number) {
   await page.evaluate((times) => {
     const write = FileSystemFileHandle.prototype.createWritable;
     let fails = times;
     FileSystemFileHandle.prototype.createWritable = function (...args) {
-      if (this.name === 'script.md' && fails-- > 0) return Promise.reject(new DOMException('Busy', 'NoModificationAllowedError'));
+      if (this.name.endsWith('_sam.json') && fails-- > 0) return Promise.reject(new DOMException('Busy', 'NoModificationAllowedError'));
       return write.apply(this, args);
     };
   }, times);
@@ -368,7 +368,7 @@ test('a write that fails for a moment is tried again quietly', async ({ page }) 
   await page.getByLabel('Dialogue, row 1').fill('Saved on the third try.');
   await saved(page);
   expect(shown.some((text) => text.startsWith("Couldn't save"))).toBe(false);
-  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the third try.\n');
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the third try.\n');
 });
 
 test("a save that keeps failing says Couldn't save with the browser's error, and tries again", async ({ page }) => {
@@ -377,26 +377,39 @@ test("a save that keeps failing says Couldn't save with the browser's error, and
   await page.getByLabel('Dialogue, row 1').fill('Saved in the end.');
   const status = page.getByRole('status');
   await expect(status).toHaveText("Couldn't save (NoModificationAllowedError), trying again", { timeout: 15000 });
-  await expect(status).toHaveAttribute('title', 'Writing script.md: NoModificationAllowedError: Busy');
+  await expect(status).toHaveAttribute('title', 'Writing your changes: NoModificationAllowedError: Busy');
   await expect(page.locator('header .voice')).toHaveCount(0); // the length steps aside for the red message
   await expect(status).toHaveText('Saved', { timeout: 15000 });
   await expect(page.locator('header .voice')).toBeVisible();
-  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved in the end.\n');
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('Dialogue:\nSaved in the end.\n');
 });
 
-test('the 5 s check reads script.md only when it changed', async ({ page }) => {
+test('typing is saved within 30 s as a change file, or at once with Ctrl+S (FX-2)', async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem('save-every')); // the real 30 s
   await openExample(page);
-  await page.evaluate(() => {
-    const text = Blob.prototype.text;
-    const w = window as unknown as { reads: number };
-    w.reads = 0;
-    Blob.prototype.text = function () {
-      if (this instanceof File && this.name === 'script.md') w.reads++;
-      return text.call(this);
-    };
+  await page.getByLabel('Dialogue, row 1').fill('Saved by Ctrl+S.');
+  await page.waitForTimeout(2500);
+  await expect(page.getByRole('status')).toHaveText('Editing…');
+  await page.keyboard.press('Control+s');
+  await saved(page);
+  const changes = await listFiles(page, 'Episode 03/.studio/changes');
+  expect(changes.some((name) => /^\d{8}T\d+Z_[a-z0-9]+_sam\.json$/.test(name))).toBe(true);
+  await expect.poll(() => readFile(page, SCRIPT)).toContain('Dialogue:\nSaved by Ctrl+S.\n');
+});
+
+test('only the keeper writes script.md: with Ana here first, Sam saves only change files (FX-2)', async ({ page }) => {
+  const now = new Date().toISOString();
+  await setUp(page, '#/Episode%2003', {
+    [SCRIPT]: example,
+    'Episode 03/.studio/editing/ana_20261113T120000000Z.json': JSON.stringify({ v: 1, who: 'Ana', since: '2026-11-13T12:00:00Z', seen: now, last_written: '' }),
   });
-  await page.waitForTimeout(11500); // two checks: the first reads it once, the second sees it unchanged
-  expect(await page.evaluate(() => (window as unknown as { reads: number }).reads)).toBeLessThanOrEqual(1);
+  await page.getByLabel('Dialogue, row 1').fill('Sam’s change.');
+  await saved(page);
+  const change = (await listFiles(page, 'Episode 03/.studio/changes')).find((name) => name.endsWith('_sam.json'));
+  expect(change).toBeTruthy();
+  expect(await readFile(page, `Episode 03/.studio/changes/${change}`)).toContain('Sam’s change.');
+  await page.waitForTimeout(6000); // a 5 s check
+  expect(await readFile(page, SCRIPT)).toBe(example);
 });
 
 test('a new section starts with a stand-in, goes after the box in use, and an emptied one goes only on leaving it (AP-22)', async ({ page }) => {

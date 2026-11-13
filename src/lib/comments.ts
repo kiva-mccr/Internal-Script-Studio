@@ -49,7 +49,7 @@ export async function listNotes(dir: FileSystemDirectoryHandle): Promise<Note[]>
       const note = JSON.parse(await (await (await folder.getFileHandle(name)).getFile()).text());
       if (note.v === 1 && note.id && note.kind) notes.push(note);
     } catch {
-      // Skipped: OneDrive may still be bringing it in.
+      // Skipped: the shared folder may still be bringing it in.
     }
   }
   return notes;
@@ -152,7 +152,7 @@ export function sizeText(bytes: number): string {
 // Why a file can't be attached, or '' if it can.
 export function tooBig(file: File): string {
   return file.size > MAX_FILE
-    ? `${file.name} is too big to attach (${sizeText(file.size)}; the limit is 50 MB). Put it in OneDrive and paste its link in the comment instead.`
+    ? `${file.name} is too big to attach (${sizeText(file.size)}; the limit is 50 MB). Put it somewhere shared and paste its link in the comment instead.`
     : '';
 }
 

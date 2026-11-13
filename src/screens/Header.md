@@ -51,3 +51,5 @@ Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over
   by that name (a part match on "Video Scripts" still finds it).
 - A failed save shows the browser's error name in the bar and all of it on hover (`problem`, FX-1), so the user can
   report what a real shared folder said.
+- While someone's changes are being folded in (`folding`, FX-2), a small spinner shows inside "… is editing" (the
+  user's ask), with "Bringing in Ana's changes" for screen readers and on hover.

@@ -90,7 +90,7 @@
   // Listening (AU-9): a take's ▶ plays it alone, or pauses and carries on the script while it plays that row.
   async function play(id: string) {
     if (player.row === id) return player.toggle();
-    await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, OneDrive may still be syncing."));
+    await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing."));
   }
 
   // The page follows the row being played, as in Write.

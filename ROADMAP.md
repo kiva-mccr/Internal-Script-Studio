@@ -586,10 +586,16 @@ and suggestions, keeps every version, and exports them for production.
   failed write is aborted so no half-written .crswap is left; one save at a time; the 5 s check reads script.md only
   when its time or size changed; and a failed save names the browser's error in the bar ("Couldn't save
   (NoModificationAllowedError), trying again", all of it on hover) so the user can report it.
-- [ ] **FX-2** Each person saves to their own file (the user's idea, if FX-1 is not enough): a computer writes only its
-  own draft of the script, and the others combine it into theirs row by row (`lib/merge.ts`), so no two computers
-  ever write the same file. script.md would then be folded together from the drafts, not written on every save.
-  Mock-up and a look at Decisions first (it changes how saving works).
+- [x] **FX-2** Each person saves to their own change files (the user's design, #1 priority, 2026-11-13; no locking or
+  blocking, the user's rule). Design doc, agreed with the recommended options: https://claude.ai/artifact/URiqbWaP94rJXDekD3rqrQ.
+  Built so (docs/studio-folder.md, `changes/`): typing is saved within 30 s or on Ctrl+S as a new change file holding
+  only the changed rows, before and after (`lib/changes.ts`); others fold them in every 5 s, with a spinner beside
+  "… is editing" (the user's ask); only the keeper (first to open, among those editing now) writes script.md, its
+  note of the change files in it, and History every 5 min; editing files are a new file every 30 s. Robust to a page
+  closed at any step (the user's ask): unsaved typing kept in the browser; a change file never folded is folded by
+  the next to open; a keeper closed between script.md and its note causes no false clash. Two newest History entries
+  are no longer combined on opening. Messages say "the shared folder", not OneDrive (the user's ask). Not seen for
+  real: two computers on the network drive.
 
 ## Last (the user's order: these wait until everything above is done)
 

@@ -97,7 +97,7 @@
     </div>
     <div class="body">
       {#if !groups}
-        <p class="empty">{failed ? "The other scripts couldn't be read. If OneDrive is still syncing, wait a moment and try again." : 'Looking through the other scripts…'}</p>
+        <p class="empty">{failed ? "The other scripts couldn't be read. If the shared folder is still syncing, wait a moment and try again." : 'Looking through the other scripts…'}</p>
       {:else if !groups.length}
         <p class="empty">{onAdd ? 'No other script has files yet.' : 'No script has files yet.'}</p>
       {:else if !shown.length}
@@ -123,7 +123,7 @@
     </div>
     <div class="foot">
       <span>
-        {#if failed && groups}That file couldn't be {onAdd ? 'copied' : 'opened'}. If OneDrive is still syncing, wait a moment and try again.
+        {#if failed && groups}That file couldn't be {onAdd ? 'copied' : 'opened'}. If the shared folder is still syncing, wait a moment and try again.
         {:else if !onAdd}Click a file to open it, or a script's name to open the script.
         {:else if picked}{picked.file.kind === 'link' ? `${picked.file.name} is a link: it is added as the same link.` : `${picked.file.name} will be copied into this script's assets folder.`}
         {:else}Pick a file.{/if}

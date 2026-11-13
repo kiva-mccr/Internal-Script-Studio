@@ -23,7 +23,7 @@ export async function listPeople(root: FileSystemDirectoryHandle): Promise<Perso
       const entry = JSON.parse(await (await (await folder.getFileHandle(name)).getFile()).text()) as Entry;
       if (entry.v === 1 && entry.id && typeof entry.name === 'string' && typeof entry.when === 'string') entries.push(entry);
     } catch {
-      // Skipped: OneDrive may still be bringing it in.
+      // Skipped: the shared folder may still be bringing it in.
     }
   }
   // By `when`, to the millisecond: file names keep only seconds, and two changes in one second sort by their random part.

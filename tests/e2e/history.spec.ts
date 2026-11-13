@@ -85,6 +85,8 @@ test('versions made in the same second stay in order', async ({ page }) => {
   await expect.poll(() => listFiles(page, VERSIONS)).toHaveLength(1); // History has started: an edit before that gets no entry of its own
   await page.getByLabel('Dialogue, row 3').fill('First change.');
   await page.getByRole('button', { name: 'History' }).click();
+  // History shows once its entry is made; typing before that is rightly part of the same entry (seen under load).
+  await expect(versions(page)).toHaveCount(2);
   await page.getByRole('button', { name: 'Write' }).click();
   await page.getByLabel('On screen, row 1').fill('Second change.');
   await page.getByRole('button', { name: 'History' }).click();

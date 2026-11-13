@@ -10,7 +10,8 @@ Episode 03 - How Photosynthesis Works/
   .studio/
     versions/   one file per history entry
     comments/   one file per comment, reply, or change to one
-    editing/    one file per person who has the script open
+    changes/    each person's saves: one file per save, only what changed (FX-2)
+    editing/    a file for each person who has the script open, a new one every 30 s
     files/      files attached to comments, one folder per comment or reply
 ```
 
@@ -34,9 +35,39 @@ credits them). A script's credits (who, and a blurb on what they did) are in its
 
 ## The one rule: new files, never edits
 
-Every file in `.studio/` is written once and never changed afterwards (the `editing/` files are the only
-exception, and each belongs to one person). OneDrive syncs in seconds to minutes, so two people writing the
-same file is how work gets lost; two people writing different new files never clash.
+Every file in `.studio/` is written once and never changed afterwards. Two people writing the same file is how
+work gets lost: OneDrive syncs in seconds to minutes, and a Windows network drive refuses to replace a file another
+computer has open. Two people writing different new files never clash. Even typing is saved this way (`changes/`,
+below); `script.md` is written by one computer only, the keeper.
+
+## changes/: saving (FX-2)
+
+Typing is saved within **30 seconds** (or at once with Ctrl+S, on leaving, or when the tab is hidden) as a new file,
+`changes/20261113T204500123Z_k2m9qa_sam.json` (time, a random id, the person):
+
+```json
+{ "v": 1, "id": "k2m9qa", "who": "Sam", "when": "2026-11-13T20:45:00.123Z",
+  "delta": { "rows": { "k3f9a": [ { "dialogue": "…", "onScreen": "Before.", "files": [], "note": "" },
+                                  { "dialogue": "…", "onScreen": "After.", "files": [], "note": "" } ] } } }
+```
+
+Only what changed: each changed row before and after (`null` before: added; `null` after: deleted), and the front
+matter, intro or the order of blocks (`layout`, rows as `r:<id>`, sections as `s:<title>`) only when they changed.
+Until it is saved, typing is also kept in the browser, so a page closed first keeps it for next time.
+
+- **Everyone else** looks for new change files every 5 seconds and folds them in row by row, keeping their own
+  unsaved typing. A field both changed shows the side-by-side pick (see Conflicts). A spinner shows beside
+  "Sam is editing" meanwhile.
+- **The keeper** is whoever opened the script first among those editing it now (`since` in their `editing/` file);
+  when they leave, the next takes over. Only the keeper writes `script.md`: after each save or fold, it writes it,
+  then `changes/folded_<time>.json`, a note of the change files it holds and its fingerprint. It makes the History
+  entries every 5 minutes, and removes change files that are in `script.md` and over 2 minutes old.
+- **Opening** a script reads `script.md`, then folds in every change file the newest note doesn't list. If the keeper
+  closed between writing `script.md` and its note, a change from over a minute before `script.md` was written is
+  taken to be in it already: folding it again changes nothing, and where a later change changed the same place,
+  `script.md` is kept without asking.
+- Before writing, the keeper reads `script.md`: changed outside the app (Notepad) since it last wrote it, and not
+  matching the note, the outside change is folded in first and gets an `outside` History entry.
 
 File names start with the time, so sorting by name sorts by time. Times are UTC, `20261109T144100Z` in names and
 `2026-11-09T14:41:00Z` inside files. Ids are eight random lower-case letters and digits. All files are UTF-8 JSON
@@ -93,52 +124,48 @@ since v2") until opened.
 
 ### When an entry is made
 
-- `script.md` itself is saved a couple of seconds after each pause in typing.
-- A history entry is made at most every **5 minutes** of one person's editing (only if the text changed), and
-  also when they leave the script, send it for review, restore, or resolve a conflict.
+- Typing is saved as change files (above), and `script.md` by the keeper.
+- A history entry is made by the keeper at most every **5 minutes** (only if the text changed), credited to whoever's
+  changes it holds ("Ana and Sam"), and also when anyone leaves the script, sends it for review, or restores. Each
+  entry's parent is the newest entry, so two people's entries follow one another.
 
 ### Changes made outside the app
 
 When a script opens, its `script.md` fingerprint is compared with the newest version:
 
-1. It matches: nothing to do.
+1. It matches, or it matches the keeper's note in `changes/`: nothing to do (the keeper's next entry has it).
 2. It matches the `last_written` fingerprint in someone's `editing/` file: that person's last edits never got their
    entry (a closed laptop). An `edit` entry is made in their name.
-3. Otherwise: an `outside` entry is made, `who` "Outside the app", and History shows what changed.
+3. Otherwise, if one other person is editing it right now, it is theirs (their `editing/` file can lag behind).
+4. Otherwise: an `outside` entry is made, `who` "Outside the app", and History shows what changed.
 
 No versions at all, but a `script.md`: a `restart` entry is made. OneDrive's own version history (right-click the
 file in OneDrive) is the backup for anything before it.
 
 ## Conflicts
 
-Two people saving at the same time show up two ways, and both lead to the same screen:
+Someone's change file that changes a field you changed too, before either of you saw the other's, shows "Ana and
+you both changed the same place": the two side by side, matched by row id. Rows only one of you changed are taken
+without asking; for each field both changed, you pick one, and the result is saved as your change.
 
-- **Two newest versions:** two versions share a parent and neither has a child. (`script.md` itself holds only
-  whichever synced last; both versions are safe in `versions/`.)
-- **OneDrive's conflict copies:** OneDrive sometimes keeps both by adding a file such as
-  `script-LAPTOP-SAM.md` beside `script.md`. The app spots any `script-*.md` there.
-
-The app then says "Sam and Ana both saved at the same time" and shows the two side by side, row by row, matched by
-row id. Rows only one of them changed are taken without asking; for each row both changed, you pick one. The result
-is a `merge` version with both as `parents`, and is written to `script.md`. A conflict copy is deleted only after
-its merge is saved.
-
-While someone is editing, the app checks `script.md` every few seconds. Changed by someone else and no edits of
-their own waiting: it reloads quietly. Edits of their own waiting: the conflict screen.
+OneDrive's conflict copies (`script-LAPTOP-SAM.md` beside `script.md`) are combined the same way on opening; a copy
+is deleted only after the combination is saved. Two newest History entries are no longer combined: `script.md` and
+the change files are what counts, and History is a record of them.
 
 ## editing/: "Sam is editing"
 
-`editing/sam.json` (the file is named after the person):
+`editing/sam_20261113T204500123Z.json` (the person, then the time), a new file every **30 seconds** while the script
+is open, the person's older ones removed:
 
 ```json
 { "v": 1, "who": "Sam", "since": "2026-11-09T14:30:00Z", "seen": "2026-11-09T14:41:30Z", "last_written": "…" }
 ```
 
-- Rewritten every **30 seconds** while the script is open (`seen`), and with each save (`last_written`, the
-  fingerprint of what was written).
+- The newest file per person counts. `since` picks the keeper; `last_written` is the fingerprint of the `script.md`
+  they last wrote.
 - Anyone else opening the script sees "Sam is editing" while `seen` is under **2 minutes** old. Older than that, it
   is ignored (Sam closed the laptop), but kept until its `last_written` has been checked (see above).
-- Deleted when Sam leaves the script.
+- Deleted when Sam leaves the script. `sam.json` files from before FX-2 are read too, and removed by their owner.
 
 It is a warning, not a lock: anyone can still edit, and conflicts are caught as above.
 

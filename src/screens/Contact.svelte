@@ -21,7 +21,7 @@
       onSaved(await savePerson(root, { ...person, email, linkedin }, me));
       return true;
     } catch {
-      error = "Couldn't save the contact details. If OneDrive is still syncing, wait a moment and try again.";
+      error = "Couldn't save the contact details. If the shared folder is still syncing, wait a moment and try again.";
       return false;
     }
   }

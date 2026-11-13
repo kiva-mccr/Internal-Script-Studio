@@ -215,7 +215,7 @@
     {:else}
       <p class="caption">{name} voice-over.wav · 48 kHz mono</p>
       {#if failed}
-        <p class="message" role="alert">The voice-over couldn't be put together. If OneDrive is still syncing the takes, wait a moment and try again.</p>
+        <p class="message" role="alert">The voice-over couldn't be put together. If the shared folder is still syncing the takes, wait a moment and try again.</p>
       {:else if !clips}
         <p class="message">Putting the takes together…</p>
       {:else if !clips.length}

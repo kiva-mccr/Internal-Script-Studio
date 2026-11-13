@@ -42,7 +42,7 @@
     try {
       people = await listPeople(root);
     } catch {
-      error = "The people in the folder couldn't be read. If OneDrive is still syncing, wait a moment and try again.";
+      error = "The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
     }
     creditedOn(root).then((found) => (on = found));
   }
@@ -101,7 +101,7 @@
       newName = '';
       editing = person.id;
     } catch {
-      error = `Couldn't add ${name}. If OneDrive is still syncing, wait a moment and try again.`;
+      error = `Couldn't add ${name}. If the shared folder is still syncing, wait a moment and try again.`;
     }
   }
 
