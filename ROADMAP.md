@@ -472,6 +472,9 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-16** Comments in line order (asked by the user): the comment lists (Review, and Write's Comments tab) show
   comments in the order of the rows they are on, by default, with a switch to sort them by time instead. Placed by
   the user after the current queue. Mock-up first.
+- [ ] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
+  comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
+  comment back into view. Bug fix, no mock-up needed.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
