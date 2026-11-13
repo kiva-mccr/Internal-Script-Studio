@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
+  import { Linger } from '../lib/linger.svelte';
+  import { slideAway } from '../lib/slide';
   import { fieldText as text, quoteGone, threads, type Field, type Flag, type Note, type Thread } from '../lib/comments';
   import AttachBox from './AttachBox.svelte';
   import CommentCard from './CommentCard.svelte';
@@ -21,6 +23,7 @@
     dir,
     script,
     notes,
+    ends,
     flagged,
     me,
     sent,
@@ -37,6 +40,7 @@
     dir: FileSystemDirectoryHandle; // the script's folder: files on comments (RV-11) are read from it
     script: Script;
     notes: Note[];
+    ends: string[]; // sends for review and official versions: holds before one are over (RV-19)
     flagged: Map<string, Flag>; // flagged rows (AP-9): shown with their note, cleared only in Write
     me: string; // this person's name: Edit and Delete show on what they wrote (RV-7)
     sent?: Version; // the note sent with it for review (RV-8), shown at the top while it is in review
@@ -65,19 +69,24 @@
   let suggesting = $state(false);
   let active = $state('');
   let showResolved = $state(false);
+  let showHeld = $state(false);
   let box = $state<HTMLTextAreaElement>();
 
   let recent = $state<string[]>([]); // decided here just now: kept in place, with Undo (mock-up 4)
   let gone = $state<string[]>([]); // deleted here just now: kept in place as "… deleted. Undo" (RV-7, mock-up 24)
+  // Put on hold here (RV-19): in place with Undo for 5 seconds, then into On hold, sliding away.
+  const holding = new Linger();
+  onDestroy(() => holding.clear());
   // Deleted ones are kept only while they are in `gone`.
   const all = $derived(
-    threads(notes, true)
+    threads(notes, true, ends)
       .filter((t) => !t.deleted || gone.includes(t.comment.id))
       .map((t) => ({ ...t, replies: t.replies.filter((r) => !r.deleted || gone.includes(r.id)) })),
   );
   const live = $derived(all.filter((t) => !t.deleted));
-  const open = $derived(live.filter((t) => !t.resolved));
-  const shown = $derived(all.filter((t) => !t.resolved || recent.includes(t.comment.id)));
+  const open = $derived(live.filter((t) => !t.resolved && !t.held));
+  const shown = $derived(all.filter((t) => (!t.resolved && !t.held) || recent.includes(t.comment.id) || holding.has(t.comment.id)));
+  const held = $derived(all.filter((t) => !t.resolved && t.held && !holding.has(t.comment.id)));
   const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
 
   const words = $derived(sectionWords(script)); // each section's read time (AP-12)
@@ -349,23 +358,33 @@
 
     <h2>Open · {open.length}</h2>
     {#each shown as t (t.comment.id)}
-      {@render card(t)}
+      <div class="slot" out:slideAway>{@render card(t)}</div>
     {:else}
       <p class="quiet">No open comments.</p>
     {/each}
+
+    {#if held.length}
+      <button class="link" aria-expanded={showHeld} onclick={() => (showHeld = !showHeld)}>
+        {showHeld ? '▾' : '▸'} On hold · {held.length}
+      </button>
+      {#if showHeld}
+        <p class="quiet">Back in the open list at the next Send for review or official version.</p>
+        {#each held as t (t.comment.id)}<div class="slot" out:slideAway>{@render card(t)}</div>{/each}
+      {/if}
+    {/if}
 
     {#if resolved.length}
       <button class="link" aria-expanded={showResolved} onclick={() => (showResolved = !showResolved)}>
         {showResolved ? '▾' : '▸'} Resolved · {resolved.length}
       </button>
-      {#if showResolved}{#each resolved as t (t.comment.id)}{@render card(t)}{/each}{/if}
+      {#if showResolved}{#each resolved as t (t.comment.id)}<div class="slot" out:slideAway>{@render card(t)}</div>{/each}{/if}
     {/if}
   </aside>
 </div>
 
 {#snippet card(t: Thread)}
-  <CommentCard {t} {dir} {me} where={where(t)} gone={quoteGone(t.comment, rowList)} active={t.comment.id === active} recent={recent.includes(t.comment.id)}
-    onActivate={() => (active = t.comment.id)} {onAdd} {onApply} onDecided={(id) => (recent = [...recent, id])} onGone={setGone} />
+  <CommentCard {t} {dir} {me} where={where(t)} gone={quoteGone(t.comment, rowList)} active={t.comment.id === active} recent={recent.includes(t.comment.id) || holding.has(t.comment.id)}
+    onActivate={() => (active = t.comment.id)} {onAdd} {onApply} onDecided={(id) => (recent = [...recent, id])} onHeld={(id) => holding.add(id)} onGone={setGone} />
 {/snippet}
 
 <!-- Rows removed since the last review (RV-4): one grey struck line each, where they were. -->
@@ -457,4 +476,5 @@
   .small { min-height: 40px; padding: 0 16px; font-size: 14px; }
   .missing { margin: 0; font-size: 13px; color: var(--danger); }
   .quiet { margin: 0; font-size: 13px; color: var(--muted); }
+  .slot { display: flex; flex-direction: column; }
 </style>

@@ -191,8 +191,10 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
   still come in order; file names keep seconds.
 - `kind` is `comment`, `reply` (with `"about": "<id>"`), or `suggestion` (with `"replace": "…"`, the new text for
   `quote`).
-- What happens to it later is a new file, never an edit: `resolve`, `reopen`, `accept` or `reject`, each with
-  `"about": "<id>"`, `who` and `when`. The newest one counts.
+- What happens to it later is a new file, never an edit: `resolve`, `reopen`, `accept`, `reject` or `hold`, each
+  with `"about": "<id>"`, `who` and `when`. The newest one counts.
+- `hold` (RV-19) puts it on hold; a `reopen` takes it off. A hold lasts only until the next send for review or
+  official version in `versions/` after it: from then on the comment counts as open again, with nothing written.
 - Its author can change it the same way (RV-7): `edit` (with the new `text`, or `replace` for a suggestion),
   `delete` or `undelete`, about a comment, suggestion or reply. The newest counts, and one by anyone other than
   the author is ignored. A deleted comment's replies are hidden with it.

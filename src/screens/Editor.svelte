@@ -10,7 +10,7 @@
   import { shareLink } from '../lib/route';
   import { frontValue, rows, type Block } from '../lib/script';
   import { removeEditing } from '../lib/editing';
-  import { backNote, listVersions, OUTSIDE, reviewEnd, reviewNote, type Version } from '../lib/history';
+  import { backNote, holdEnds, listVersions, OUTSIDE, reviewEnd, reviewNote, type Version } from '../lib/history';
   import { Saving } from '../lib/saving.svelte';
   import Assets from './Assets.svelte';
   import Comments from './Comments.svelte';
@@ -75,7 +75,10 @@
     return first ? Number(first.dataset.block) : 0;
   }
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
-  const openThreads = $derived(threads(notes).filter((t) => !t.resolved));
+  let ends = $state<string[]>([]); // sends for review and official versions: holds made before one are over (RV-19)
+  const allThreads = $derived(threads(notes, false, ends));
+  const openThreads = $derived(allThreads.filter((t) => !t.resolved && !t.held)); // on hold: not counted (RV-19)
+  const heldCount = $derived(allThreads.filter((t) => !t.resolved && t.held).length);
   const openCount = $derived(openThreads.length);
   // The side panel (Planning, and in Write Comments, RV-13): open or closed and its tab are this browser's.
   let sideOpen = $state(recall('planning-open') === '1');
@@ -99,10 +102,10 @@
   const loose = $derived.by(() => {
     const numbers = new Map(script ? rows(script).map((row, i) => [row.id, i + 1]) : []);
     const items: Loose[] = [...flagged.values()].map((f) => ({ id: `flag:${f.row}`, head: `Flag · ${f.who} · row ${numbers.get(f.row)}`, text: f.text || 'No note' }));
-    items.push(...threads(notes).filter((t) => !t.resolved).map((t) => {
+    items.push(...allThreads.filter((t) => !t.resolved).map((t) => {
       const n = numbers.get(t.comment.row ?? '');
       const suggestion = t.comment.kind === 'suggestion';
-      return { id: t.comment.id, head: `${suggestion ? 'Suggestion' : 'Comment'} · ${t.comment.who} · ${n ? `row ${n}` : 'a deleted row'}`,
+      return { id: t.comment.id, head: `${suggestion ? 'Suggestion' : 'Comment'} · ${t.comment.who} · ${n ? `row ${n}` : 'a deleted row'}${t.held ? ' · on hold' : ''}`,
         text: suggestion ? `“${t.comment.replace}”` : t.comment.text ?? '' };
     }));
     const lost = lostFiles.size;
@@ -308,6 +311,7 @@
     listVersions(dir)
       .then((versions) => {
         if (n !== reading) return;
+        ends = holdEnds(versions);
         sent = m === 'review' && status === 'in review' ? reviewNote(versions) : undefined;
         reviewedAt = m === 'review' ? reviewEnd(versions) : undefined;
         back = m === 'write' && status === 'draft' ? backNote(versions) : undefined;
@@ -457,7 +461,7 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {status} problem={file.problem}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {heldCount} {status} problem={file.problem}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
   onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
@@ -475,7 +479,7 @@
       theirsLabel={clash.theirsLabel} combined={clash.combined} onSave={(picks) => file.resolve(picks)} />
   {:else if script && dir && mode === 'review'}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
-    <Review {dir} {script} {notes} {flagged} me={name} {sent} {reviewedAt} visit={reviewedAt ? null : marks} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
+    <Review {dir} {script} {notes} {ends} {flagged} me={name} {sent} {reviewedAt} visit={reviewedAt ? null : marks} {voice} {player} {canPlay} onPlayFrom={play} onNotice={(m) => (notice = m)} onAdd={note} onApply={apply} />
   {:else if script && dir && mode === 'assets'}
     <Assets {script} {dir} missing={lostFiles} onJump={jump} onNotice={(m) => (notice = m)} />
   {:else if script && dir && mode === 'history'}
@@ -496,7 +500,7 @@
 {#if tour !== undefined && script && dir && !clash && !printing && !exporting}<Tour tab={mode} again={tour} />{/if}
 {#snippet comments()}
   {#if script && dir}
-    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} {goTo} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />
+    <Comments {dir} {script} {notes} {ends} me={name} {back} bind:active={talking} {goTo} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />
   {/if}
 {/snippet}
 </div>

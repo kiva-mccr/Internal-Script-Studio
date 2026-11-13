@@ -42,7 +42,7 @@ Status: a first working version. What it does today:
   shows others' saves, but is not part of the script: no History versions and not in any export. The browser
   remembers whether it is open.
 - **Comments in Write:** in Write the same panel has a second tab, Comments, so the writer works through review
-  comments while rewriting: reply, resolve (Undo for 5 seconds, then it moves into Resolved), and accept or reject suggestions. Rows
+  comments while rewriting: reply, resolve (Undo for 5 seconds, then it slides away into Resolved), and accept or reject suggestions. Rows
   with something open show a small blue speech bubble with the count under the row number, and the quoted words are
   marked yellow; click either to open that card, and click a card to go to its row. New comments are still started
   in Review. After a send back, Write opens on Comments with the reviewer's note at the top. A file on a comment
@@ -103,7 +103,10 @@ Status: a first working version. What it does today:
   last, open comments and voice-over progress. It is a snapshot of when you copied it, and doesn't update.
 - **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
-  back). Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
+  back). Put on hold shelves a comment or suggestion for later (here and in Write's Comments tab): after 5 seconds
+  with Undo it slides into a folded "On hold" list, isn't counted as open, and comes back into the open list, marked
+  "Back from hold", at the next Send for review or official version (Send for review says so); Take off hold brings
+  it back sooner. Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
   50 MB each; bigger things go in OneDrive as a link). They show the same previews as Images & files, with the name
   and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the

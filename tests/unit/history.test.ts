@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import example from '../../docs/example/Episode 03 - How Photosynthesis Works/script.md?raw';
-import { ancestor, backNote, changes, describe as say, heads, officialNumber, officialNumbers, reviewEnd, reviewNote, sameScript, sendVersion, sinceReview, summary, type Version } from '../../src/lib/history';
+import { ancestor, backNote, changes, describe as say, heads, holdEnds, officialNumber, officialNumbers, reviewEnd, reviewNote, sameScript, sendVersion, sinceReview, summary, type Version } from '../../src/lib/history';
 import { parseScript } from '../../src/lib/script';
 
 const edit = (from: string, to: string) => example.replace(from, to);
@@ -161,5 +161,15 @@ describe('since the last review (RV-4)', () => {
     expect(changed.get('new01')).toBeNull();
     expect(removed.map((r) => [r.after, r.row.id])).toEqual([['k3f9a', 'p8x2m']]);
     expect(sinceReview(before, before)).toEqual({ changed: new Map(), removed: [] });
+  });
+});
+
+describe('holdEnds (RV-19)', () => {
+  it('lists the times of sends for review and official versions only', () => {
+    const v = (id: string, kind: Version['kind'], note: string, official?: boolean): Version => ({
+      v: 1, id, parents: [], who: 'Sam', when: `2026-11-09T14:0${id}:00Z`, kind, note, sha256: '', text: '', ...(official ? { official } : {}),
+    });
+    expect(holdEnds([v('1', 'edit', ''), v('2', 'review', 'Sent for review'), v('3', 'review', 'Sent back to writer'),
+      v('4', 'official', 'v2'), v('5', 'review', 'Approved')])).toEqual(['2026-11-09T14:02:00Z', '2026-11-09T14:04:00Z']);
   });
 });

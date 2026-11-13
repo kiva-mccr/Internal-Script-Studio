@@ -11,8 +11,9 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, folding = '', reviewStatus, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
+  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, folding = '', reviewStatus, heldCount = 0, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
     folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
+    heldCount?: number; // comments on hold (RV-19): Send for review says they come back
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
     status: keyof typeof statusText;
@@ -176,6 +177,9 @@
               {#if sendMakes}
                 <p class="makes"><span class="tag">v{sendMakes.n}</span>{sendMakes.still ? `Still v${sendMakes.n}: nothing has changed since it.` : `It becomes v${sendMakes.n} in History.`}</p>
               {/if}
+              {#if heldCount}
+                <p class="held">{heldCount === 1 ? 'The comment on hold comes' : `The ${heldCount} comments on hold come`} back into the open list for the reviewers.</p>
+              {/if}
               <div class="actions">
                 <button class="outline" onclick={() => (menu = '')}>Cancel</button>
                 <button class="dark" onclick={send}>Send for review</button>
@@ -280,6 +284,7 @@
     border-radius: 8px; font: inherit; font-size: 14px; line-height: 1.5; resize: vertical; }
   .quiet { font-size: 13px; color: var(--muted); }
   .makes { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; }
+  .held { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fff4e5; font-size: 13px; line-height: 1.45; color: #3d3d3d; }
   .tag { padding: 2px 8px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 12px; font-weight: 600; }
   .loose { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
   .loose button { display: flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 6px;

@@ -15,3 +15,5 @@ them ("For me").
   review" in History (status typed by hand) waits for everyone.
 - Names are compared trimmed and ignoring case; with no name, nothing waits.
 - `threads()` already leaves out deleted comments and replies, and keeps the newest text.
+- Comments on hold (RV-19) don't count as answered replies until a send or a version brings them back
+  (`holdEnds(versions)`).

@@ -3,12 +3,11 @@
 // same on every computer; nothing is stored per person.
 
 import { threads, type Note } from './comments';
-import type { Version } from './history';
+import { holdEnds, isSend, type Version } from './history';
 
 export type ForMe = { review: boolean; replies: number; back: boolean };
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
-const isSend = (v: Version) => v.kind === 'review' && v.note === 'Sent for review';
 
 // `versions` oldest first, `notes` as listScripts and listNotes give them.
 export function forMe(me: string, status: string, versions: Version[], notes: Note[]): ForMe {
@@ -21,9 +20,9 @@ export function forMe(me: string, status: string, versions: Version[], notes: No
   const review = status === 'in review' && !(send && same(send.who, me));
   // A draft whose newest review change is a send back, of a send that was yours.
   const back = status === 'draft' && !!newest?.note.startsWith('Sent back') && !!send && same(send.who, me);
-  // Open comments you wrote in where the newest word is someone else's.
-  const replies = threads(notes).filter((t) => {
-    if (t.resolved) return false;
+  // Open comments you wrote in where the newest word is someone else's (not those on hold, RV-19).
+  const replies = threads(notes, false, holdEnds(versions)).filter((t) => {
+    if (t.resolved || t.held) return false;
     const said = [t.comment, ...t.replies];
     return said.some((n) => same(n.who, me)) && !same(said.at(-1)!.who, me);
   }).length;

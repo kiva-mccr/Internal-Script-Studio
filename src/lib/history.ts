@@ -174,6 +174,10 @@ export async function sha256(text: string): Promise<string> {
 
 // An official version: published from History, or made by a send for review (RV-9).
 export const isOfficial = (v: Version) => v.kind === 'official' || !!v.official;
+export const isSend = (v: Version) => v.kind === 'review' && v.note === 'Sent for review';
+
+// When comments on hold come back (RV-19): the times of every send for review and official version.
+export const holdEnds = (versions: Version[]) => versions.filter((v) => isSend(v) || isOfficial(v)).map((v) => v.when);
 
 // Official versions are numbered v1, v2 … in the order they were made (versions oldest first).
 export function officialNumbers(versions: Version[]): Map<string, number> {

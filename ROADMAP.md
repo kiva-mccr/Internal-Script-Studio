@@ -499,10 +499,18 @@ and suggestions, keeps every version, and exports them for production.
   dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
   how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
   current queue. Mock-up first.
-- [ ] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
+- [x] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
   be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
   are on hold, and held comments come back into view when the script is sent for review or a version is made, so they
-  don't become a dumping ground. Placed by the user after the current queue. Mock-up first.
+  don't become a dumping ground. Placed by the user after the current queue. Mock-up first. Agreed on board 58 ("I
+  like it") with its suggested choices: anyone can put one on hold, in Review and Write's Comments tab alike; no
+  reason box (a reply says why); nothing written when they come back. The user's addition: a card moving into a
+  dropdown slides off to the right and the cards below slide up into its place. Built so: Put on hold beside Resolve
+  (and on suggestions), 5 seconds with Undo, then into a folded "On hold · n" between the open list and Resolved;
+  a held card says who and when, with Take off hold. Not counted in the bubbles, the tab counts or "For me"; Approve's
+  check lists them as "on hold". A hold is a `hold` note (Take off hold and Undo are a `reopen`) and lasts until the
+  next send for review or official version after it, then the card is open again with "Back from hold"; Send for
+  review says so beforehand. The slide (`lib/slide.ts`) is on every card leaving the open, On hold or Resolved list.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want

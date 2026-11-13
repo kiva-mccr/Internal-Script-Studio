@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { changes, isOfficial, listVersions, officialNumber, officialNumbers, summary, type Version } from '../lib/history';
+  import { changes, holdEnds, isOfficial, isSend, listVersions, officialNumber, officialNumbers, summary, type Version } from '../lib/history';
   import { threads, type Note, type Thread } from '../lib/comments';
   import { renderMath, toHtml } from '../lib/format';
   import { cellKey, placeComments, stateText } from '../lib/historycomments';
@@ -93,7 +93,6 @@
   });
 
   const count = (n: number) => (n === 1 ? '1 change' : `${n} changes`);
-  const isSend = (v: Version) => v.kind === 'review' && v.note === 'Sent for review';
 
   // A send for review that made no version, because nothing had changed since the newest one (RV-9): its number.
   function still(i: number): number {
@@ -146,7 +145,7 @@
   // Comments in History (RV-6, board 48): each on the version whose change it led to, or on the one current when it
   // was made. A version shows those of every version since the one it is compared with (an official one gathers
   // the small saves folded under it).
-  const placed = $derived(placeComments([...(versions ?? [])].reverse(), threads(notes)));
+  const placed = $derived(placeComments([...(versions ?? [])].reverse(), threads(notes, false, holdEnds(versions ?? []))));
   function covered(i: number): number[] {
     const b = before(i);
     const end = b ? versions!.indexOf(b) : versions!.length;
@@ -291,7 +290,7 @@
               {/each}
             {/if}
           {/if}
-          {#if inRest && !t.resolved}<button class="link" onclick={() => onOpen(t.comment.id)}>Open in Review</button>{/if}
+          {#if inRest && !t.resolved && !t.held}<button class="link" onclick={() => onOpen(t.comment.id)}>Open in Review</button>{/if}
         </div>
       {/snippet}
       {#each selectedChanges as change, i (i)}

@@ -5,7 +5,7 @@
   import Attached from './Attached.svelte';
 
   // One comment or suggestion with its replies, as a card: reply, resolve and reopen, accept or reject with Undo, and
-  // edit or delete your own (RV-7). Shared by Review and Write's Comments panel (RV-13).
+  // edit or delete your own (RV-7), put on hold and take off hold (RV-19). Shared by Review and Write's Comments panel (RV-13).
   let {
     t,
     dir,
@@ -20,6 +20,7 @@
     onAdd,
     onApply,
     onDecided,
+    onHeld = () => {},
     onGone,
   }: {
     t: Thread;
@@ -28,7 +29,7 @@
     where: string; // "row 3", or "row 3, Dialogue"
     gone: boolean; // its quote is no longer in the row
     active: boolean; // the one being read: its quote is marked darker
-    recent?: boolean; // decided or resolved here just now: kept in place with Undo
+    recent?: boolean; // decided, resolved or put on hold here just now: kept in place with Undo
     undoResolve?: boolean; // Resolve keeps it in place with Undo (Write, RV-13) instead of moving it to Resolved (Review)
     // Write only (RV-12): "Use in script" on its files copies one into its row (number and Files lines); `from` is
     // "Sam's comment" or "Ana's reply", shown under the new chip.
@@ -37,6 +38,7 @@
     onAdd: (note: Omit<Note, 'v' | 'id' | 'when' | 'who'>, files?: File[]) => Promise<boolean>;
     onApply: (row: string, field: Field, from: string, to: string) => boolean;
     onDecided: (id: string) => void; // accepted, rejected (or resolved, with undoResolve)
+    onHeld?: (id: string) => void; // put on hold: kept in place with Undo for a few seconds (RV-19)
     onGone: (id: string, deleted: boolean) => void; // deleted (kept in place with Undo) or brought back
   } = $props();
 
@@ -94,6 +96,10 @@
     if (await onAdd({ kind: accept ? 'accept' : 'reject', about: t.comment.id })) onDecided(t.comment.id);
   }
 
+  async function hold() {
+    if (await onAdd({ kind: 'hold', about: t.comment.id })) onHeld(t.comment.id);
+  }
+
   async function resolve() {
     if ((await onAdd({ kind: 'resolve', about: t.comment.id })) && undoResolve) onDecided(t.comment.id);
   }
@@ -122,9 +128,10 @@
   <p class="card deleted" data-id={t.comment.id}>{suggestion ? 'Suggestion' : 'Comment'} deleted. <button class="link inline" onclick={() => restore(t.comment)}>Undo</button></p>
 {:else}
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-<article class="card" data-id={t.comment.id} class:active class:done={t.resolved} aria-label="{suggestion ? 'Suggestion' : 'Comment'} by {t.comment.who}"
+<article class="card" data-id={t.comment.id} class:active class:done={t.resolved} class:held={t.held && !recent} aria-label="{suggestion ? 'Suggestion' : 'Comment'} by {t.comment.who}"
   onclick={onActivate}>
   <div class="who"><span><strong>{t.comment.who}</strong> {suggestion ? 'suggested' : 'commented'} · {where}</span><span>{@render time(t.comment)}</span></div>
+  {#if t.back}<p class="back-tag">Back from hold · put on hold by {t.back}</p>{/if}
   {#if gone && !t.decision}<p class="quiet">On text that has since changed: “{t.comment.quote}”</p>{/if}
   {#if editing === t.comment.id}
     {#if t.comment.quote}<blockquote>{t.comment.quote}</blockquote>{/if}
@@ -156,18 +163,27 @@
       <AttachBox {dir} bind:files={replyFiles} actions={buttons}><textarea bind:value={reply} aria-label="Reply" rows="2"></textarea></AttachBox>
     </form>
   {:else}
+    {#if t.held && !recent}<p class="quiet">On hold · {t.held.who}, {ago(Date.parse(t.held.when))}</p>{/if}
     <div class="actions">
-      {#if suggestion && t.decision}
+      {#if t.held && recent}
+        <span class="decided">On hold.</span>
+        <button class="link" onclick={() => onAdd({ kind: 'reopen', about: t.comment.id })}>Undo</button>
+      {:else if t.held}
+        <button class="outline" onclick={() => onAdd({ kind: 'reopen', about: t.comment.id })}>Take off hold</button>
+        <button class="link" onclick={startReply}>Reply</button>
+      {:else if suggestion && t.decision}
         <span class="decided">{t.decision === 'accepted' ? 'Accepted. The script is updated.' : 'Rejected. The original stays.'}</span>
         <button class="link" onclick={undo}>Undo</button>
       {:else if suggestion}
         <button class="primary small" onclick={() => decide(true)}>Accept</button>
         <button class="outline" onclick={() => decide(false)}>Reject</button>
         <button class="link" onclick={startReply}>Reply</button>
+        <button class="link" onclick={hold}>Put on hold</button>
         {@render own()}
       {:else if !t.resolved}
         <button class="outline" onclick={startReply}>Reply</button>
         <button class="link" onclick={resolve}>Resolve</button>
+        <button class="link" onclick={hold}>Put on hold</button>
         {@render own()}
       {:else if recent && undoResolve}
         <span class="decided">Resolved.</span>
@@ -221,6 +237,8 @@
   /* The one being read (RV-20): a blue outline and tint that stand out, not just a pale border. */
   .card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 0 5px #d9e3fb; background: #f5f8ff; }
   .card.done { background: #fafafa; }
+  .card.held { border-style: dashed; border-color: var(--line-strong); background: #fafafa; }
+  .back-tag { align-self: flex-start; margin: 0; padding: 2px 8px; border-radius: 10px; background: #fff4e5; font-size: 12px; color: #6b4a00; }
   .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
   .who strong { color: var(--ink); font-weight: 600; }
   .text { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onDestroy, tick, untrack } from 'svelte';
+  import { Linger } from '../lib/linger.svelte';
+  import { slideAway } from '../lib/slide';
   import { quoteGone, threads, type Attachment, type Field, type Note } from '../lib/comments';
   import type { Version } from '../lib/history';
   import type { Row, Script } from '../lib/script';
@@ -12,6 +14,7 @@
     dir,
     script,
     notes,
+    ends,
     me,
     back,
     active = $bindable(),
@@ -24,6 +27,7 @@
     dir: FileSystemDirectoryHandle;
     script: Script;
     notes: Note[];
+    ends: string[]; // sends for review and official versions: holds before one are over (RV-19)
     me: string;
     back?: Version; // the send back (its note at the top), while the script is a draft again
     active: string; // the card being read; its quote is marked darker in Write
@@ -35,16 +39,21 @@
   } = $props();
 
   const LABELS: Record<Field, string> = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
-  let recent = $state<string[]>([]); // decided or resolved here: kept in place with Undo for a few seconds (RV-18)
+  // Decided, resolved or put on hold here: in place with Undo for 5 seconds, then into Resolved or On hold by itself
+  // (RV-18, RV-19), sliding away (`slideAway`). Undo within that time leaves it open.
+  const recent = new Linger();
+  onDestroy(() => recent.clear());
   let gone = $state<string[]>([]); // deleted here: kept as "… deleted. Undo"
   let showResolved = $state(false);
+  let showHeld = $state(false);
   const all = $derived(
-    threads(notes, true)
+    threads(notes, true, ends)
       .filter((t) => !t.deleted || gone.includes(t.comment.id))
       .map((t) => ({ ...t, replies: t.replies.filter((r) => !r.deleted || gone.includes(r.id)) })),
   );
-  const shown = $derived(all.filter((t) => !t.resolved || recent.includes(t.comment.id)));
-  const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+  const shown = $derived(all.filter((t) => (!t.resolved && !t.held) || recent.has(t.comment.id)));
+  const held = $derived(all.filter((t) => !t.resolved && t.held && !recent.has(t.comment.id)));
+  const resolved = $derived(all.filter((t) => t.resolved && !recent.has(t.comment.id)));
   const rows = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
   const numbers = $derived(new Map(rows.map((row, i) => [row.id, i + 1])));
 
@@ -60,17 +69,6 @@
     if (!n) return 'a deleted row';
     return c.quote ? `row ${n}, ${LABELS[c.field ?? 'dialogue']}` : `row ${n}`;
   }
-
-  // Decided or resolved here: in place with Undo for 5 seconds, then into Resolved by itself (RV-18). Undo within
-  // that time leaves it open; deciding it again starts a new wait.
-  const WAIT = 5000;
-  const timers = new Map<string, ReturnType<typeof setTimeout>>();
-  function decided(id: string) {
-    clearTimeout(timers.get(id));
-    recent = [...recent.filter((r) => r !== id), id];
-    timers.set(id, setTimeout(() => (timers.delete(id), (recent = recent.filter((r) => r !== id))), WAIT));
-  }
-  onDestroy(() => timers.forEach(clearTimeout));
 
   // A bubble or a quote in Write picked a card: bring it into view in the panel, every time it is asked for, even
   // when it is already the one being read (RV-17), and flash its outline so the eye finds it (RV-20).
@@ -96,21 +94,39 @@
     </div>
   {/if}
   {#each shown as t (t.comment.id)}
-    <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
-      recent={recent.includes(t.comment.id)} undoResolve use={t.resolved ? undefined : use(t.comment)} onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
-      {onAdd} {onApply} onDecided={decided}
-      onGone={(id, deleted) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id))} />
+    <div class="slot" out:slideAway>
+      <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
+        recent={recent.has(t.comment.id)} undoResolve use={t.resolved ? undefined : use(t.comment)} onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
+        {onAdd} {onApply} onDecided={(id) => recent.add(id)} onHeld={(id) => recent.add(id)}
+        onGone={(id, deleted) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id))} />
+    </div>
   {:else}
     <p class="quiet">No open comments.</p>
   {/each}
+  {#if held.length}
+    <button class="link" aria-expanded={showHeld} onclick={() => (showHeld = !showHeld)}>
+      {showHeld ? '▾' : '▸'} On hold · {held.length}
+    </button>
+    {#if showHeld}
+      <p class="quiet">Back in the open list at the next Send for review or official version.</p>
+      {#each held as t (t.comment.id)}
+        <div class="slot" out:slideAway>
+          <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
+            onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))} {onAdd} {onApply} onDecided={() => {}} onGone={() => {}} />
+        </div>
+      {/each}
+    {/if}
+  {/if}
   {#if resolved.length}
     <button class="link" aria-expanded={showResolved} onclick={() => (showResolved = !showResolved)}>
       {showResolved ? '▾' : '▸'} Resolved · {resolved.length}
     </button>
     {#if showResolved}
       {#each resolved as t (t.comment.id)}
-        <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={false} onActivate={() => {}}
-          {onAdd} {onApply} onDecided={() => {}} onGone={() => {}} />
+        <div class="slot" out:slideAway>
+          <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={false} onActivate={() => {}}
+            {onAdd} {onApply} onDecided={() => {}} onGone={() => {}} />
+        </div>
       {/each}
     {/if}
   {/if}
@@ -124,5 +140,6 @@
   .back b { color: var(--ink); font-weight: 600; }
   .message { margin-top: 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
   .link { align-self: flex-start; }
+  .slot { display: flex; flex-direction: column; }
   .quiet { margin: 0; font-size: 12px; color: var(--muted); }
 </style>

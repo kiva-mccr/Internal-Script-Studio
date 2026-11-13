@@ -55,5 +55,6 @@ export function placeComments(versions: Version[], list: Thread[]): Map<string, 
 // What History shows for a thread's state.
 export function stateText(t: Thread): string {
   if (t.decision) return `${t.decision === 'accepted' ? 'Accepted' : 'Rejected'}${t.by ? ` by ${t.by}` : ''}`;
+  if (t.held) return `On hold by ${t.held.who}`;
   return t.resolved ? `Resolved${t.by ? ` by ${t.by}` : ''}` : 'Open';
 }

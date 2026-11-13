@@ -31,3 +31,5 @@ never changed. Also what changed between two versions: a title ("Edited rows 3 a
   `describe`, so a moved row is not changed (RV-4).
 - `heads` are the versions nothing was made from: two mean two saves at the same time, and `ancestor` is the
   newest version both came from (what `lib/merge.ts` compares them with). A merge version has two parents.
+- `isSend` and `holdEnds` (RV-19): a send for review is a `review` entry noted "Sent for review"; holds on comments
+  end at the next send or official version.
