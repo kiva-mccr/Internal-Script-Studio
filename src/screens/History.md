@@ -22,3 +22,6 @@ official version (mock-up 7): a named version, v1, v2 …; with any, the small s
 - The Publish button sits outside the `Versions` nav, so the nav's buttons are only versions (tests count them).
 - Publishing goes through `Editor.svelte` (`onPublish`): what is waiting is saved first, then script.md as it is
   on disk is what gets published.
+- HI-3: only the newest 50 are listed, then "Show 50 older"; after that click a hidden marker under the list loads
+  50 more whenever it comes within 400 px of view. It is watched again after each load, since older saves can fold
+  into one line and leave the marker still in view. The picked version (the newest official one) is always shown.

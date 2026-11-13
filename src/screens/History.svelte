@@ -34,12 +34,35 @@
 
   onMount(load);
 
+  // HI-3: the newest 50 first. After the first "Show 50 older", the next ones come as the end scrolls near.
+  const PAGE = 50;
+  let shown = $state(PAGE);
+  let auto = $state(false);
+  const older = $derived(Math.max((versions?.length ?? 0) - shown, 0));
+  function showOlder() {
+    shown += PAGE;
+    auto = true;
+  }
+  // Watched again after each load: when older saves fold into one line, the end can still be in sight.
+  function nearEnd(node: HTMLElement, _shown: number) {
+    const watch = new IntersectionObserver((seen) => seen.some((s) => s.isIntersecting) && showOlder(), { rootMargin: '400px' });
+    watch.observe(node);
+    return {
+      update() {
+        watch.unobserve(node);
+        watch.observe(node);
+      },
+      destroy: () => watch.disconnect(),
+    };
+  }
+
   async function load() {
     try {
       versions = (await listVersions(dir)).reverse();
       // With official versions, History opens on the newest one.
       const newestOfficial = versions.findIndex(isOfficial);
       picked = Math.max(newestOfficial, 0);
+      shown = Math.max(PAGE, picked + 1);
     } catch {
       error = "History couldn't be read. If OneDrive is still syncing, wait a moment and try again.";
     }
@@ -52,7 +75,7 @@
   // saves between them folded into one line until opened.
   type Item = { kind: 'one'; i: number } | { kind: 'group'; first: number; list: number[]; label: string };
   const items = $derived.by((): Item[] => {
-    const list = versions ?? [];
+    const list = (versions ?? []).slice(0, shown);
     if (!numbers.size) return list.map((_, i) => ({ kind: 'one', i }));
     const out: Item[] = [];
     let group: number[] = [];
@@ -204,6 +227,16 @@
           {/if}
         {/each}
       </nav>
+      {#if older}
+        <div class="more">
+          <p class="meta">Showing the newest {shown.toLocaleString('en-US')} of {versions.length.toLocaleString('en-US')} versions.{auto ? ' Older ones load as you scroll.' : ''}</p>
+          {#if auto}
+            <div use:nearEnd={shown} aria-hidden="true"></div>
+          {:else}
+            <button class="outline" onclick={showOlder}>Show {Math.min(PAGE, older)} older</button>
+          {/if}
+        </div>
+      {/if}
     </div>
     <section class="detail" aria-label="Changes">
       {#if publishing}
@@ -294,6 +327,7 @@
   .versions .nav-top h2 { margin: 0; }
   .small { min-height: 36px; padding: 0 12px; font-size: 13px; }
   .group { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; border: 1px dashed var(--line-strong); border-radius: 8px; }
+  .more { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 14px 14px 0; border-top: 1px solid var(--line); }
   .fold { min-height: 32px; padding: 0 6px; border: 0; background: none; color: var(--muted); font-size: 13px; font-weight: 500; text-align: left; }
   .tag { margin-right: 8px; padding: 2px 8px; border-radius: 999px; background: #e7f4ec; color: #1b6b3e; font-size: 12px; font-weight: 600; }
   .entry.official { min-height: 64px; }
