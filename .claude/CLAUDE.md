@@ -50,6 +50,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
 - No browser dialogs (confirm, alert, validation bubbles): messages and checks are shown in the page.
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
+  Turn on auto-merge (merge method) right after opening a PR, so GitHub merges it the moment `test` passes; nothing
+  wakes a thread when CI ends, and waiting on a reminder left green PRs unmerged. Then check the deploy and live site.
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
