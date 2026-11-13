@@ -76,3 +76,7 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - The planning panel (`Planning.svelte`, AP-24) sits beside `main` in a flex row (`.page`), on Write and Review only;
   it reads and saves plan.md itself, apart from the script's saving and History.
 - `review` (a shared link, RV-10) only sets the first tab; nothing is left to save at that point, so no `leave()`.
+- Comments in Write (RV-13): the side panel's open and tab (`sideOpen`, `sideTab`) and the card being read
+  (`talking`) live here, so a bubble in Write can open the panel at a card. `readReview` also runs in Write: the
+  send back (`back`, from `backNote`) while the status is draft. It opens the panel on Comments once per send back
+  (`seen-back` in this browser), and never for your own.

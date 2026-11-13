@@ -126,3 +126,4 @@ describe('files on comments (RV-11)', () => {
     expect(tooBig({ name: 'ok.png', size: 50 * 1024 * 1024 } as File)).toBe('');
   });
 });
+

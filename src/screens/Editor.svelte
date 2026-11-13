@@ -3,16 +3,17 @@
   import { assetList, missingFiles } from '../lib/assets';
   import { Player, plan } from '../lib/play.svelte';
   import { clock, speaking } from '../lib/readtime.svelte';
-  import { askAccess, hasAccess } from '../lib/remember';
+  import { askAccess, hasAccess, keep, recall } from '../lib/remember';
   import { takeLength, takesSpeed, VoiceOver } from '../lib/voice.svelte';
   import { findScript, readScript, writeScriptFile } from '../lib/folder';
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
   import { frontValue, newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Block, type Script } from '../lib/script';
   import { othersEditing, readEditing, removeEditing, writeEditing } from '../lib/editing';
-  import { addVersion, ancestor, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sha256, type Version } from '../lib/history';
+  import { addVersion, ancestor, backNote, heads, listVersions, officialNumber, OUTSIDE, reviewEnd, reviewNote, sha256, type Version } from '../lib/history';
   import { merge, type Merged, type Side } from '../lib/merge';
   import Assets from './Assets.svelte';
+  import Comments from './Comments.svelte';
   import Conflict from './Conflict.svelte';
   import Export, { type Format, type PrintChoices } from './Export.svelte';
   import Header, { type Loose } from './Header.svelte';
@@ -68,7 +69,22 @@
     return first ? Number(first.dataset.block) : 0;
   }
   let notes = $state<Note[]>([]); // comments, replies and resolves (Review)
-  const openCount = $derived(threads(notes).filter((t) => !t.resolved).length);
+  const openThreads = $derived(threads(notes).filter((t) => !t.resolved));
+  const openCount = $derived(openThreads.length);
+  // The side panel (Planning, and in Write Comments, RV-13): open or closed and its tab are this browser's.
+  let sideOpen = $state(recall('planning-open') === '1');
+  let sideTab = $state<'planning' | 'comments'>(recall('side-tab') === 'comments' ? 'comments' : 'planning');
+  let talking = $state(''); // the comment being read in Write's Comments tab
+  // A bubble or a quote in Write: the panel opens on Comments at that card.
+  function showComment(id: string) {
+    talking = id;
+    sideTab = 'comments';
+    sideOpen = true;
+  }
+  // A card in the panel: Write scrolls to its row.
+  function showRow(id: string) {
+    document.querySelector(`[data-row="${id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
   // Flagged rows (AP-9), in row order; kept with the comments.
   const flagged = $derived(flags(notes, script ? rows(script).map((row) => row.id) : []));
   // What is still open, shown before Approve (RV-5, mock-up 20): flags, open comments and suggestions, then missing files.
@@ -370,16 +386,29 @@
   // Review status (RV-3): draft → in review → approved, or sent back to draft. Saved at once, with a History entry.
   const reviewStatus = $derived(script ? frontValue(script.front, 'status') || 'draft' : 'draft');
   // Read from History when Review opens, and again after a status change: the note sent with it for review
-  // (RV-8, only while it is in review), and the version from when the last review ended (RV-4).
+  // (RV-8, only while it is in review), and the version from when the last review ended (RV-4). In Write, the send
+  // back (RV-13) while it is a draft again: its note tops the Comments tab, which opens by itself the first time this
+  // browser sees a send back by someone else.
   let sent = $state<Version>();
   let reviewedAt = $state<Version>();
+  let back = $state<Version>();
   let reading = 0; // only the newest read counts: an older one can finish later
   function readReview() {
     const n = ++reading;
-    if (mode !== 'review' || !dir) return void ((sent = undefined), (reviewedAt = undefined));
-    const inReview = reviewStatus === 'in review';
+    const [m, status] = [mode, reviewStatus];
+    if ((m !== 'review' && m !== 'write') || !dir) return void ((sent = undefined), (reviewedAt = undefined), (back = undefined));
     listVersions(dir)
-      .then((versions) => n === reading && ((sent = inReview ? reviewNote(versions) : undefined), (reviewedAt = reviewEnd(versions))))
+      .then((versions) => {
+        if (n !== reading) return;
+        sent = m === 'review' && status === 'in review' ? reviewNote(versions) : undefined;
+        reviewedAt = m === 'review' ? reviewEnd(versions) : undefined;
+        back = m === 'write' && status === 'draft' ? backNote(versions) : undefined;
+        if (back && back.who !== name && recall('seen-back') !== back.id) {
+          keep('seen-back', back.id);
+          sideTab = 'comments';
+          sideOpen = true;
+        }
+      })
       .catch(() => {});
   }
   $effect(readReview);
@@ -639,12 +668,18 @@
   {:else if script && dir && mode === 'history'}
     <History {dir} onRestore={restore} onPublish={publish} />
   {:else if script && dir}
-    <Write bind:script {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)} />
+    <Write bind:script {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
+      talk={openThreads} {talking} onTalk={showComment} />
   {/if}
 </main>
 {#if script && dir && !clash && (mode === 'write' || mode === 'review')}
-  <Planning {dir} />
+  <Planning {dir} bind:open={sideOpen} bind:tab={sideTab} count={openCount} comments={mode === 'write' ? comments : undefined} />
 {/if}
+{#snippet comments()}
+  {#if script && dir}
+    <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} onAdd={note} onApply={apply} onShow={showRow} />
+  {/if}
+{/snippet}
 </div>
 {/if}
 <style>

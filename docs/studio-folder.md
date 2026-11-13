@@ -50,14 +50,15 @@ except as the `who` of what they write.
 - `text` is the whole `script.md` as it was: a full copy, not a list of changes. Simple, and any one file is
   enough to restore from. A 10-minute script is about 10 KB, so 1,000 versions are about 10 MB.
 - `parents` is the version (or versions) it was made from: empty for the first, two for a merge.
-- `message` is only there on a send for review with a note for the reviewers (RV-8): what they should look at.
+- `message` is only there on a send for review with a note for the reviewers (RV-8), or a send back with a note for
+  the writer (RV-13): what they should look at.
 - `sha256` is the text's fingerprint, used to tell whether `script.md` still matches.
 - `kind` and what History shows for it:
 
 | kind | Made when | History shows |
 |------|-----------|---------------|
 | `edit` | editing (see below) | "Edited rows 3 and 4" (worked out from the text) |
-| `review` | sent for review, approved, or sent back | "Sent for review" (and the note for the reviewers, `message`) |
+| `review` | sent for review, approved, or sent back | "Sent for review" or "Sent back to writer" (and its note, `message`) |
 | `restore` | an earlier version restored | "Restored the version from Nov 6" |
 | `merge` | a conflict resolved | "Combined Sam's and Ana's changes" |
 | `outside` | `script.md` changed outside the app | "Changed outside the app" |

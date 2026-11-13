@@ -2,8 +2,8 @@
   import { tick } from 'svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
-  import { plain } from '../lib/format';
-  import type { Flag } from '../lib/comments';
+  import { plain, rangeOf } from '../lib/format';
+  import type { Flag, Thread } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
   import { chosenMic } from '../lib/mic';
@@ -19,9 +19,12 @@
   // player: Play the script (AU-2), kept by the Editor; canPlay: a row's number plays from that row (onPlayFrom).
   // flagged: the flagged rows (AP-9), in row order; onFlag flags a row with a note, or clears it (null).
   // root and folderName: the picked folder and this script's folder name, for "From other scripts…" (AS-1).
-  let { script = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, onChange, onDeleted, onNotice, onPlayFrom, onFlag }: {
+  // talk: the open comments and suggestions (RV-13): a bubble on their rows, their quotes marked; talking is the one
+  // read in the Comments tab; onTalk opens the tab at one (from a bubble, or a click on its quote).
+  let { script = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
     script: Script; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
+    talk: Thread[]; talking: string; onTalk: (id: string) => void;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
   } = $props();
@@ -127,6 +130,49 @@
     if (flag && box.value.trim() !== flag.text) onFlag(id, box.value.trim());
   }
 
+
+  // Review comments (RV-13): each row's open ones, for its bubble; their quotes are marked yellow in the fields
+  // (CSS highlights on the formatted text, so not inside the box while it is being typed in).
+  const talkByRow = $derived.by(() => {
+    const map = new Map<string, Thread[]>();
+    for (const t of talk) if (t.comment.row) map.set(t.comment.row, [...(map.get(t.comment.row) ?? []), t]);
+    return map;
+  });
+  const talkRow = $derived(talk.find((t) => t.comment.id === talking)?.comment.row ?? '');
+  const quoted = $derived(JSON.stringify(talk.map((t) => {
+    const row = script.blocks.find((b) => b.type === 'row' && b.id === t.comment.row);
+    return row?.type === 'row' ? [row.dialogue, row.onScreen] : null;
+  })));
+  $effect(() => {
+    const [list, on] = [talk, talking];
+    void [quoted, folded]; // the fields' text, and which are drawn
+    tick().then(() => {
+      if (!table) return;
+      const marks: Range[] = [];
+      const onMark: Range[] = [];
+      for (const t of list) {
+        const { row, field, quote } = t.comment;
+        if (!quote || field === 'files') continue;
+        const shown = table.querySelector<HTMLElement>(`[data-row="${row}"] ${field === 'on_screen' ? '.screen' : '.dialogue'} .shown`);
+        const range = shown ? rangeOf(shown, quote) : null;
+        if (range) (t.comment.id === on ? onMark : marks).push(range);
+      }
+      CSS.highlights.set('comment', new Highlight(...marks));
+      CSS.highlights.set('comment-on', new Highlight(...onMark));
+    });
+    return () => ['comment', 'comment-on'].forEach((name) => CSS.highlights.delete(name));
+  });
+
+  // A click in a field, on a quote's words, opens the Comments tab at it.
+  function clickQuote(id: string, field: 'dialogue' | 'on_screen', box: HTMLTextAreaElement) {
+    const at = box.selectionStart;
+    if (box.selectionEnd !== at) return;
+    const hit = talkByRow.get(id)?.find((t) => {
+      const start = t.comment.field === field && t.comment.quote ? box.value.indexOf(t.comment.quote) : -1;
+      return start >= 0 && at >= start && at <= start + t.comment.quote!.length;
+    });
+    if (hit) onTalk(hit.comment.id);
+  }
 
   function move(i: number, by: number) {
     const j = i + by;
@@ -312,7 +358,9 @@
       {@const here = player.row === block.id}
       {@const sounding = voice.playing === block.id || (here && player.on)}
       {@const flag = flagged.get(block.id)}
-      <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && current === block.id} data-row={block.id} data-block={i}>
+      {@const said = talkByRow.get(block.id) ?? []}
+      <div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && current === block.id} class:talking={talkRow === block.id}
+        class:talk={said.length} data-row={block.id} data-block={i}>
         <div class="num">
           {#if canPlay}
             {#if here && player.on}
@@ -322,6 +370,13 @@
             {/if}
           {:else}
             <span>{n}</span>
+          {/if}
+          {#if said.length}
+            {@const kinds = said.every((t) => t.comment.kind === 'suggestion') ? 'suggestion' : said.some((t) => t.comment.kind === 'suggestion') ? 'comment or suggestion' : 'comment'}
+            <button class="bubble" aria-label="{said.length} open {kinds}{said.length === 1 ? '' : 's'} on row {n}" title="Open in Comments"
+              onclick={() => onTalk(said[0].comment.id)}>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" /></svg>{said.length}
+            </button>
           {/if}
           <span class="tools">
             <button aria-label="Move row {n} up" title="Move up" onclick={() => move(i, -1)}>↑</button>
@@ -346,7 +401,8 @@
         {#if folded.has('dialogue')}{@render dot(block.dialogue !== '', 'Dialogue')}{:else}
         <div>
           {#if block.note}<p class="note">{block.note}</p>{/if}
-          <div class="dialogue"><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+          <div class="dialogue" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote(block.id, 'dialogue', e.target)}><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
             onparagraphs={(lines, head, tail) => pasteRows(block, lines, head, tail)} /></div>
           {#if recording}
             {#if voice.cue}<p class="take" role="status">Getting ready…</p>
@@ -365,7 +421,8 @@
         </div>
         {/if}
         {#if folded.has('screen')}{@render dot(block.onScreen !== '', 'On screen')}{:else}
-          <div class="screen"><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+          <div class="screen" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote(block.id, 'on_screen', e.target)}><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
         {/if}
         {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
           <FilesCell files={block.files} {dir} {root} here={folderName} row={n ?? 0} {onNotice}
@@ -483,6 +540,14 @@
   .row:hover .promote, .row:focus-within .promote { opacity: 1; }
   .promote:hover { background: #f0f0f0; color: var(--ink); }
   .row.stepped { border-radius: 8px; background: #fffbf5; }
+  /* Review comments (RV-13, board 37): a blue bubble with the count under the number; the tools move down to clear it. */
+  .bubble { display: flex; width: fit-content; align-items: center; gap: 3px; min-height: 28px; margin: 4px 0 0 -6px; padding: 0 6px; border: 1px solid #c9d6f5;
+    border-radius: 6px; background: #eef2fb; color: var(--accent); font-size: 12px; font-weight: 600; }
+  .bubble:hover { border-color: var(--accent); }
+  .row.talk { min-height: 96px; }
+  .talk .num .tools, .talk .flag { top: 58px; }
+  .talk .promote { top: 88px; }
+  .row.talking { border-radius: 8px; background: #f7f9fe; }
   .flag-note { grid-column: 3 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px;
     padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
   .flag-note label { display: flex; flex: 1 1 280px; align-items: center; gap: 8px; min-width: 0; }

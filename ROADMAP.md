@@ -408,13 +408,19 @@ and suggestions, keeps every version, and exports them for production.
 
 - [ ] **RV-12** Use an attached image in the script (suggested while drawing RV-11, left out by the user's choice): a
   "Use in script" button on an image attached to a comment copies it into assets/ and adds it to that row.
-- [ ] **RV-13** Review comments in Write (asked by the user: writers had no way to work through comments while
+- [x] **RV-13** Review comments in Write (asked by the user: writers had no way to work through comments while
   rewriting). The user picked idea A of three on board 37: the side panel gets two tabs, Planning and Comments; in
   Write the writer replies, resolves and accepts or rejects suggestions beside the text. Rows with something open get
   a blue speech bubble with a count under the row number, quotes are marked yellow; a card scrolls to its row. Review
   stays the reviewers' place (new comments start there). The six smaller choices on board 37 (one panel with two
   tabs; no new comments in Write; bubbles; opens by itself after Send back, with a note on Send back; no
-  auto-resolve; "Review · 3" on the tab) were agreed by the user as suggested (2026-11-12); waiting for its turn.
+  auto-resolve; "Review · 3" on the tab) were agreed by the user as suggested (2026-11-12). Built so: the card is one
+  component for Review and Write (`CommentCard.svelte`); the panel is `Planning.svelte` with a Comments tab in Write
+  only; resolving in Write stays in place with Undo until the panel or tab is left. Send back to writer opens a note
+  box like Send for review's; the note (History `message`) tops the Comments tab while the script is a draft, and
+  the tab opens by itself once per send back, only for a send back by someone else. Rows with something open grow a
+  little so the row tools clear the bubble. Quotes are marked on the formatted text, so not while that very box is
+  being typed in. A click on a quote's words in a field opens its card.
 - [ ] **RV-14** A "for me" filter on the script list (suggested, the user picked it first of four, 2026-11-12): show
   only the scripts waiting for your review or with replies to your comments, so nobody opens each one to check.
   Mock-up first.

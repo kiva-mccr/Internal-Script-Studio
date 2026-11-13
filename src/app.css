@@ -34,3 +34,8 @@ button { font: inherit; cursor: pointer; }
   font-size: 14px; font-weight: 500;
 }
 .outline:hover { border-color: var(--accent); }
+
+/* Quotes of open comments (CSS highlights): marked in Review's cells and Write's fields (RV-13). */
+::highlight(comment) { background: #fff1c2; text-decoration: underline 2px #e0b100; }
+::highlight(suggestion) { background: #fdecec; color: #8a2b2b; text-decoration: line-through; }
+::highlight(comment-on) { background: #ffe38a; text-decoration: underline 2px #e0b100; }

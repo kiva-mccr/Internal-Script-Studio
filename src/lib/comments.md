@@ -4,7 +4,9 @@ Review: comments, replies and resolving, one JSON file each in `.studio/comments
 written once and never changed. Also gathers them into threads, and marks a comment's quote in its cell. Flags on
 rows (AP-9) are kept here too (`flag`, `unflag`; `flags()` says which rows are flagged).
 
-- **Used by:** `screens/Editor.svelte`, `screens/Review.svelte`. **Tests:** `tests/unit/comments.test.ts`,
+- `fieldText` is what a cell shows (files by their names); `quoteGone` says a quote is no longer in its field
+  ("on text that has since changed"), through `plain` (needs the page, so no unit test).
+- **Used by:** `screens/Editor.svelte`, `screens/Review.svelte`, `screens/Comments.svelte`, `screens/CommentCard.svelte`. **Tests:** `tests/unit/comments.test.ts`,
   `tests/e2e/review.spec.ts`.
 
 ## Rules and pitfalls
