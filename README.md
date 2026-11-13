@@ -48,7 +48,7 @@ Status: a first working version. What it does today:
   the result in the middle (it follows the settings as you change them) and the settings on the right, with Print…
   or Save. Settings are remembered on this computer. Back to the script (or Esc) returns.
 - **Print:** Print makes the three-column version for paper or a PDF ("Save as PDF" in the print window). Add a
-  blank Notes column on each row or lined space for notes at the end, and set the text size. Untick any of the three
+  blank Notes column on each row or Notes lines at the foot of every page (2 to 8 lines), and set the text size. Untick any of the three
   columns (for example to print the dialogue only); the others widen to fill the page, Dialogue first, then Notes.
 - **Fountain:** saves the script as a `.fountain` file for Trelby, Highland and other screenplay programs.
   Sections become scene headings, the dialogue is spoken by NARRATOR, the On screen column is the action, and row

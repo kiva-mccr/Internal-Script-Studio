@@ -6,13 +6,13 @@
   import { frontList, frontValue, readFileRef, type Script } from '../lib/script';
 
   // The print version (EX-1, mock-up 9): only shown when printing. `version` is "v3", or "" for a draft.
-  // For notes during production (asked by the user): column, a blank Notes column on each row; lines, a lined Notes
-  // space after the last row. scale: the text size, 1 = as drawn (asked by the user). hidden: the columns that don't
+  // For notes during production (asked by the user): column, a blank Notes column on each row; lines, how many
+  // Notes lines go at the foot of every page (EX-15, board 42; 0 = none). scale: the text size, 1 = as drawn (asked by the user). hidden: the columns that don't
   // print, in the order they were unticked (EX-16); their room goes to the others.
   // onReady: called once images and equations are in, so the print window shows the whole page.
   // onScreen: drawn on screen as the export screen's preview (EX-9), never printed.
   let { script, dir, title, version, column, lines, scale, hidden, onScreen = false, onReady = () => {} }: {
-    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: boolean; scale: number; hidden: Column[];
+    script: Script; dir: FileSystemDirectoryHandle; title: string; version: string; column: boolean; lines: number; scale: number; hidden: Column[];
     onScreen?: boolean; onReady?: () => void;
   } = $props();
 
@@ -116,11 +116,13 @@
         {/if}
       {/each}
     </tbody>
+    {#if lines && !onScreen}<tfoot><tr><td class="room" colspan={cols.length + (column ? 2 : 1)} style:--lines={lines}></td></tr></tfoot>{/if}
   </table>
   {#if lines}
-    <section class="lines">
+    <!-- Printed, it is fixed to the foot of every page; the table's <tfoot> keeps that much room free on each one. -->
+    <section class="lines" style:--lines={lines}>
       <h2>Notes</h2>
-      {#each { length: 14 }, i (i)}<div class="line"></div>{/each}
+      {#each { length: lines }, i (i)}<div class="line"></div>{/each}
     </section>
   {/if}
 </div>
@@ -153,9 +155,13 @@
   .target { display: block; }
   .note { margin: 0 0 4px; font-size: 0.9em; white-space: pre-wrap; }
   .section td { padding-top: 14px; font-size: 1.1em; font-weight: 600; border-bottom: 1px solid #cfcfcf; }
-  /* Kept whole: starts on a new page if it doesn't fit under the last row. */
-  .lines { break-inside: avoid; padding-top: 18px; }
-  h2 { margin: 0; font-size: 1.1em; font-weight: 600; }
-  .line { height: 9mm; border-bottom: 1px solid #cfcfcf; }
+  /* The Notes lines: on screen once under the rows; printed, at the foot of every page, above the footer. Their
+     height is fixed, and .room (the table's footer, which repeats on every page) is just as tall. */
+  .lines, .room { box-sizing: border-box; height: calc(var(--lines) * 8mm + 2.4em); }
+  .lines { padding-top: 0.6em; }
+  @media print { .print-view .lines { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; } }
+  .room { padding: 0; border: 0; }
+  h2 { margin: 0; font-size: 1.1em; line-height: 1.6; font-weight: 600; }
+  .line { height: 8mm; border-bottom: 1px solid #cfcfcf; }
   .sheet :global(a) { color: inherit; }
 </style>

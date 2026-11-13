@@ -1,8 +1,8 @@
 <script lang="ts" module>
   import type { Column } from '../lib/printcolumns';
-  // Print's choices: a Notes column on each row, a Notes space at the end, the text size in %, and the columns that
+  // Print's choices: a Notes column on each row, Notes lines on every page (how many), the text size in %, and the columns that
   // print (EX-16).
-  export type PrintChoices = { column: boolean; lines: boolean; scale: number; hidden: Column[] };
+  export type PrintChoices = { column: boolean; lines: number; scale: number; hidden: Column[] };
   export type Format = 'print' | 'fountain' | 'fdx' | 'voice';
 </script>
 
@@ -38,7 +38,10 @@
   const name = $derived(safeName(title) || 'script');
 
   // Settings, remembered. Print keeps its keys from before (they were in the Export menu).
-  let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: !!recall('print-lines'), scale: Number(recall('print-scale')) || 100,
+  // Notes lines on every page (EX-15): how many, 2 to 8; `lineCount` is kept while they are off.
+  const savedCount = Math.min(8, Math.max(2, Number(recall('print-line-count')) || 4));
+  let lineCount = $state(savedCount);
+  let printing = $state<PrintChoices>({ column: !!recall('print-notes'), lines: recall('print-lines') ? savedCount : 0, scale: Number(recall('print-scale')) || 100,
     hidden: readHidden(recall('print-hide')) });
   let fountain = $state<Screenplay>(load('export-fountain', SCREENPLAY));
   let fdx = $state<Screenplay>(load('export-fdx', SCREENPLAY));
@@ -46,6 +49,7 @@
   $effect(() => {
     keep('print-notes', printing.column ? '1' : '');
     keep('print-lines', printing.lines ? '1' : '');
+    keep('print-line-count', String(lineCount));
     keep('print-scale', String(printing.scale));
     keep('print-hide', printing.hidden.join(','));
     keep('export-fountain', JSON.stringify(fountain));
@@ -53,6 +57,10 @@
     keep('export-voice', JSON.stringify(voiceHow));
   });
   // Ticks a column on or off; the hidden ones stay in the order they were unticked (their room goes in turns).
+  function setLines(on: boolean, count = lineCount) {
+    lineCount = Math.min(8, Math.max(2, count));
+    printing.lines = on ? lineCount : 0;
+  }
   function showColumn(id: Column, on: boolean) {
     printing.hidden = on ? printing.hidden.filter((c) => c !== id) : [...printing.hidden, id];
   }
@@ -176,7 +184,7 @@
 
   <section class="preview" aria-label="Preview">
     {#if format === 'print'}
-      <p class="caption">As it will print. Print… opens the browser's print window, where "Save as PDF" makes the PDF.</p>
+      <p class="caption">As it will print{printing.lines ? ', with the Notes lines at the foot of every page' : ''}. Print… opens the browser's print window, where "Save as PDF" makes the PDF.</p>
       <div class="page">
         <Print {script} {dir} {title} {version} column={printing.column} lines={printing.lines} scale={printing.scale / 100} hidden={printing.hidden} onScreen />
       </div>
@@ -239,7 +247,14 @@
           {#if printing.hidden.length === COLUMNS.length - 1}<p class="kept">At least one column prints.</p>{/if}
         </fieldset>
         <label><input type="checkbox" bind:checked={printing.column} /> Notes column on each row</label>
-        <label><input type="checkbox" bind:checked={printing.lines} /> Notes space at the end</label>
+        <label><input type="checkbox" checked={printing.lines > 0} onchange={(e) => setLines(e.currentTarget.checked)} /> Notes lines on every page</label>
+        {#if printing.lines}
+          <div class="count">Lines
+            <button type="button" aria-label="Fewer lines" disabled={lineCount <= 2} onclick={() => setLines(true, lineCount - 1)}>−</button>
+            <span aria-live="polite">{lineCount}</span>
+            <button type="button" aria-label="More lines" disabled={lineCount >= 8} onclick={() => setLines(true, lineCount + 1)}>+</button>
+          </div>
+        {/if}
         <label class="size">Text size <input type="range" min="60" max="140" step="5" bind:value={printing.scale} /> <span>{printing.scale}%</span></label>
       {:else if format === 'fountain' || format === 'fdx'}
         {@const how = format === 'fountain' ? fountain : fdx}
@@ -310,6 +325,10 @@
   label.text { flex-direction: column; align-items: stretch; gap: 4px; }
   label.text input { min-height: 40px; padding: 0 10px; border: 1px solid #d6d6d6; border-radius: 6px; font: inherit; }
   .size input { flex: 1; min-width: 0; }
+  .count { display: flex; align-items: center; gap: 8px; min-height: 32px; padding-left: 26px; color: var(--muted); }
+  .count button { width: 32px; height: 32px; padding: 0; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--ground); color: var(--ink); font-size: 16px; }
+  .count button:disabled { color: var(--line-strong); }
+  .count span { min-width: 1ch; text-align: center; color: var(--ink); }
   .kept { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
   fieldset { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0 0 10px; border: 0; border-bottom: 1px solid var(--line); }
   legend { padding: 0; margin-bottom: 4px; font-size: 12px; color: var(--muted); }
