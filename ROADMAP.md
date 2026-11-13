@@ -515,11 +515,19 @@ and suggestions, keeps every version, and exports them for production.
   Built as agreed: the example (`lib/example.ts`) is copied into the browser's private storage as "Example" the first
   time and kept as left; drawings for leaf-closeup.jpg, icons-ingredients.svg, glucose-model.png and storyboard-p4.pdf
   were added to docs/example/ (made up). A reload stays in the example; leaving it goes back to the first-time screen.
-- [ ] **AP-34** A tutorial in the example (asked by the user): in the example from AP-33, a quick guided tour per tab
+- [x] **AP-34** A tutorial in the example (asked by the user): in the example from AP-33, a quick guided tour per tab
   (Write, Review, History, Assets …) that highlights each feature, goes through them fast, then hands over control
   to play; a Skip button shows throughout. A dedicated job that has to be kept up to date as features change. Kiva
   asked to be reminded about this when setting priorities after each round. Mock-up first. Moved by the user
   (2026-11-13) to the front of the new features, after the flaky tests, the screen split and History at scale.
+  Agreed as drawn (board 53): only in the example; Write's tour plays by itself when the example opens, each other tab's
+  the first time it opens; 3 to 7 steps, moved on with Next (→), Esc or Skip tour stops every tab's tour (remembered),
+  Take the tour in the blue strip plays the open tab's again; the page is dimmed and can't be clicked during a step;
+  each tab ends on "Your turn". Also asked by the user: the example has one file of each kind the app previews (video,
+  sound, TIFF, Word, text, and a PowerPoint for a kind with no preview) and a voice-over take on every row.
+  Built as agreed: the steps are `lib/tour.ts`, pointing at data-tour marks; `screens/Tour.svelte` shows them. The
+  takes are a made-up voice (espeak-ng with an MBROLA voice), in docs/example/…/voice/. An example made before this
+  keeps its old files until Start over.
 - [ ] **AP-35** A "What's new" tour (asked by the user): every so often, after updates that add features (not
   fixes), the app shows a short tour of just those new features the next time it is opened, with a Skip button.
   Related to AP-34 (the tutorial per tab), and could reuse its tour. Mock-up first.

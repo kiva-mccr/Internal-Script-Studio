@@ -65,7 +65,7 @@ test('a file picked is copied into assets/ and listed', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'sun icon.png', exact: true })).toBeVisible();
   await saved(page);
   expect(await readFile(page, 'Episode 03/assets/sun icon.png')).toBe('png');
-  expect(await readFile(page, SCRIPT)).toContain('- assets/icons-ingredients.svg\n- assets/sun icon.png\n');
+  expect(await readFile(page, SCRIPT)).toContain('- assets/music-bed.mp3\n- assets/sun icon.png\n');
 });
 
 test('a link or a note can be added to the files', async ({ page }) => {
@@ -75,7 +75,7 @@ test('a link or a note can be added to the files', async ({ page }) => {
   await page.getByLabel('Link or description').fill('Drone shot of a forest (to find)');
   await page.getByLabel('Link or description').press('Enter');
   await saved(page);
-  expect(await readFile(page, SCRIPT)).toContain('- assets/leaf-closeup.jpg\n- Drone shot of a forest (to find)\n');
+  expect(await readFile(page, SCRIPT)).toContain('- assets/leaf-push-in.mp4\n- Drone shot of a forest (to find)\n');
 });
 
 test("a missing asset says so instead of failing", async ({ page }) => {
@@ -139,7 +139,7 @@ test('a delete can be undone, without any browser dialog', async ({ page }) => {
 
 test('a row turns into a section where it is, and a section back into a row, with Undo (AP-30)', async ({ page }) => {
   // Row 2 reads like a heading, with a mark and a line break, and nothing in its other columns.
-  const script = example.replace(/It needs three simple ingredients[^]*?icons-ingredients\.svg\n/, 'Part **two**:\nmaking sugar\n');
+  const script = example.replace(/It needs three simple ingredients[^]*?music-bed\.mp3\n/, 'Part **two**:\nmaking sugar\n');
   await setUp(page, '#/Episode%2003', { [SCRIPT]: script, 'Episode 03/assets/leaf-closeup.jpg': 'jpg' });
   await page.getByLabel('Dialogue, row 2').hover();
   await page.getByRole('button', { name: 'Turn row 2 into a section' }).click();
@@ -149,7 +149,7 @@ test('a row turns into a section where it is, and a section back into a row, wit
   await expect(page.getByLabel('Dialogue, row 2')).toHaveValue(/Inside each cell/);
   await saved(page);
   let text = await readFile(page, SCRIPT);
-  expect(text).toContain('Files:\n- assets/leaf-closeup.jpg\n\n# Part two: making sugar\n\n# Inside the leaf\n');
+  expect(text).toContain('- assets/leaf-push-in.mp4\n\n# Part two: making sugar\n\n# Inside the leaf\n');
   expect(text).not.toContain('p8x2m');
   await page.getByRole('button', { name: 'Undo' }).click();
   await saved(page);

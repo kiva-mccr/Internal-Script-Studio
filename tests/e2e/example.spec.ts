@@ -82,3 +82,20 @@ test('the real folder is still opened as before, and the example never shows in 
   await expect(page.getByText('How Photosynthesis Works')).toHaveCount(0);
   await expect(page.getByText('Example script.')).toHaveCount(0);
 });
+
+test('the example shows every kind of file the app previews, and a take on every row', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Open the example' }).click();
+  await page.getByText('How Photosynthesis Works').click();
+  await expect(page.locator('video[aria-label="leaf-push-in.mp4"]')).toBeAttached();
+  await expect(page.getByRole('button', { name: 'Play music-bed.mp3' })).toBeVisible();
+  await expect(page.getByText('Page 1 of 1')).toBeVisible(); // the PDF
+  await expect(page.getByRole('button', { name: 'Open cell-micrograph.tif' })).toBeVisible();
+  await expect(page.getByText('Glucose model: notes for the animator')).toBeVisible(); // Word
+  await expect(page.getByText('Park shot list (made up)')).toBeVisible(); // text
+  await expect(page.getByText('· PowerPoint')).toBeVisible(); // a kind with no preview
+  // Every row has a take, read from the current words, so none is Outdated and the whole script is recorded.
+  await expect(page.getByText(/wpm · Kiva/)).toHaveCount(5);
+  await expect(page.getByText('Outdated')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
+});

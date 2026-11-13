@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { listFiles, readFile, readJsonFiles, setUp, writeFile } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
@@ -17,9 +17,11 @@ async function openReview(page: Page, files: Record<string, string> = {}) {
 const marked = (page: Page) =>
   page.evaluate(() => [...(CSS.highlights.get('comment') ?? []), ...(CSS.highlights.get('comment-on') ?? [])].map((r) => (r as Range).toString()));
 
+// Tried again until the text is drawn: under load the cell can still be redrawing (seen once in 1,000 runs).
 async function selectText(page: Page, cell: string, text: string) {
-  await page.getByLabel(cell).evaluate((el, text) => {
-    const node = [...el.childNodes].find((n) => n.textContent?.includes(text))!;
+  await expect.poll(() => page.getByLabel(cell).evaluate((el, text) => {
+    const node = [...el.childNodes].find((n) => n.textContent?.includes(text));
+    if (!node) return false;
     const at = node.textContent!.indexOf(text);
     const range = document.createRange();
     range.setStart(node.firstChild ?? node, at);
@@ -27,7 +29,8 @@ async function selectText(page: Page, cell: string, text: string) {
     getSelection()!.removeAllRanges();
     getSelection()!.addRange(range);
     el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-  }, text);
+    return true;
+  }, text)).toBe(true);
 }
 
 test('select text to comment on it; the comment is saved as its own file', async ({ page }) => {
@@ -131,8 +134,8 @@ test('rejecting keeps the original; a suggestion on changed text is not applied'
   await expect(card.getByRole('button', { name: 'Accept' })).toBeVisible();
 });
 
-// The example's four files, so none is missing and nothing is left open before Approve.
-const ALL_FILES = Object.fromEntries(['leaf-closeup.jpg', 'icons-ingredients.svg', 'storyboard-p4.pdf', 'glucose-model.png'].map((f) => [`Episode 03/assets/${f}`, 'x']));
+// The example's files, so none is missing and nothing is left open before Approve.
+const ALL_FILES = Object.fromEntries(readdirSync('docs/example/Episode 03 - How Photosynthesis Works/assets').map((f) => [`Episode 03/assets/${f}`, 'x']));
 
 test('approve, send for review again, and send back to the writer; each is in History', async ({ page }) => {
   await openReview(page, ALL_FILES); // the example is "in review"
@@ -215,12 +218,12 @@ test('a note for the reviewers with Send for review: shown at the top of Review 
 test('Approve lists what is still open first, jumps to it, and never blocks (RV-5)', async ({ page }) => {
   const rowId = example.match(/## 1 <!-- id: (\w+) -->/)![1];
   const ana = { v: 1, id: 'ana00000', kind: 'comment', who: 'Ana', when: '2026-11-09T10:00:00Z', row: rowId, field: 'on_screen', quote: 'sunlit', text: 'Morning light?' };
-  await openReview(page, { [`${COMMENTS}/20261109T100000Z_ana00000.json`]: JSON.stringify(ana) }); // the four files are missing
+  await openReview(page, { [`${COMMENTS}/20261109T100000Z_ana00000.json`]: JSON.stringify(ana) }); // the example's files are missing
   await page.getByRole('button', { name: 'Approve' }).click();
   const panel = page.getByRole('region', { name: 'Still open' });
   await expect(panel).toContainText('2 things are still open');
   await expect(panel.getByRole('button').nth(0)).toContainText('Comment · Ana · row 1Morning light?');
-  await expect(panel.getByRole('button').nth(1)).toContainText('4 files missingleaf-closeup.jpg, icons-ingredients.svg');
+  await expect(panel.getByRole('button').nth(1)).toContainText('10 files missingleaf-closeup.jpg, leaf-push-in.mp4, icons-ingredients.svg');
   // A line jumps to that comment, and the panel closes.
   await panel.getByRole('button', { name: /Comment · Ana/ }).click();
   await expect(panel).toHaveCount(0);

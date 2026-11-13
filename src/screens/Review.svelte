@@ -219,7 +219,7 @@
 <div class="review">
   <div class="script" bind:this={table}>
     {#if sent && !hideSent}
-      <div class="sent" role="note" aria-label="Note from {sent.who}">
+      <div class="sent" data-tour="review-note" role="note" aria-label="Note from {sent.who}">
         <div>
           <p class="from"><b>{sent.who}</b> sent this for review · {at(Date.parse(sent.when))}</p>
           <p class="message">{sent.message}</p>
@@ -260,7 +260,7 @@
         {@const sounding = voice.playing === block.id || (here && player.on)}
         {@const by = was !== undefined ? visitBy(block.id) : undefined}
         <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}
-          class:changed={was !== undefined} class:visit-on={by && visit?.on === block.id} class:here data-play={block.id} data-visit={by ? block.id : undefined}>
+          class:changed={was !== undefined} class:visit-on={by && visit?.on === block.id} class:here data-play={block.id} data-visit={by ? block.id : undefined} data-tour="review-row">
           <div class="num">
             {#if canPlay && here && player.on}
               <button class="playfrom" aria-label="Pause at row {n}" title="Pause" onclick={() => player.toggle()}>❚❚</button>
@@ -319,7 +319,7 @@
     {/each}
   </div>
 
-  <aside aria-label="Comments">
+  <aside aria-label="Comments" data-tour="review-cards">
     {#if target}
       <form class="card compose" aria-label="New comment" novalidate onsubmit={send}>
         <div class="who">{suggesting ? 'Suggest a change to' : 'Comment on'} row {numbers.get(target.row)}{target.quote ? ` · ${label(target.field)}` : ''}</div>

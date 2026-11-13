@@ -35,6 +35,9 @@ button { font: inherit; cursor: pointer; }
 }
 .outline:hover { border-color: var(--accent); }
 
+/* The part the example's tour is showing (AP-34): shown even if it only shows on hover, such as a row's tools. */
+.tour-on { opacity: 1 !important; }
+
 /* Quotes of open comments (CSS highlights): marked in Review's cells and Write's fields (RV-13). */
 ::highlight(comment) { background: #fff1c2; text-decoration: underline 2px #e0b100; }
 ::highlight(suggestion) { background: #fdecec; color: #8a2b2b; text-decoration: line-through; }

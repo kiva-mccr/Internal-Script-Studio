@@ -13,7 +13,7 @@ describe('toFdx', () => {
   it('makes sections scene headings, the row and its files a General line, On screen action, Dialogue NARRATOR', () => {
     expect(out).toContain([
       '<Paragraph Type="Scene Heading"><Text>INTRO</Text></Paragraph>',
-      '<Paragraph Type="General"><Text>Row 1 · Files: assets/leaf-closeup.jpg</Text></Paragraph>',
+      '<Paragraph Type="General"><Text>Row 1 · Files: assets/leaf-closeup.jpg, assets/leaf-push-in.mp4</Text></Paragraph>',
       '<Paragraph Type="Action"><Text>Slow push-in on a sunlit leaf.</Text></Paragraph>',
       '<Paragraph Type="Character"><Text>NARRATOR</Text></Paragraph>',
       '<Paragraph Type="Dialogue"><Text>Every leaf',

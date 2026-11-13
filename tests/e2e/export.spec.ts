@@ -19,7 +19,7 @@ test('the export screen opens on the picked format, in place of the script, and 
   await expect(page.getByLabel('Dialogue, row 1')).toHaveCount(0);
   const preview = page.getByLabel('Preview');
   await expect(preview.locator('.scene').first()).toHaveText('INTRO');
-  await expect(preview.locator('.general').first()).toHaveText('Row 1 · Files: assets/leaf-closeup.jpg');
+  await expect(preview.locator('.general').first()).toHaveText('Row 1 · Files: assets/leaf-closeup.jpg, assets/leaf-push-in.mp4');
   await page.getByRole('button', { name: 'Print / PDF' }).click();
   await expect(preview.getByRole('heading', { name: 'How Photosynthesis Works' })).toBeVisible(); // the print page, on screen
   await expect(page.getByRole('button', { name: 'Print…' })).toBeVisible();

@@ -24,13 +24,15 @@
   import Print from './Print.svelte';
   import Teleprompter from './Teleprompter.svelte';
   import Review from './Review.svelte';
+  import Tour from './Tour.svelte';
   import Write from './Write.svelte';
   import VisitBar from './VisitBar.svelte';
   import { sinceVisit, visitKey, type Marks, type Visit } from '../lib/visit';
   import { addNote, flags, listNotes, threads, type Attachment, type Field, type Note } from '../lib/comments';
 
-  // review: opened from a shared link, so it starts on the Review tab (RV-10).
-  let { folder, path, name, review = false }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean } =
+  // review: opened from a shared link, so it starts on the Review tab (RV-10). tour: in the example only, the guided
+  // tour (AP-34), a count that goes up when Take the tour is clicked.
+  let { folder, path, name, review = false, tour }: { folder: FileSystemDirectoryHandle; path: string[]; name: string; review?: boolean; tour?: number } =
     $props();
 
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
@@ -484,6 +486,7 @@
 {#if script && dir && !clash && (mode === 'write' || mode === 'review')}
   <Planning {dir} bind:open={sideOpen} bind:tab={sideTab} count={openCount} comments={mode === 'write' ? comments : undefined} />
 {/if}
+{#if tour !== undefined && script && dir && !clash && !printing && !exporting}<Tour tab={mode} again={tour} />{/if}
 {#snippet comments()}
   {#if script && dir}
     <Comments {dir} {script} {notes} me={name} {back} bind:active={talking} {goTo} onAdd={note} onApply={apply} onShow={showRow} onUse={useFile} />

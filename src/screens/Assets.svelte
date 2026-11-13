@@ -81,7 +81,7 @@
       {/if}
     </span>
     <span class="rows">
-      {#each asset.rows as n (n)}<button class="jump" onclick={() => onJump(n)}>Row {n}</button>{/each}
+      {#each asset.rows as n (n)}<button class="jump" data-tour="assets-jump" onclick={() => onJump(n)}>Row {n}</button>{/each}
     </span>
   </li>
 {/snippet}
@@ -92,18 +92,18 @@
     <p class="sum">
       {all.length} in {used} {used === 1 ? 'row' : 'rows'}{#if lost.length}{' · '}<span class="bad">{lost.length} missing</span>{/if}{#if toFind.length}{` · ${toFind.length} to find`}{/if}
     </p>
-    <button class="outline" onclick={order}>Order: {byRow ? 'by row' : 'by what needs doing'}</button>
+    <button class="outline" data-tour="assets-order" onclick={order}>Order: {byRow ? 'by row' : 'by what needs doing'}</button>
   </div>
 
   {#if !all.length}
     <p class="empty">No files, links or notes in the Files column yet. Add them in Write.</p>
   {:else if byRow}
-    <div class="box">
+    <div class="box" data-tour="assets-list">
       {#each rows as row, i (row.n)}
         {#if row.section && row.section !== rows[i - 1]?.section}<h2>{row.section}</h2>{/if}
         {#if row.assets.length}
           <div class="by-row">
-            <button class="jump" onclick={() => onJump(row.n)}>Row {row.n}</button>
+            <button class="jump" data-tour="assets-jump" onclick={() => onJump(row.n)}>Row {row.n}</button>
             <ul>
               {#each row.assets as asset (asset.line)}
                 {#if asset.kind === 'words'}
@@ -120,7 +120,7 @@
       {/each}
     </div>
   {:else}
-    <div class="box">
+    <div class="box" data-tour="assets-list">
       {#if lost.length}
         <h2 class="lost-head">Missing from the folder</h2>
         <ul>{#each lost as asset (asset.line)}{@render item(asset, 'lost')}{/each}</ul>

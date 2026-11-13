@@ -27,6 +27,7 @@
   let name = $state(loadName());
   let needsOk = $state(false); // a remembered folder the browser wants permission for again
   // The example to try (AP-33): open in place of the folder, never remembered as it. `fresh` restarts its screens.
+  let tourAgain = $state(0); // the example's guided tour (AP-34): goes up when Take the tour is clicked
   let example = $state<{ folder: FileSystemDirectoryHandle; name: string; fresh: number } | null>(null);
   let undoStart = $state<(() => Promise<FileSystemDirectoryHandle>) | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
@@ -104,6 +105,7 @@
 {#if example}
   <div class="example">
     <p><b>Example script.</b> Try anything: your changes stay in this browser and are never shared.</p>
+    {#if route.length}<button class="link start" onclick={() => tourAgain++}>Take the tour</button>{/if}
     <button class="link start" onclick={restart}>Start over</button>
     <button class="outline" onclick={leaveExample}>Open your scripts folder</button>
   </div>
@@ -112,7 +114,7 @@
       <List folder={example.folder} name={example.name} onChangeFolder={leaveExample} />
     {:else}
       {#key route.join('/')}
-        <Editor folder={example.folder} path={route} name={example.name} {review} />
+        <Editor folder={example.folder} path={route} name={example.name} {review} tour={tourAgain} />
       {/key}
     {/if}
   {/key}

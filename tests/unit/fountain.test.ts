@@ -9,9 +9,9 @@ describe('toFountain', () => {
     expect(out.startsWith('Title: How Photosynthesis Works\nCredit: Written by\nAuthor: Kiva, Sam\nDraft date: v3 · Approved · Nov 10, 2026\n\n')).toBe(true);
   });
   it('makes sections scene headings, On screen action, Dialogue spoken by NARRATOR, files and numbers notes', () => {
-    expect(out).toContain('.INTRO\n\n[[Row 1]] Slow push-in on a sunlit leaf.\n[[Files: assets/leaf-closeup.jpg]]\n\nNARRATOR\nEvery leaf');
+    expect(out).toContain('.INTRO\n\n[[Row 1]] Slow push-in on a sunlit leaf.\n[[Files: assets/leaf-closeup.jpg, assets/leaf-push-in.mp4]]\n\nNARRATOR\nEvery leaf');
     expect(out).toContain('.INSIDE THE LEAF\n');
-    expect(out).toContain('[[Files: [Chloroplast zoom animation](https://example.com/chloroplast-zoom.mp4), assets/storyboard-p4.pdf]]');
+    expect(out).toContain('[[Files: [Chloroplast zoom animation](https://example.com/chloroplast-zoom.mp4), assets/storyboard-p4.pdf, assets/cell-micrograph.tif]]');
     expect(out.endsWith('\n')).toBe(true);
     expect(out).not.toMatch(/\n\n\n/);
   });

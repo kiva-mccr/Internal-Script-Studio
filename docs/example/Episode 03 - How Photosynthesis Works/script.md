@@ -15,6 +15,7 @@ Slow push-in on a sunlit leaf.
 
 Files:
 - assets/leaf-closeup.jpg
+- assets/leaf-push-in.mp4
 
 ## 2 <!-- id: p8x2m -->
 Dialogue:
@@ -25,6 +26,7 @@ Sun, water drop and CO₂ icons slide in one at a time.
 
 Files:
 - assets/icons-ingredients.svg
+- assets/music-bed.mp3
 
 # Inside the leaf
 
@@ -40,6 +42,7 @@ Animated zoom: leaf to cell to chloroplast.
 Files:
 - [Chloroplast zoom animation](https://example.com/chloroplast-zoom.mp4)
 - assets/storyboard-p4.pdf
+- assets/cell-micrograph.tif
 
 ## 4 <!-- id: b6n0w -->
 Dialogue:
@@ -50,6 +53,7 @@ A glucose molecule builds on screen, labelled **C₆H₁₂O₆**.
 
 Files:
 - assets/glucose-model.png
+- assets/glucose-notes.docx
 
 # Wrap-up
 
@@ -62,3 +66,5 @@ Cut to a student taking a deep breath in the park.
 
 Files:
 - Park b-roll of a deep breath (to film)
+- assets/park-shot-list.txt
+- assets/lesson-slides.pptx
