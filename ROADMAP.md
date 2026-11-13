@@ -572,6 +572,17 @@ and suggestions, keeps every version, and exports them for production.
   ("chapters"). Not wanted: storing changes instead of whole copies. Measure on a made-up 2,000-version script
   before and after. Agreed on board 52 ("looks good", plus loading as you scroll). Built so: `lib/versioncache.ts` keeps each
   read version in memory and IndexedDB (keyed by name, size and time), so every `listVersions` call reads only new files.
+- [x] **FX-1** "Couldn't save, trying again" over and over in the field test (the user's two computers on a Windows
+  mapped network drive, one or both typing). Unconfirmed cause: a save replaces script.md by renaming Chrome's
+  .crswap file onto it, which Windows refuses while another computer has script.md open (its 5 s check reads it).
+  Fixed so: a read or write of script.md is tried again quietly (0.3, 0.7, 1.5, 3 s) before it counts as failed; a
+  failed write is aborted so no half-written .crswap is left; one save at a time; the 5 s check reads script.md only
+  when its time or size changed; and a failed save names the browser's error in the bar ("Couldn't save
+  (NoModificationAllowedError), trying again", all of it on hover) so the user can report it.
+- [ ] **FX-2** Each person saves to their own file (the user's idea, if FX-1 is not enough): a computer writes only its
+  own draft of the script, and the others combine it into theirs row by row (`lib/merge.ts`), so no two computers
+  ever write the same file. script.md would then be folded together from the drafts, not written on every save.
+  Mock-up and a look at Decisions first (it changes how saving works).
 
 ## Last (the user's order: these wait until everything above is done)
 

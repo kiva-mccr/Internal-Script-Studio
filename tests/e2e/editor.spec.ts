@@ -344,22 +344,59 @@ test('lost access shows before a save fails, with the 5 s check', async ({ page 
   expect(await page.evaluate(() => (window as unknown as { asked: number }).asked)).toBe(1);
 });
 
-test("a save that fails with access still there says Couldn't save and tries again", async ({ page }) => {
-  await openExample(page);
-  await page.evaluate(() => {
+// Fails the next `times` writes of script.md, as a network share does while another computer has it open.
+async function failWrites(page: Page, times: number) {
+  await page.evaluate((times) => {
     const write = FileSystemFileHandle.prototype.createWritable;
-    let fails = 1;
+    let fails = times;
     FileSystemFileHandle.prototype.createWritable = function (...args) {
       if (this.name === 'script.md' && fails-- > 0) return Promise.reject(new DOMException('Busy', 'NoModificationAllowedError'));
       return write.apply(this, args);
     };
+  }, times);
+}
+
+test('a write that fails for a moment is tried again quietly', async ({ page }) => {
+  await openExample(page);
+  await failWrites(page, 2);
+  const shown: string[] = [];
+  await page.exposeFunction('seen', (text: string) => shown.push(text));
+  await page.evaluate(() => {
+    const status = document.querySelector('[role=status]')!;
+    new MutationObserver(() => (window as unknown as { seen: (t: string) => void }).seen(status.textContent ?? '')).observe(status, { childList: true, characterData: true, subtree: true });
   });
-  await page.getByLabel('Dialogue, row 1').fill('Saved on the second try.');
-  await expect(page.getByRole('status')).toHaveText("Couldn't save, trying again", { timeout: 10000 });
-  await expect(page.locator('header .voice')).toHaveCount(0); // the length steps aside for the red message
+  await page.getByLabel('Dialogue, row 1').fill('Saved on the third try.');
   await saved(page);
+  expect(shown.some((text) => text.startsWith("Couldn't save"))).toBe(false);
+  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the third try.\n');
+});
+
+test("a save that keeps failing says Couldn't save with the browser's error, and tries again", async ({ page }) => {
+  await openExample(page);
+  await failWrites(page, 6); // all the quiet tries of one save, and the first of the next
+  await page.getByLabel('Dialogue, row 1').fill('Saved in the end.');
+  const status = page.getByRole('status');
+  await expect(status).toHaveText("Couldn't save (NoModificationAllowedError), trying again", { timeout: 15000 });
+  await expect(status).toHaveAttribute('title', 'Writing script.md: NoModificationAllowedError: Busy');
+  await expect(page.locator('header .voice')).toHaveCount(0); // the length steps aside for the red message
+  await expect(status).toHaveText('Saved', { timeout: 15000 });
   await expect(page.locator('header .voice')).toBeVisible();
-  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved on the second try.\n');
+  expect(await readFile(page, SCRIPT)).toContain('Dialogue:\nSaved in the end.\n');
+});
+
+test('the 5 s check reads script.md only when it changed', async ({ page }) => {
+  await openExample(page);
+  await page.evaluate(() => {
+    const text = Blob.prototype.text;
+    const w = window as unknown as { reads: number };
+    w.reads = 0;
+    Blob.prototype.text = function () {
+      if (this instanceof File && this.name === 'script.md') w.reads++;
+      return text.call(this);
+    };
+  });
+  await page.waitForTimeout(11500); // two checks: the first reads it once, the second sees it unchanged
+  expect(await page.evaluate(() => (window as unknown as { reads: number }).reads)).toBeLessThanOrEqual(1);
 });
 
 test('a new section starts with a stand-in, goes after the box in use, and an emptied one goes only on leaving it (AP-22)', async ({ page }) => {
