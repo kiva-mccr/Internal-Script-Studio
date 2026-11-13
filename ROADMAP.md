@@ -478,6 +478,10 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-18** A resolved comment moves into Resolved at once (a bug the user hit): resolving a comment should
   fold it into the Resolved dropdown straight away, not only after the comment panel is closed and opened again. Bug
   fix, no mock-up needed.
+- [ ] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
+  be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
+  are on hold, and held comments come back into view when the script is sent for review or a version is made, so they
+  don't become a dumping ground. Placed by the user after the current queue. Mock-up first.
 - [x] **AP-33** Try it with an example (suggested, the user's fourth pick): the first-time screen offers the made-up
   example script (docs/example/), so a new teammate can click around before picking the real folder. The user's
   addition: it can be minimized, and stays minimized on later visits, so it is no clutter for those who don't want
