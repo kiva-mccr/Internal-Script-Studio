@@ -28,6 +28,8 @@ there as steps land and keep the IDs stable.
 - Every code file gets a short note beside it (`name.md`): purpose, then "Rules and pitfalls". Read it before
   editing the file; add the rule or the bug there when you fix one.
 - Every new behaviour gets a test.
+- Keep screen files small: saving and History are `lib/saving.svelte.ts`, one row of Write is `WriteRow.svelte`;
+  a new screen, panel or chunk of logic gets its own file rather than growing `Editor.svelte` or `Write.svelte`.
 
 ## Before handing a round over
 Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as the change.
@@ -48,6 +50,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
 - No browser dialogs (confirm, alert, validation bubbles): messages and checks are shown in the page.
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
+  Turn on auto-merge (merge method) right after opening a PR, so GitHub merges it the moment `test` passes; nothing
+  wakes a thread when CI ends, and waiting on a reminder left green PRs unmerged. Then check the deploy and live site.
 
 ## Status
 - Next: a round of 10 picked by the user, mock-ups on boards 21 to 29, built one at a time in this order: AP-12 (done),
@@ -65,8 +69,11 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Test Chromium crashes reading a folder handle back from IndexedDB: e2e tests fake it (`tests/e2e/folder.ts`),
   with a real folder handle from the browser's private storage standing in for the picked folder.
 - e2e tests run as "Sam": use other names for other people's versions and editing files.
-- A file being written shows in a folder listing as "name.crswap" until it closes: `listFiles` in tests skips them.
-  The real name is there, empty, from the start: tests that read every file skip empty ones (flags.spec failed on CI).
+- A file being written shows in a folder listing as "name.crswap" until it closes, and its real name is there, empty
+  (or briefly gone), from the start. Tests read a folder's JSON files with `readJsonFiles` (waits for whole files)
+  and count them with `expect.poll`, never `listFiles` + `readFile` + `JSON.parse`.
+- Flaky tests show up under load: `npx playwright test --repeat-each=6 --workers=8 --trace off` (about 5 minutes)
+  before handing over anything that touches saving, History or the folder. Fix the race, never add retries.
 
 ## Known gaps (never seen for real; confirm when the user can)
 - Nothing has been tried on a real OneDrive synced folder yet.

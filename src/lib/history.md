@@ -3,7 +3,7 @@
 A script's history: one JSON file per version in `.studio/versions/` (docs/studio-folder.md), written once and
 never changed. Also what changed between two versions: a title ("Edited rows 3 and 4") and each changed field.
 
-- **Used by:** `lib/folder.ts`, `screens/Editor.svelte`, `screens/History.svelte`, `screens/Print.svelte` (through Editor). **Tests:**
+- **Used by:** `lib/folder.ts`, `lib/saving.svelte.ts`, `screens/Editor.svelte`, `screens/History.svelte`, `screens/Print.svelte` (through Editor). **Tests:**
   `tests/unit/history.test.ts`, `tests/e2e/history.spec.ts`.
 
 ## Rules and pitfalls

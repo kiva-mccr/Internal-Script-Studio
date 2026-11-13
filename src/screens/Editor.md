@@ -1,7 +1,8 @@
 # `src/screens/Editor.svelte`
 
-One script: opens it, saves it on its own, keeps its History, shows who else is editing, and combines saves made
-at the same time (`Conflict.svelte`). The screens themselves are separate files: the bar at the top
+One script: its tabs, comments, flags, takes and messages. Opening, saving, History, "… is editing" and combining
+saves made at the same time are `lib/saving.svelte.ts` (a `Saving`, `file` here); a clash is shown with
+`Conflict.svelte`. The screens themselves are separate files: the bar at the top
 (`Header.svelte`), Write (`Write.svelte`), Review (`Review.svelte`), History (`History.svelte`), Assets (`Assets.svelte`), the print
 version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what is waiting first).
 
@@ -15,44 +16,28 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Review's note (RV-8) and the version when the last review ended (RV-4) are read from History when Review opens
   and again after a status change's entry is written (`readReview`): the status changes before its entry exists,
   so reading only on the status change missed the new entry. Only the newest read counts.
-- A status change (`setStatus`) is awaited by `leave()`: a tab switched before its History entry was written made a
-  second entry, "Changed the status", beside it (found building RV-8, failed once in CI).
-- A save leaves empty sections out of the file, on a copy: never out of `script`, or a section emptied while its
-  title still has the cursor would vanish under it (AP-22; `Write.svelte` removes it on blur).
+- Saving's rules (History, saves at the same time, a lost OK, status changes) are in `lib/saving.md`. The Editor
+  reads `file.script`, `file.dir`, `file.status` and `file.clash` through `$derived`, and binds Write's and Credits'
+  `script` with a function binding that sets `file.script`.
+- The 5 s check (`checkOutside`): access first (`file.checkAccess`), then missing files, takes, who else is editing
+  (`file.readEditors`), comments, and last someone else's save (`file.lookOutside`).
+- "… is editing": `file` writes yours on opening and every 30 s (`heartbeat` here); the Editor removes it on leaving,
+  with the name read as the editor closes (leaving the example takes its props away first, which threw).
 - No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.
   Only a failed save keeps the browser's "Leave site?" prompt, because leaving then would lose work.
-- History: on opening, a script.md that doesn't match the newest version gets an "outside" entry (no versions:
-  "History starts here"). While editing, an entry at most every 5 minutes; also on leaving and on opening History.
-  Leaving by closing the tab is best effort (the browser may not wait for the write).
-  `record` waits for History to start (`started`): an edit saved before `last` was set got no entry (seen as a
-  flaky "versions made in the same second" test on CI, where the version file was there before `last`).
-- Saves 1.5 s after the last change, when the tab is hidden, and when the page closes.
-- A failed save tries again every 6 s, unless the browser took back its OK to edit the folder (`hasAccess` false):
-  retrying can't fix that (the browser asks only from a click), so the status is `locked` and the top bar's Allow
-  editing calls `allow()`. Changes go on in the page meanwhile and are saved once allowed. The 5 s check and coming
-  back to the tab look for this too (`checkAccess`), so it shows before a save fails. Tests fake the lost OK
-  (`fakeAccess` in `editor.spec.ts`).
-- Before writing, `script.md` is read again: if it is not what this page last read or wrote, someone else saved,
-  and the two are combined row by row (`lib/merge.ts`); only a field both changed shows `Conflict.svelte`.
-- On opening, two newest versions (heads) or a OneDrive copy (`script-*.md`) are combined the same way, and the
-  merge version gets both as parents. A copy is removed only after the combined script is saved.
-- "… is editing": your `editing/` file is written on opening and every 30 s, removed on leaving. A script.md that
-  matches someone's `last_written` is credited to them, not "Outside the app".
+- Review and History are shown only once what is waiting is saved; `switchMode` keeps the newest mode asked for, so
+  one that finishes late never replaces a mode picked meanwhile (History then Write at once stayed on History).
+  Every change of mode goes through `switchMode` (or `showReview`/`showHistory`), never `mode = …`.
 - Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
-- Review status (RV-3): Send for review, Approve, Send back to writer set `status:` and save at once (after
-  `leave()`), then add a `review` History entry; a send's entry is also the next official version (`official: true`)
-  unless `sendVersion` says nothing changed since the newest (RV-9). The button names contain "Write" (Send back to writer), so tests
-  pick the Write tab with `exact: true`.
 - Flags (AP-9): `flagged` comes from the comment notes (`flags()`), read every 5 s like comments; `flag` writes a
   `flag` or `unflag` note. Before Approve they come first, as `flag:<row id>`, and `showLoose` takes them back to
   Write, to that row's note.
 - Before Approve (RV-5): `loose` lists open comments and suggestions, then missing files, for the Header's panel;
   `showLoose` scrolls to and clicks that card in Review (`article[data-id]`), or opens Assets for the files.
 - In tests the person is Sam: a test version by "Sam" counts as yours (a test failed on this).
-- With nothing waiting to save, `script.md` is checked every 5 s and someone else's change is shown quietly.
-- Split up (cleanup asked by the user): the header and Print's choices are `Header.svelte`, the rows are
-  `Write.svelte`, and finding two saves' heads and ancestor is `lib/history.ts`. Saving and History stay here;
-  put a new screen or panel in its own file, not in this one.
+- Split up (cleanup asked by the user, twice): the header and Print's choices are `Header.svelte`, the rows are
+  `Write.svelte` and `WriteRow.svelte`, finding two saves' heads and ancestor is `lib/history.ts`, and saving and
+  History are `lib/saving.svelte.ts`. Put a new screen or panel in its own file, not in this one.
 - Deleting happens in Write, but the Undo bar and its 10 s timer are here, so it stays up across the tabs.
 - `Print.svelte` is mounted here, at the top level, never inside another element (its print CSS needs that).
 - Print saves what is waiting first. Its choices come from `Export.svelte`. It shows "v3" only while the newest version is

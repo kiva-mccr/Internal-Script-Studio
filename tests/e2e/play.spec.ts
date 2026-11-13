@@ -4,17 +4,20 @@ import { setUp } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 
-// The microphone is faked as in voice.spec.ts: a take is half a second of silence as a real WAV. Rows with no take
-// are read fast (the teleprompter's speed), so the test doesn't wait long.
+// The microphone is faked as in voice.spec.ts: a take is a real WAV of 1.5 s with a tone in its middle, so the
+// crop finds about a second to play. (All silence played for as long as the quick test "recorded", a tenth of a
+// second, over before a busy machine's test saw the row playing.) Rows with no take are read fast (the
+// teleprompter's speed), so the test doesn't wait long.
 async function openWithTakes(page: Page, taken: number[]) {
   await page.addInitScript(() => {
     localStorage.setItem('prompter-speed', '400');
     const wav = () => {
-      const rate = 8000, n = rate / 2, buf = new DataView(new ArrayBuffer(44 + n * 2));
+      const rate = 8000, n = rate * 1.5, buf = new DataView(new ArrayBuffer(44 + n * 2));
       const text = (at: number, s: string) => [...s].forEach((c, i) => buf.setUint8(at + i, c.charCodeAt(0)));
       text(0, 'RIFF'); buf.setUint32(4, 36 + n * 2, true); text(8, 'WAVEfmt '); buf.setUint32(16, 16, true);
       buf.setUint16(20, 1, true); buf.setUint16(22, 1, true); buf.setUint32(24, rate, true); buf.setUint32(28, rate * 2, true);
       buf.setUint16(32, 2, true); buf.setUint16(34, 16, true); text(36, 'data'); buf.setUint32(40, n * 2, true);
+      for (let i = 0.2 * rate; i < 1.3 * rate; i++) buf.setInt16(44 + i * 2, Math.round(8000 * Math.sin(i / 3)), true);
       return new Blob([buf], { type: 'audio/wav' });
     };
     (window as unknown as { studioRecord: () => Promise<{ stop: () => Promise<Blob> }> }).studioRecord = async () => ({

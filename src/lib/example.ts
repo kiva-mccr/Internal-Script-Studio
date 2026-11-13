@@ -37,12 +37,12 @@ export async function startOver(): Promise<{ folder: FileSystemDirectoryHandle; 
   const root = await navigator.storage.getDirectory();
   await root.removeEntry(BEFORE, { recursive: true }).catch(() => {});
   await copy(await root.getDirectoryHandle(NAME), await root.getDirectoryHandle(BEFORE, { create: true }));
-  await root.removeEntry(NAME, { recursive: true });
+  await removeWhenFree(root, NAME);
   const folder = await fill(await root.getDirectoryHandle(NAME, { create: true }));
   return {
     folder,
     async undo() {
-      await root.removeEntry(NAME, { recursive: true });
+      await removeWhenFree(root, NAME);
       const back = await root.getDirectoryHandle(NAME, { create: true });
       await copy(await root.getDirectoryHandle(BEFORE), back);
       return back;
@@ -69,6 +69,19 @@ async function fill(folder: FileSystemDirectoryHandle): Promise<FileSystemDirect
     text: '' }, new Date('2026-11-09T15:04:00Z'));
   await write(dir, 'script.md', text);
   return folder;
+}
+
+// The open script may be writing a file in the example just then (its 30 s "here" or a History entry): removing a
+// folder with a file being written fails (NoModificationAllowedError), so it is tried again a moment later.
+async function removeWhenFree(root: FileSystemDirectoryHandle, name: string) {
+  for (let tries = 0; ; tries++) {
+    try {
+      return await root.removeEntry(name, { recursive: true });
+    } catch (error) {
+      if (tries >= 40 || !(error instanceof DOMException) || error.name !== 'NoModificationAllowedError') throw error;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
 }
 
 async function write(dir: FileSystemDirectoryHandle, name: string, data: Blob | string) {

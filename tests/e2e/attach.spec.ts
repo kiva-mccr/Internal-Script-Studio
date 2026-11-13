@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { listFiles, readFile, setUp } from './folder';
+import { listFiles, readFile, readJsonFiles, setUp } from './folder';
 
 // Files on comments (RV-11, mock-up 25).
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
@@ -24,8 +24,7 @@ async function paste(page: Page, label: string, files: { name: string; text?: st
   }, files);
 }
 
-const notes = async (page: Page) =>
-  Promise.all((await listFiles(page, COMMENTS)).map(async (name) => JSON.parse(await readFile(page, `${COMMENTS}/${name}`))));
+const notes = (page: Page) => readJsonFiles(page, COMMENTS);
 
 test('attach files to a comment: × takes one off, and they are kept in .studio/files/', async ({ page }) => {
   await openReview(page);

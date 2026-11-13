@@ -65,17 +65,49 @@ export async function readFile(page: Page, path: string): Promise<string> {
     let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
     const parts = path.split('/');
     for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
-    const handle = await dir.getFileHandle(parts.at(-1)!);
-    // A read while the app is saving the file can fail (NotReadableError); try again a moment later.
+    // While the app is saving the file, a read can fail (NotReadableError), and while the save closes the name is
+    // briefly gone (NotFoundError): find the file again and try a moment later.
     for (let tries = 0; ; tries++) {
       try {
-        return await (await handle.getFile()).text();
+        return await (await (await dir.getFileHandle(parts.at(-1)!)).getFile()).text();
       } catch (e) {
-        if (tries >= 10) throw e;
+        if (tries >= 40) throw e;
         await new Promise((r) => setTimeout(r, 50));
       }
     }
   }, path);
+}
+
+// Every JSON file in a folder of the stand-in folder, as parsed objects, in file-name order. A file the app is still
+// writing is listed but empty (or half written, or briefly gone): this waits up to 3 s for each to be whole, then
+// leaves out any that still isn't, so a count checked with expect.poll only passes once the files are complete.
+export async function readJsonFiles<T = any>(page: Page, path: string): Promise<T[]> {
+  return page.evaluate(async (path) => {
+    let dir: FileSystemDirectoryHandle;
+    try {
+      dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('Video Scripts');
+      for (const part of path.split('/')) dir = await dir.getDirectoryHandle(part);
+    } catch {
+      return [];
+    }
+    const read = async (name: string) => {
+      try {
+        return JSON.parse(await (await (await dir.getFileHandle(name)).getFile()).text());
+      } catch {
+        return undefined;
+      }
+    };
+    const names: string[] = [];
+    for await (const name of dir.keys()) if (name.endsWith('.json')) names.push(name);
+    names.sort();
+    let found: unknown[] = [];
+    for (let tries = 0; tries < 60; tries++) {
+      found = await Promise.all(names.map(read));
+      if (found.every((f) => f !== undefined)) break;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return found.filter((f) => f !== undefined);
+  }, path) as Promise<T[]>;
 }
 
 export async function writeFile(page: Page, path: string, text: string) {

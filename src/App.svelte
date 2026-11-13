@@ -45,12 +45,13 @@
   });
 
   async function open(picked: FileSystemDirectoryHandle, typed: string) {
+    // Remembered before the list shows, so a reload straight after still finds the folder.
+    await saveFolder(picked).catch(() => {}); // Storage blocked: asked again next visit.
     folder = picked;
     name = typed;
     saveName(typed);
     needsOk = false;
     screen = 'open';
-    await saveFolder(picked).catch(() => {}); // Storage blocked: asked again next visit.
   }
 
   async function tryExample(typed: string) {

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { listFiles, readFile, setUp } from './folder';
+import { readFile, readJsonFiles, setUp } from './folder';
 
 // Credits and contacts (AP-31, board 50): people are kept once for the folder (.studio/people/), and each script's
 // credits pick from them with a blurb of its own (the script's front matter).
@@ -50,7 +50,8 @@ test('credits pick from the folder, someone new joins it, and contact details ar
   await expect.poll(() => front(page, 'Trailer/script.md')).toMatch(
     /credits: \[\{"id":"[a-z0-9]{8}","name":"Priya","role":"Science reviewer"\},\{"id":"jo000001","name":"Jo","role":"Editor"\}\]/);
   // Written once, never edited: Priya's adding, her contact details and her usual role are three new files.
-  await expect.poll(async () => (await listFiles(page, PEOPLE)).length).toBe(4);
+  // Counted only once whole: leaving the page while one is still being written would lose it.
+  await expect.poll(async () => (await readJsonFiles(page, PEOPLE)).length).toBe(4);
 
   // Another script: Priya's usual role (her first blurb) fills in, and her details are the same.
   await page.goto('./#/Water%20Cycle');

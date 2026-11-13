@@ -4,7 +4,7 @@ A row's voice-over take under its dialogue (AU-1): ▶ and its cropped length, t
 and when. Write passes `onCurrent` (× on Outdated, AU-8) and `onDrop` (× to delete); Review leaves them out and only
 listens (AU-9).
 
-- **Used by:** `Write.svelte`, `Review.svelte`. **Tests:** `tests/e2e/voice.spec.ts`, `play.spec.ts`.
+- **Used by:** `WriteRow.svelte`, `Review.svelte`. **Tests:** `tests/e2e/voice.spec.ts`, `play.spec.ts`.
 
 ## Rules and pitfalls
 

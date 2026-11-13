@@ -8,7 +8,7 @@ With `lists` (the planning panel, AP-24) it also shows Bulleted list, Numbered l
 box at all times and shows the marks as • ☐ ☑. In every field (AP-29) Enter carries a list on or splits a list line,
 Backspace just after a mark takes it off, and numbered lists renumber after every change.
 
-- **Used by:** `Write.svelte`, `Planning.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`,
+- **Used by:** `WriteRow.svelte`, `Planning.svelte`. **Tests:** `tests/e2e/format.spec.ts`, `tests/e2e/editor.spec.ts`,
   `tests/e2e/lists.spec.ts`.
 
 ## Rules and pitfalls
