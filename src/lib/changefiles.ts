@@ -2,7 +2,7 @@
 // file each, and the keeper's notes of which of them script.md already holds.
 
 import type { Delta } from './changes';
-import { jsonNames, readJson, stamp, writeNew } from './files';
+import { jsonNames, readJson, stamp, writeText } from './files';
 import { fileName } from './editing';
 
 export type Change = { v: 1; id: string; who: string; when: string; delta: Delta };
@@ -17,7 +17,7 @@ export async function writeChange(dir: FileSystemDirectoryHandle, who: string, d
   const id = randomId();
   const name = `${stamp(at)}_${id}_${fileName(who)}`;
   const change: Change = { v: 1, id, who, when: at.toISOString(), delta };
-  await writeNew((await changesFolder(dir, true))!, name, JSON.stringify(change) + '\n');
+  await writeText((await changesFolder(dir, true))!, name, JSON.stringify(change) + '\n');
   return name;
 }
 
@@ -54,7 +54,7 @@ export async function readFolded(dir: FileSystemDirectoryHandle): Promise<Folded
 export async function writeFolded(dir: FileSystemDirectoryHandle, folded: Omit<Folded, 'v'>): Promise<void> {
   const folder = (await changesFolder(dir, true))!;
   const name = `folded_${stamp()}.json`;
-  await writeNew(folder, name, JSON.stringify({ v: 1, ...folded }) + '\n');
+  await writeText(folder, name, JSON.stringify({ v: 1, ...folded }) + '\n');
   for (const old of await jsonNames(folder)) if (FOLDED.test(old) && old < name) await folder.removeEntry(old).catch(() => {});
 }
 

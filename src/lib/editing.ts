@@ -1,6 +1,6 @@
 // "Sam is editing": one small file per person in .studio/editing/ (docs/studio-folder.md). The only files in
 // .studio/ that change: each person writes a new one every 30 s and removes their own older ones.
-import { jsonNames, readJson, stamp, writeNew } from './files';
+import { jsonNames, readJson, stamp, writeText } from './files';
 
 export type Editing = { v: 1; who: string; since: string; seen: string; last_written: string };
 
@@ -15,7 +15,7 @@ export function fileName(who: string): string {
 export async function writeEditing(dir: FileSystemDirectoryHandle, entry: Editing): Promise<void> {
   const folder = (await editingFolder(dir, true))!;
   const name = `${base(entry.who)}_${stamp()}.json`;
-  await writeNew(folder, name, JSON.stringify(entry) + '\n');
+  await writeText(folder, name, JSON.stringify(entry) + '\n');
   for (const old of await ownFiles(folder, entry.who)) if (old < name) await folder.removeEntry(old).catch(() => {});
 }
 

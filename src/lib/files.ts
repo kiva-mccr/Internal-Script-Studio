@@ -17,8 +17,9 @@ export async function patiently<T>(work: () => Promise<T>, waits = WAITS): Promi
   return work();
 }
 
-// Writes `text` as a new file. A write that fails is aborted, or its unfinished .crswap file stays behind.
-export async function writeNew(folder: FileSystemDirectoryHandle, name: string, text: string): Promise<void> {
+// Writes a file: a new one, apart from script.md, which only the keeper writes. A write that fails is aborted, or
+// its unfinished .crswap file stays behind.
+export async function writeText(folder: FileSystemDirectoryHandle, name: string, text: string): Promise<void> {
   await patiently(async () => {
     const writable = await (await folder.getFileHandle(name, { create: true })).createWritable();
     try {

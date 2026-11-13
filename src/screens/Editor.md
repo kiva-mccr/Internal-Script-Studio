@@ -20,7 +20,7 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   reads `file.script`, `file.dir`, `file.status` and `file.clash` through `$derived`, and binds Write's and Credits'
   `script` with a function binding that sets `file.script`.
 - The 5 s check (`checkOutside`): access first (`file.checkAccess`), then missing files, takes, who else is editing
-  (`file.readEditors`), comments, and last someone else's save (`file.lookOutside`).
+  (`file.readEditors`), comments, and last others' change files (`file.sync`). Ctrl+S saves at once (FX-2).
 - "… is editing": `file` writes yours on opening and every 30 s (`heartbeat` here); the Editor removes it on leaving,
   with the name read as the editor closes (leaving the example takes its props away first, which threw).
 - No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.

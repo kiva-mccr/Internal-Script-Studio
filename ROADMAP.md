@@ -579,19 +579,16 @@ and suggestions, keeps every version, and exports them for production.
   failed write is aborted so no half-written .crswap is left; one save at a time; the 5 s check reads script.md only
   when its time or size changed; and a failed save names the browser's error in the bar ("Couldn't save
   (NoModificationAllowedError), trying again", all of it on hover) so the user can report it.
-- [ ] **FX-2** Each person saves to their own change files (the user's design, #1 priority, 2026-11-13; no locking or
-  blocking, the user's rule). The user dropped FX-1's second round of small fixes (git stash on the thread's branch)
-  for this. Design doc: https://claude.ai/artifact/URiqbWaP94rJXDekD3rqrQ (waiting on the user's OK and 3 choices).
-  Every file is written once and never replaced (a Windows network share refuses to replace a file another computer
-  has open). (1) Typing stays in the page and browser storage. (2) Every 30 s or on Ctrl+S (and on leaving or
-  hiding the tab), a new `.studio/changes/<time>_<person>.json` holds only the changed rows, before and after, plus
-  added, deleted and moved rows. (3) Others list new change files every 5 s and fold them in row by row; a cell both
-  changed shows the side-by-side pick. (4) The keeper, the earliest `since` among fresh editors (the next takes
-  over), is the only one to write script.md (at most every 30 s) and History (every 5 min, credited to the change's
-  author); that ends false "Changed outside the app" entries. (5) The keeper deletes change files once they're in
-  script.md and History and 2 min old. Editing files become a new file every 30 s, with the person removing their own
-  old ones. Status: Editing… (Ctrl+S saves now), then Saved. Open: 30 s vs 10 s; Planning and Credits next; script.md
-  up to 30 s behind.
+- [x] **FX-2** Each person saves to their own change files (the user's design, #1 priority, 2026-11-13; no locking or
+  blocking, the user's rule). Design doc, agreed with the recommended options: https://claude.ai/artifact/URiqbWaP94rJXDekD3rqrQ.
+  Built so (docs/studio-folder.md, `changes/`): typing is saved within 30 s or on Ctrl+S as a new change file holding
+  only the changed rows, before and after (`lib/changes.ts`); others fold them in every 5 s, with a spinner beside
+  "… is editing" (the user's ask); only the keeper (first to open, among those editing now) writes script.md, its
+  note of the change files in it, and History every 5 min; editing files are a new file every 30 s. Robust to a page
+  closed at any step (the user's ask): unsaved typing kept in the browser; a change file never folded is folded by
+  the next to open; a keeper closed between script.md and its note causes no false clash. Two newest History entries
+  are no longer combined on opening. Messages say "the shared folder", not OneDrive (the user's ask). Not seen for
+  real: two computers on the network drive.
 
 ## Last (the user's order: these wait until everything above is done)
 
