@@ -4,8 +4,10 @@ import { setUp, writeFile } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="40" height="20" fill="#4a4"/></svg>';
-// Two of the example's four files are in the folder: storyboard-p4.pdf and glucose-model.png are missing.
-const FILES = { 'Episode 03/script.md': example, 'Episode 03/assets/leaf-closeup.jpg': 'jpg', 'Episode 03/assets/icons-ingredients.svg': SVG };
+// All but two of the example's files are in the folder: storyboard-p4.pdf and glucose-model.png are missing.
+const OTHERS = ['leaf-push-in.mp4', 'music-bed.mp3', 'cell-micrograph.tif', 'glucose-notes.docx', 'park-shot-list.txt', 'lesson-slides.pptx'];
+const FILES = { 'Episode 03/script.md': example, 'Episode 03/assets/leaf-closeup.jpg': 'jpg', 'Episode 03/assets/icons-ingredients.svg': SVG,
+  ...Object.fromEntries(OTHERS.map((f) => [`Episode 03/assets/${f}`, 'x'])) };
 
 async function openAssets(page: Page) {
   await setUp(page, '#/Episode%2003', FILES);
@@ -20,12 +22,13 @@ test('the Assets tab counts what is missing and lists it first, then what to fin
   await expect(page.getByLabel('2 missing')).toBeVisible();
   await page.getByRole('button', { name: /^Assets/ }).click();
   const assets = page.getByRole('region', { name: 'Assets' });
-  await expect(assets.locator('.sum')).toHaveText('6 in 5 rows · 2 missing · 1 to find');
+  await expect(assets.locator('.sum')).toHaveText('12 in 5 rows · 2 missing · 1 to find');
   await expect(assets.locator('h2')).toHaveText(['Missing from the folder', 'Still to find or film', 'In the folder or linked']);
   await expect(assets.locator('li.lost .open')).toHaveText(['storyboard-p4.pdf', 'glucose-model.png']);
   await expect(assets.locator('li.find')).toContainText('Park b-roll of a deep breath (to film)');
-  await expect(assets.locator('li.here .open')).toHaveText(['leaf-closeup.jpg', 'icons-ingredients.svg', 'Chloroplast zoom animation']);
-  await expect(assets.locator('li.here img:visible')).toHaveCount(1); // the svg; the fake jpg isn't a picture, so no thumbnail is drawn
+  await expect(assets.locator('li.here .open')).toHaveText(['leaf-closeup.jpg', 'leaf-push-in.mp4', 'icons-ingredients.svg', 'music-bed.mp3',
+    'Chloroplast zoom animation', 'cell-micrograph.tif', 'glucose-notes.docx', 'park-shot-list.txt', 'lesson-slides.pptx']);
+  await expect(assets.locator('li.here img:visible')).toHaveCount(1); // the svg; the fake files aren't pictures, so no thumbnail is drawn
 });
 
 test('a file put in the folder stops being missing', async ({ page }) => {

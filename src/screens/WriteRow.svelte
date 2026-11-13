@@ -99,11 +99,11 @@
       <button aria-label="Add a row below row {n}" title="Add a row below" onclick={onInsert}>+</button>
       <button aria-label="Delete row {n}" title="Delete" onclick={onRemove}>×</button>
     </span>
-    <button class="flag" data-tour="row-tools" class:on={flag} disabled={!block.id} onclick={onToggleFlag}
+    <button class="flag" data-tour-with="row-tools" class:on={flag} disabled={!block.id} onclick={onToggleFlag}
       aria-label={flag ? `Clear the flag on row ${n}` : `Flag row ${n}`} aria-pressed={!!flag} title={flag ? 'Clear the flag' : 'Flag this row'}>
       <FlagIcon filled={!!flag} size={15} />
     </button>
-    <button class="promote" data-tour="row-tools" aria-label="Turn row {n} into a section" title="Turn into a section" onclick={onToSection}>§</button>
+    <button class="promote" data-tour-with="row-tools" aria-label="Turn row {n} into a section" title="Turn into a section" onclick={onToSection}>§</button>
   </div>
   <div class="mic-cell">
     <button data-tour="take" class="mic" class:has={take} class:on={recording && !voice.cue} class:cue={recording && voice.cue} disabled={!block.id}

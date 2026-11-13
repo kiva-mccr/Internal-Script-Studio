@@ -16,7 +16,7 @@
   let card = $state({ x: 0, y: 0 });
   let cardEl = $state<HTMLElement>();
   let nextEl = $state<HTMLButtonElement>();
-  let shown: Element[] = []; // the part shown: the first match, with any siblings marked the same (a row's tools)
+  let shown: Element[] = []; // the part shown, in pieces
   let seenAgain = untrack(() => again); // a new script opened after Take the tour doesn't replay it
 
   // A tab's tour plays by itself the first time it opens; Take the tour plays the open tab's tour again.
@@ -31,20 +31,42 @@
   // Waits for the tab's first part to be drawn (a script takes a moment to open), then shows the first step.
   async function start(which: Tab) {
     const list = TOURS[which];
-    for (let tries = 0; tries < 100 && !find(list[0]); tries++) await new Promise((r) => setTimeout(r, 50));
+    for (let tries = 0; tries < 100 && !find(list[0]); tries++) await wait(50);
+    // Pictures and previews come in a moment after: wait till the first part keeps its size, so it isn't scrolled to
+    // where it was a moment before.
+    let last = '';
+    for (let tries = 0; tries < 20; tries++) {
+      const r = find(list[0])?.getBoundingClientRect();
+      const now = r ? `${r.top} ${r.height}` : '';
+      if (now === last) break;
+      last = now;
+      await wait(100);
+    }
     if (which !== tab) return;
     steps = list.filter((step) => find(step)); // a part not on the page now (a hidden note) is left out
     playing = which;
     show(0);
   }
 
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  // The page can still change size under a step (a preview loading): the ring and card follow it.
+  $effect(() => {
+    if (!playing) return;
+    const watch = new ResizeObserver(() => place());
+    watch.observe(document.body);
+    return () => watch.disconnect();
+  });
+
   function find(step: Step | undefined): Element | null {
     return step ? document.querySelector(`[data-tour="${step.target}"]`) : null;
   }
 
+  // The part, with the pieces beside it marked data-tour-with (a row's flag and § sit outside its tools).
   function parts(step: Step | undefined): Element[] {
     const first = find(step);
-    return first?.parentElement ? [...first.parentElement.querySelectorAll(`:scope > [data-tour="${step!.target}"]`)] : [];
+    if (!first) return [];
+    return [first, ...(first.parentElement?.querySelectorAll(`:scope > [data-tour-with="${step!.target}"]`) ?? [])];
   }
 
   // The box round all of the part's pieces.
@@ -62,7 +84,7 @@
     for (const el of shown) el.classList.add('tour-on'); // shows the parts that only show on hover, such as a row's tools
     if (shown.length) {
       const r = box();
-      if (r.top < 80 || r.bottom > innerHeight - EDGE) shown[0].scrollIntoView({ block: r.height > innerHeight * 0.6 ? 'start' : 'center' });
+      if (r.top < 0 || r.bottom > innerHeight) shown[0].scrollIntoView({ block: r.height > innerHeight * 0.6 ? 'start' : 'nearest' });
     }
     await tick();
     place();

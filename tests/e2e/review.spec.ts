@@ -17,9 +17,11 @@ async function openReview(page: Page, files: Record<string, string> = {}) {
 const marked = (page: Page) =>
   page.evaluate(() => [...(CSS.highlights.get('comment') ?? []), ...(CSS.highlights.get('comment-on') ?? [])].map((r) => (r as Range).toString()));
 
+// Tried again until the text is drawn: under load the cell can still be redrawing (seen once in 1,000 runs).
 async function selectText(page: Page, cell: string, text: string) {
-  await page.getByLabel(cell).evaluate((el, text) => {
-    const node = [...el.childNodes].find((n) => n.textContent?.includes(text))!;
+  await expect.poll(() => page.getByLabel(cell).evaluate((el, text) => {
+    const node = [...el.childNodes].find((n) => n.textContent?.includes(text));
+    if (!node) return false;
     const at = node.textContent!.indexOf(text);
     const range = document.createRange();
     range.setStart(node.firstChild ?? node, at);
@@ -27,7 +29,8 @@ async function selectText(page: Page, cell: string, text: string) {
     getSelection()!.removeAllRanges();
     getSelection()!.addRange(range);
     el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-  }, text);
+    return true;
+  }, text)).toBe(true);
 }
 
 test('select text to comment on it; the comment is saved as its own file', async ({ page }) => {
