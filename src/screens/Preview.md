@@ -9,6 +9,7 @@ One file's preview (AP-19, mock-up 41), made by `lib/preview.ts`: a picture (als
 ## Rules and pitfalls
 
 - At most 120 px tall, like the image thumbnails before it.
-- `#t=0.1` on the video's address makes Chrome show a frame from the start as its still.
+- A video shows its still (an `<img>`, AP-39) until ▶; only then is the `<video>` made, playing, with controls. A
+  `<video>` per row kept a decoder each and made long scripts slow.
 - Video from MediaRecorder (webm) often has no length (Infinity): the length badge is then left out.
 - onFail is only for video and sound that won't play; a picture that won't draw just hides itself.

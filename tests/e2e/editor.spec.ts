@@ -23,7 +23,7 @@ test('shows the three columns, sections and files', async ({ page }) => {
   await expect(page.locator('header .title')).toHaveText('How Photosynthesis Works');
   await expect(page.getByLabel('Section title')).toHaveCount(3);
   await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
-  await expect(page.getByRole('button', { name: 'leaf-closeup.jpg', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^leaf-closeup\.jpg/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Chloroplast zoom animation' })).toHaveAttribute('href', 'https://example.com/chloroplast-zoom.mp4');
 });
 
@@ -62,7 +62,7 @@ test('a file picked is copied into assets/ and listed', async ({ page }) => {
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Choose a file…' }).click();
   await (await chooser).setFiles({ name: 'sun icon.png', mimeType: 'image/png', buffer: Buffer.from('png') });
-  await expect(page.getByRole('button', { name: 'sun icon.png', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^sun icon\.png/ })).toBeVisible();
   await saved(page);
   expect(await readFile(page, 'Episode 03/assets/sun icon.png')).toBe('png');
   expect(await readFile(page, SCRIPT)).toContain('- assets/music-bed.mp3\n- assets/sun icon.png\n');
@@ -281,7 +281,7 @@ test('columns fold away and come back, remembered in this browser', async ({ pag
   await page.getByRole('button', { name: 'Fold On screen away' }).click();
   await page.getByRole('button', { name: 'Fold Images & files away' }).click();
   await expect(page.getByLabel('On screen, row 1')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'leaf-closeup.jpg', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^leaf-closeup\.jpg/ })).toHaveCount(0);
   // A row with something in a folded column shows a dot; the dialogue takes the width.
   await expect(page.getByTitle('On screen has something here').first()).toBeVisible();
   const wide = (await page.getByLabel('Dialogue, row 1').boundingBox())!.width;

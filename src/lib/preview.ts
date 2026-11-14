@@ -5,7 +5,8 @@ export type PreviewKind = 'image' | 'tif' | 'video' | 'audio' | 'pdf' | 'text' |
 
 export type Preview =
   | { kind: 'image' | 'tif'; url: string }
-  | { kind: 'video' | 'audio'; url: string }
+  | { kind: 'video'; url: string; still: string; duration: number }
+  | { kind: 'audio'; url: string }
   | { kind: 'pdf'; url: string; pages: number }
   | { kind: 'text' | 'word'; label: string; lines: string[]; more: boolean };
 
@@ -39,9 +40,34 @@ export const LINES = 3;
 // Makes a file's preview, or null when it has none or it can't be read. Anything with a url is a blob URL the caller
 // revokes when done (revokePreview).
 export async function makePreview(file: File, name = file.name): Promise<Preview | null> {
+  await turn();
+  try {
+    return await make(file, name);
+  } finally {
+    busy--;
+    queue.shift()?.();
+  }
+}
+
+// AP-39: two previews are made at a time. Scrolling fast brings dozens of rows near at once, and making all their
+// previews together held up the page for a second or more.
+const AT_ONCE = 2;
+let busy = 0;
+const queue: (() => void)[] = [];
+function turn(): Promise<void> {
+  if (busy < AT_ONCE) {
+    busy++;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => queue.push(() => (busy++, resolve())));
+}
+
+async function make(file: File, name: string): Promise<Preview | null> {
   const kind = previewKind(name);
   try {
-    if (kind === 'image' || kind === 'video' || kind === 'audio') return { kind, url: URL.createObjectURL(file) };
+    if (kind === 'image') return { kind, url: await smallPicture(file, name) };
+    if (kind === 'video') return { kind, ...(await videoStill(file)) };
+    if (kind === 'audio') return { kind, url: URL.createObjectURL(file) };
     if (kind === 'text') return { kind, label: kindName(name), ...takeLines(await readStart(file)) };
     if (kind === 'word') return { kind, label: 'Word', ...takeLines(await wordText(new Uint8Array(await file.arrayBuffer()))) };
     if (kind === 'tif') return { kind, url: await tifPicture(file) };
@@ -54,6 +80,7 @@ export async function makePreview(file: File, name = file.name): Promise<Preview
 
 export function revokePreview(preview: Preview | null | undefined) {
   if (preview && 'url' in preview) URL.revokeObjectURL(preview.url);
+  if (preview?.kind === 'video') URL.revokeObjectURL(preview.still);
 }
 
 // The first lines with something on them, and whether there are more.
@@ -119,7 +146,7 @@ async function tifPicture(file: File): Promise<string> {
   canvas.width = page.width;
   canvas.height = page.height;
   canvas.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(rgba), page.width, page.height), 0, 0);
-  return canvasUrl(canvas);
+  return fits(page.width, page.height) ? canvasUrl(canvas) : shrink(canvas, page.width, page.height);
 }
 
 // pdf.js (fetched only when a PDF is shown) draws page 1, twice the 120 px it is shown at so it stays sharp.
@@ -141,9 +168,71 @@ async function pdfFirstPage(file: File): Promise<{ url: string; pages: number }>
   }
 }
 
-function canvasUrl(canvas: HTMLCanvasElement): Promise<string> {
+function canvasUrl(canvas: HTMLCanvasElement, type = 'image/png'): Promise<string> {
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(URL.createObjectURL(blob)) : reject(new Error('no picture'))), 'image/png'));
+    canvas.toBlob((blob) => (blob ? resolve(URL.createObjectURL(blob)) : reject(new Error('no picture'))), type, 0.85));
+}
+
+// AP-39: previews are shown at most 120 px tall, so they are made at most twice that (sharp on a hi-dpi screen) and
+// 640 px wide. A camera photo shown as itself made Chrome unpack all 12 megapixels each time it came on screen:
+// scrolling fell to a few frames a second and showed blank patches.
+const TALL = 240;
+const WIDE = 640;
+const fits = (w: number, h: number) => h <= TALL && w <= WIDE;
+
+// A small copy of a picture, or the file itself when it is small already. SVG and GIF (it may move) stay as they are.
+async function smallPicture(file: File, name: string): Promise<string> {
+  if (/\.(svg|gif)$/i.test(name)) return URL.createObjectURL(file);
+  const bitmap = await createImageBitmap(file);
+  try {
+    return fits(bitmap.width, bitmap.height) ? URL.createObjectURL(file) : await shrink(bitmap, bitmap.width, bitmap.height);
+  } finally {
+    bitmap.close();
+  }
+}
+
+async function shrink(source: ImageBitmap | HTMLCanvasElement | HTMLVideoElement, w: number, h: number): Promise<string> {
+  const scale = Math.min(1, TALL / h, WIDE / w);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w * scale));
+  canvas.height = Math.max(1, Math.round(h * scale));
+  const small = await createImageBitmap(source, { resizeWidth: canvas.width, resizeHeight: canvas.height, resizeQuality: 'high' });
+  canvas.getContext('2d')!.drawImage(small, 0, 0);
+  small.close();
+  return canvasUrl(canvas, 'image/webp');
+}
+
+// A video's preview is a still from its start and its length; the player is only made when ▶ is pressed (AP-39: a
+// <video> per row kept a decoder each, and 150 of them took 14 s to show). One the browser can't play gives no
+// preview (an error), so its chip says its kind and size.
+async function videoStill(file: File): Promise<{ url: string; still: string; duration: number }> {
+  const url = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  try {
+    video.muted = true;
+    video.preload = 'auto';
+    const ready = (event: string) =>
+      new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('too slow')), 15000);
+        video.addEventListener(event, () => (clearTimeout(timer), resolve()), { once: true });
+        video.addEventListener('error', () => (clearTimeout(timer), reject(new Error('no video'))), { once: true });
+      });
+    const loaded = ready('loadeddata');
+    video.src = url;
+    await loaded;
+    const seeked = ready('seeked');
+    video.currentTime = 0.1;
+    await seeked;
+    if (!video.videoWidth) throw new Error('no picture');
+    const still = await shrink(video, video.videoWidth, video.videoHeight);
+    return { url, still, duration: Number.isFinite(video.duration) ? video.duration : NaN };
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    throw e;
+  } finally {
+    video.removeAttribute('src');
+    video.load();
+  }
 }
 
 // "0:42", "1:05", "1:02:03".

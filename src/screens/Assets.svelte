@@ -57,10 +57,12 @@
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  function thumb(a: Asset): { url: string; video: boolean } | null {
+  // A video's thumbnail is its still (AP-39), never a player.
+  function thumb(a: Asset): string | null {
     const preview = a.kind === 'path' ? previews[a.target] : null;
-    if (preview && 'url' in preview) return { url: preview.url, video: preview.kind === 'video' };
-    return a.kind === 'link' && previewKind(a.target) === 'image' ? { url: a.target, video: false } : null;
+    if (preview?.kind === 'video') return preview.still;
+    if (preview && 'url' in preview) return preview.url;
+    return a.kind === 'link' && previewKind(a.target) === 'image' ? a.target : null;
   }
 </script>
 
@@ -68,8 +70,7 @@
   {@const t = thumb(asset)}
   <li class={kind}>
     <span class="thumb" aria-hidden="true">
-      {#if t?.video}<video src="{t.url}#t=0.1" preload="metadata" muted onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)}></video>
-      {:else if t}<img src={t.url} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)} />
+      {#if t}<img src={t} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).hidden = true)} />
       {:else if asset.kind === 'link'}↗{/if}
     </span>
     <span class="name">
@@ -155,7 +156,7 @@
   .box > ul > li { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid #f0f0f0; }
   .thumb { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 32px;
     border-radius: 4px; background: #f2f2f2; overflow: hidden; color: var(--accent); font-size: 13px; }
-  .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
   .lost .thumb { border: 1px dashed #d08a84; box-sizing: border-box; }
   .find .thumb { background: #fff4e5; }
   .name { flex: 1; min-width: 0; display: flex; flex-direction: column; }

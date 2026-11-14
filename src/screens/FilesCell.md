@@ -11,8 +11,10 @@ preview get their kind and size on the chip.
 ## Rules and pitfalls
 
 - Previews (`lib/preview.ts`) are made from the folder's files, their blob URLs revoked when the row's files change
-  or it closes. A file that is missing or not really its kind shows no preview, only its chip. A picture that won't
-  draw just hides (no kind on the chip); a video or sound that won't play falls back to the chip with kind and size.
+  or it closes. A file that is missing shows only its chip; one not really its kind (no preview made, or a video or
+  sound that won't play) shows its chip with kind and size.
+- AP-39: previews are made once the cell is within two screens (`use:near`). Until a file has been tried, a grey
+  `.stand-in` of about its preview's size holds the place (120 px tall for a picture), so rows don't jump.
 - A file that is not there (still syncing, or renamed) gives a plain message, not an error.
 - "From Sam's comment" (`came`, RV-12) works like "Copied from …".
 - "Copied from …" under a chip is only kept while the cell is shown; the script does not record where a file came from.

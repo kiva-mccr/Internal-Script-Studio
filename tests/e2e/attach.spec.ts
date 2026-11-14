@@ -78,7 +78,8 @@ test('a comment can be only files; a reply takes a pasted screenshot; too big a 
   await card.getByRole('button', { name: 'Reply' }).click();
   await paste(page, 'Reply', [{ name: 'image.png', text: 'a' }, { name: 'image.png', text: 'b' }]);
   await card.getByRole('button', { name: 'Reply' }).click();
-  await expect(card.getByRole('button', { name: 'image 2.png · 1 KB' })).toBeVisible();
+  // Not really pictures (made-up bytes), so no preview: a chip with the size.
+  await expect(card.getByRole('button', { name: /image 2\.png/ })).toContainText('1 KB');
   const reply = (await notes(page)).find((n) => n.kind === 'reply');
   expect(reply.text).toBe('');
   expect(await listFiles(page, `${FILES}/${reply.id}`)).toEqual(['image 2.png', 'image.png']);
@@ -97,7 +98,7 @@ test('a suggestion has no files; editing your comment takes files off and adds n
   await card.getByRole('button', { name: 'Remove first.txt' }).click();
   await paste(page, 'Edit comment', [{ name: 'second.txt', text: '2' }]);
   await card.getByRole('button', { name: 'Save' }).click();
-  await expect(card.getByRole('button', { name: /second\.txt/ })).toBeVisible();
+  await expect(card.getByTitle('Open second.txt')).toBeVisible();
   await expect(card.getByRole('button', { name: /first\.txt/ })).toHaveCount(0);
   await expect(card).toContainText('edited');
   const all = await notes(page);

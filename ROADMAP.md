@@ -578,10 +578,15 @@ and suggestions, keeps every version, and exports them for production.
   show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
   OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
   (beside "… is editing"?). Mock-up first.
-- [ ] **AP-39** No blank page when scrolling fast (a bug the user hit, not urgent): scrolling quickly through a script
-  shows blank parts of the page before they draw. At the least, parts not yet drawn show grey stand-ins (like the
-  empty cells); better, find what makes drawing slow (pictures and file previews, long rows) and make it faster.
-  Measure on a long script first. Bug fix, at normal priority (not ahead of the current queue).
+- [x] **AP-39** No blank page when scrolling fast (a bug the user hit; board 59, agreed 2026-11-13): measured on a
+  150-row script in test Chromium. Text and small pictures scrolled smoothly; camera-size photos (4000 × 3000) fell
+  to about 7 frames a second (150 ms a frame: Chrome unpacked each full photo again as it came on screen), and 150
+  4K videos took 14 s to show their stills. Built: pictures and TIFFs are previewed from small copies (at most
+  240 × 640 px), a video from a still of its start (the player is made on ▶), two previews made at a time, only once
+  their row is within two screens (`lib/near.ts`), with a grey box of about the preview's size until then. The small
+  copies live only while the script is open (the user's pick; nothing written to the folder). After: 17 ms a frame
+  with the photos, the longest frame while new rows came in 33 ms (photos) and 76 ms (videos). A file whose preview
+  can't be made (not really a picture) now shows its kind and size on the chip, like a video that won't play.
 - [ ] **RV-23** Fold columns in Review too (asked by the user): the ‹ fold from AP-17 (Write only today) also works
   in Review, every column open by default. Whether Review remembers its own folds or shares Write's is for the
   mock-up. Mock-up first.
