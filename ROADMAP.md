@@ -596,6 +596,10 @@ and suggestions, keeps every version, and exports them for production.
   is read again only when its files changed (a folder listing with file dates, no file opened); (3) coming back to
   the window checks dates only. Goes with AP-39 and HI-3. Explore and measure on a big folder first; the list looks
   the same, so no mock-up unless something visible changes.
+- [ ] **AP-42** A tidy pass (suggested from a size check, 2026-11-14): the code is healthy (about 11,300 lines, the
+  biggest file 552), but the comment features keep landing in `Review.svelte` (488 lines) and `Editor.svelte`. Split
+  Review's comment list and sorting out like Write was split, and drop exports nothing outside their file uses. No
+  change in behaviour; worth doing before RV-21 and RV-23 add more to Review.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
