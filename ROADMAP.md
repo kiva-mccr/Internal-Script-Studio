@@ -388,6 +388,24 @@ and suggestions, keeps every version, and exports them for production.
     agreed ("I like it"), adding: files added only for the timeline are shown minimised in the Files column, so they
     don't take up space. It changes the script format (SF), agreed in the mock-up before building.
   - Shelved for later: captions and transitions in the .mp4 (a toggle, not a priority); EX-19's export details.
+  Mock-up: board 63, agreed (2026-11-14): choices 1 to 8 as drawn, with these from the user:
+  - Under the last row in Write, hideable; pinned to the bottom of the screen while playing, the preview (16:9,
+    320 px, ⤢ to enlarge) above its right end. Tracks: sections, rows (number and pictures), voice-over waveform; a
+    row with no take gets its read time and a dashed "no take" bar. Fits the width; − and + zoom for long scripts.
+  - Pictures default to every image in the row's Files as a sequence (equal shares); click a block to tick them
+    off, switch to Collage or add a picture for the timeline only. A row with no picture shows its On screen words
+    on a grey card. Hover shows the dialogue; click lights up the row; "▶ Play from here" plays from the block.
+  - Holds and placeholders also show in the script as full-width bars between rows (the user). Clicking the bar
+    opens the same editing as the timeline's (seconds, the placeholder's words) under it; its ✕ removes it at
+    once, with Undo in its place.
+  - Cut on a word (the user picked it): in a sequence, click a word in the dialogue to start the next picture there,
+    timed from the take's word timings; without one, equal shares.
+  - Review shows the timeline read only; a comment on a block goes on its row ("on the timeline").
+  - script.md: files only for the timeline are marked `(timeline)` and shown minimised in Files ("+2 for the
+    timeline"); one optional row line holds what differs from the default, e.g. `Timeline: sequence, cuts at
+    "water" "carbon", then hold 2 s` or `Timeline: then placeholder 3 s "Drone shot"`. Update docs/script-format.md.
+  - Left out (the user: overcomplicating): a pause between sections, dropping onto the timeline, suggested
+    pictures, carrying the last picture on, slow zoom on stills.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
 - [x] **AU-1** Recording audio for each line: record the dialogue of a row in the browser, kept beside the script
