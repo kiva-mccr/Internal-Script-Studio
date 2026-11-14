@@ -647,12 +647,23 @@ and suggestions, keeps every version, and exports them for production.
   save space for people who know the app. Off by default, so help text shows until someone turns it on; kept in this
   browser. To settle in the mock-up: which texts count as help (a list of them), and whether hover titles and the
   tour stay. Mock-up first.
+- [ ] **AP-44** Keyboard shortcuts for common tasks (asked by the user, 2026-11-14): next and previous comment in
+  Review (and in Write's comments), moving up and down between rows, deleting a row, and duplicating, splitting (at
+  the cursor) and joining rows in Write. Builds on AP-14's keys. Rule (the user's): no shortcut switches between Write,
+  Review, History or the other tabs; that friction between stages stays. To settle in the mock-up: the keys, how
+  deleting a row is undone, and where the list of shortcuts is shown. Mock-up first.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
   same timeline XML (Final Cut Pro 7 XML), so one file may serve both. Needs SB-1 first. Mock-up first.
 - [-] **EX-17** A shoot checklist (suggested; shelved by the user, to talk through later): the asset list (EX-6) with
   shared tick boxes for each row's on-screen shots and files, for the day of filming.
+- [-] **AP-45** Dictate dialogue into a row (suggested; shelved by the user, 2026-11-14, to consider later): speak into
+  the row you're in, using the in-browser Whisper that Follow my voice already runs.
+- [-] **AP-46** Whose turn on the script list (suggested; shelved by the user, 2026-11-14): a small "with Sam" or
+  "due Fri" tag on each script card.
+- [-] **EX-20** A shot list from On screen (suggested; shelved by the user, 2026-11-14): a one-click export of the On
+  screen and Images columns as a checklist numbered by row, for a shoot day. Close to EX-17.
 - [x] **AP-28** The live version in the bottom-left corner (asked by the user): the number of the last merged pull
   request, in the same small grey style as GitHub in the bottom-right, so a refresh shows when a new version is live
   and which features are in it. Agreed on board 32 ("looks perfect"): "PR #61" in the same grey, opens that PR on
@@ -710,3 +721,7 @@ and suggestions, keeps every version, and exports them for production.
   conflict resolution; the repo is public. Mock-ups of the five screens (open folder, list, Write, Review,
   History) were shown before planning. The script format is one section per row with labelled fields (SF-1).
 - **Settled:** Svelte 5 + TypeScript (AP-1).
+- **Rejected:** accepting a whole section's (or one person's) suggestions at once (suggested 2026-11-14, turned down
+  by the user): each person has to engage with each comment, one at a time. Don't suggest it again.
+- **Rejected:** a scratch read-aloud of rows without a take, in the browser's built-in voice (suggested 2026-11-14,
+  turned down by the user).
