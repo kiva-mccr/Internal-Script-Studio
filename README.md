@@ -22,8 +22,12 @@ Status: a first working version. What it does today:
   It opens fast on a network drive: your computer remembers each script's line, looks only at file names and dates,
   and reads again only the scripts that changed, the ones on screen first.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
-  add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Enter adds a row below, Alt+Up and
-  Alt+Down move the row. Add section puts a new section right after the box you are typing in (or at the end); a section
+  add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Down and Ctrl+Up go straight to the row
+  below or above (same column, past section titles), Ctrl+Enter adds a row below and Ctrl+Shift+Enter one above,
+  Alt+Up and Alt+Down move the row, Ctrl+Shift+Backspace deletes it (Undo at the bottom puts it back). In Review and
+  Write's Comments tab, Alt+N and Alt+P go to the next and previous open comment (replying and deciding stay clicks).
+  ⋯ > Settings lists every key; click one to change it (kept in this browser), Reset puts it back. No key switches
+  between Write, Review and History. Add section puts a new section right after the box you are typing in (or at the end); a section
   left with no title is removed once you click out of it. A row's § (hover it) turns it into a section heading right
   where it is, and a section's ¶ turns it back into a row. Paste a draft (from Word, say) into a Dialogue box and
   each paragraph gets its own row; Undo at the bottom puts it back. Add a file (copied into the script's `assets` folder), a link, or a note of something to find.

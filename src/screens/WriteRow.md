@@ -16,6 +16,7 @@ flag's note.
 - `data-row`, `data-block` and `data-visit` stay on the row's outer element: Write, Find, the Editor and the tests
   find rows by them.
 - The recording clock runs only on the row being recorded, and starts from now when recording starts.
+- The row tools' hover text names their key (`shortcuts.title`, AP-44), so a changed key shows there too.
 - Row tools are placed over the number column so they never make a row taller.
 - Dialogue and On screen are `TextField.svelte` (formatting toolbar, marks shown as formatting).
 - The mic is its own grid column between the number and the dialogue, pulled into the gap (`translateX`), so a row

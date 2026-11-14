@@ -647,11 +647,20 @@ and suggestions, keeps every version, and exports them for production.
   save space for people who know the app. Off by default, so help text shows until someone turns it on; kept in this
   browser. To settle in the mock-up: which texts count as help (a list of them), and whether hover titles and the
   tour stay. Mock-up first.
-- [ ] **AP-44** Keyboard shortcuts for common tasks (asked by the user, 2026-11-14): next and previous comment in
+- [x] **AP-44** Keyboard shortcuts for common tasks (asked by the user, 2026-11-14): next and previous comment in
   Review (and in Write's comments), moving up and down between rows, deleting a row, and duplicating, splitting (at
   the cursor) and joining rows in Write. Builds on AP-14's keys. Rule (the user's): no shortcut switches between Write,
-  Review, History or the other tabs; that friction between stages stays. To settle in the mock-up: the keys, how
-  deleting a row is undone, and where the list of shortcuts is shown. Mock-up first.
+  Review, History or the other tabs; that friction between stages stays.
+  Agreed on board 65 ("looks good"), after the user's changes: no duplicate, split or join; no "?" key; the list
+  lives in Settings; Tab stays box to box. Then asked (decision card): people can change the keys, in Settings.
+  Built: Ctrl+Down / Ctrl+Up go to the same column in the row below or above (past section titles, cursor at the
+  end); Ctrl+Shift+Enter adds a row above; Ctrl+Shift+Backspace deletes the row (or section) through the Undo bar,
+  the cursor going to what took its place; Ctrl+Enter and Alt+Up/Down (AP-14) go through the same keys. Alt+N /
+  Alt+P step through the open comments in the order shown, going round, in Review and Write's Comments tab, even
+  while typing; only moving, never replying or deciding. Settings ends with "Keyboard shortcuts": every key by
+  where it works; the nine new ones are buttons: click, press the new key (Esc stops), kept in this browser, Reset.
+  Refused in the page: a key without Ctrl or Alt, one already used, or one the browser or the app keeps (Ctrl+B,
+  Ctrl+Z, Ctrl+D …). The row buttons' hover text names their key. On a Mac ⌘ counts as Ctrl and shows as ⌘.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the

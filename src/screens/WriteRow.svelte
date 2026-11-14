@@ -14,6 +14,7 @@
   import FlagIcon from './FlagIcon.svelte';
   import Take from './Take.svelte';
   import TextField from './TextField.svelte';
+  import { shortcuts } from '../lib/shortcuts.svelte';
 
   // One row of Write (mock-up 3): its number and tools, mic, the three columns, and its flag's note.
   // block: the row, edited in place (onChange). i: its index in the script's blocks (data-block); n: its number.
@@ -101,10 +102,10 @@
       <button class="seen" aria-label="Seen, row {n}" title="Seen: clear this mark" onclick={() => visit?.onSeen(block.id)}>✓</button>
     {/if}
     <span class="tools" data-tour="row-tools">
-      <button aria-label="Move row {n} up" title="Move up" onclick={() => onMove(-1)}>↑</button>
-      <button aria-label="Move row {n} down" title="Move down" onclick={() => onMove(1)}>↓</button>
-      <button aria-label="Add a row below row {n}" title="Add a row below" onclick={onInsert}>+</button>
-      <button aria-label="Delete row {n}" title="Delete" onclick={onRemove}>×</button>
+      <button aria-label="Move row {n} up" title={shortcuts.title('Move up', 'moveUp')} onclick={() => onMove(-1)}>↑</button>
+      <button aria-label="Move row {n} down" title={shortcuts.title('Move down', 'moveDown')} onclick={() => onMove(1)}>↓</button>
+      <button aria-label="Add a row below row {n}" title={shortcuts.title('Add a row below', 'addBelow')} onclick={onInsert}>+</button>
+      <button aria-label="Delete row {n}" title={shortcuts.title('Delete', 'deleteRow')} onclick={onRemove}>×</button>
     </span>
     <button class="flag" data-tour-with="row-tools" class:on={flag} disabled={!block.id} onclick={onToggleFlag}
       aria-label={flag ? `Clear the flag on row ${n}` : `Flag row ${n}`} aria-pressed={!!flag} title={flag ? 'Clear the flag' : 'Flag this row'}>

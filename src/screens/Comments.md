@@ -18,6 +18,8 @@ the script is a draft again. New comments are started in Review only.
   wait with `page.clock`: wait for "On hold." (the note written) before running it, since the wait starts only then.
 - On hold (RV-19): a folded "On hold · n" between the open cards and Resolved; `ends` comes from the Editor.
 - "Use in script" (RV-12) is on open cards whose row still exists; the Editor copies the file (`onUse`).
+- Alt+N / Alt+P (AP-44, `stepComment`): a window key, so it works while typing in Write; it picks the next open card
+  as a click would (`onShow` takes Write to its row) and scrolls the card into view. Only while this tab is shown.
 - Where a card is: "row 3, Dialogue", or "row 3" for a comment on the whole row.
 - Sorted (RV-16): `lib/commentsort.ts`; the switch (`SortSwitch.svelte`) sits at the top once there are any comments,
   sharing Review's remembered choice. By Type, an `h3.kind` heading starts each kind in the open list.

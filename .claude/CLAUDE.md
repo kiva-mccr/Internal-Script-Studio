@@ -62,7 +62,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   AP-39 (done), AP-42 (done), then AP-40 (done), AP-41 (done), RV-23 (done), then AP-37 (done). The user is
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb.
-- Queue (the user's order, 2026-11-14), mock-ups first, built one at a time: AP-44 (shortcuts), AP-43 (hide help
+- Queue (the user's order, 2026-11-14), mock-ups first, built one at a time: AP-44 (shortcuts, done), AP-43 (hide help
   text), then SB-1 (storyboard timeline; mock-up board 63 agreed 2026-11-14, details in ROADMAP.md).
   The rest (AP-15, AP-8, EX-19 …) waits
   for the user's next ranking; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.

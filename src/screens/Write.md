@@ -30,6 +30,9 @@ deleting, keys, the flag bar, find, quotes marked, removed rows). Any column but
   textareas). Tab goes to the next box in the page, past the buttons and files; from the last box the browser carries
   on. Moving a row takes its box out of the page for a moment, so the cursor (box and selection) is put back after
   `tick()`, found again by `data-block`. Alt+Up/Down swaps with the block next to it, a section too, like ↑ and ↓.
+  Shortcuts (AP-44) go through `shortcuts.match` (`lib/shortcuts.svelte.ts`), so changed keys work: Ctrl+Up/Down go
+  to the same column (`.dialogue` / `.screen`) in the row above or below, skipping sections; Ctrl+Shift+Enter adds a
+  row above; Ctrl+Shift+Backspace is `remove` (the Undo bar), then the cursor goes to the block now at that place.
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).
 - Folded columns are this browser's choice (`write-folded`, a `Folds` from `lib/folds.svelte.ts`; headings `FoldHeads.svelte`), for every
   script; never in the script, so nothing syncs. The grid's columns are set on each row (`columns`), not in the CSS.
