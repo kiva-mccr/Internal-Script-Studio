@@ -114,6 +114,7 @@ test('a suggestion has no files; editing your comment takes files off and adds n
     getSelection()!.addRange(range);
     el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
   });
+  await page.getByRole('button', { name: 'Comment on the selected words' }).click();
   await form.getByRole('button', { name: 'Suggest a change' }).click();
   await expect(form.getByRole('button', { name: 'Attach file' })).toHaveCount(0);
 });

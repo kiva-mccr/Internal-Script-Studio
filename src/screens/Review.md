@@ -1,7 +1,7 @@
 # `src/screens/Review.svelte`
 
-The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell, or use
-Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
+The Review screen (mock-up 4): the script to read, and open comments beside it. Select text in a cell and press its
+small Comment button (RV-22, `SelectionComment.svelte`), or use Comment on a row, to write a comment, or select text to suggest a change; reply, resolve and reopen comments; accept or reject
 suggestions, with Undo. Edit and Delete your own (RV-7, mock-up 24). The cards are `CommentCard.svelte`, shared with Write's
 Comments tab (RV-13). Approve / Send back (RV-3) are in `Header.svelte`.
 
@@ -16,7 +16,9 @@ Comments tab (RV-13). Approve / Send back (RV-3) are in `Header.svelte`.
   "Only changed rows" is not. Show the edits puts the old text in its own element above the cell, never inside it,
   so quotes and highlights still match the cell. The highlights effect reruns on each toggle (the cells are redrawn).
 - Read only: editing happens in Write. Comments come from `Editor.svelte`, which reloads them every 5 s.
-- A selection counts only if it starts and ends inside one cell (`mouseup` on the cell).
+- A selection counts only if it starts and ends inside one cell (`mouseup` on the cell). Selecting never opens the
+  box by itself (RV-22): it only shows the Comment button (`SelectionComment.svelte`), so a double-click or selecting
+  to copy starts nothing. `.script` is `position: relative` for that button.
 - Images & files shows names, as Write does, so a quote there is of the name.
 - Cells show formatting (`lib/format.ts`), so a quote is of the text as it reads, marks taken out. Quotes are
   marked with CSS highlights (`CSS.highlights`, Chrome and Edge), not by changing the page; tests read them there.

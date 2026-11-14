@@ -6,6 +6,7 @@
   import AttachBox from './AttachBox.svelte';
   import CommentCard from './CommentCard.svelte';
   import FlagIcon from './FlagIcon.svelte';
+  import SelectionComment from './SelectionComment.svelte';
   import Take from './Take.svelte';
   import type { Player } from '../lib/play.svelte';
   import type { VoiceOver } from '../lib/voice.svelte';
@@ -17,8 +18,8 @@
   import { sinceReview, type Version } from '../lib/history';
   import type { Marks } from '../lib/visit';
 
-  // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell to comment or suggest a
-  // change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
+  // Review (mock-up 4): the script to read, and comments beside it. Select text in a cell, then its Comment button, to
+  // comment or suggest a change, or use Comment on a row; reply and resolve comments, accept or reject suggestions.
   let {
     dir,
     script,
@@ -71,6 +72,7 @@
   let showResolved = $state(false);
   let showHeld = $state(false);
   let box = $state<HTMLTextAreaElement>();
+  let picker = $state<SelectionComment>(); // the Comment button on selected words (RV-22)
 
   let recent = $state<string[]>([]); // decided here just now: kept in place, with Undo (mock-up 4)
   let gone = $state<string[]>([]); // deleted here just now: kept in place as "… deleted. Undo" (RV-7, mock-up 24)
@@ -183,13 +185,6 @@
 
   const rowList = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
 
-  function select(row: Row, field: Field, el: HTMLElement) {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !el.contains(sel.anchorNode) || !el.contains(sel.focusNode)) return;
-    const quote = sel.toString().trim();
-    if (quote) start({ row: row.id, field, quote });
-  }
-
   function start(t: { row: string; field: Field; quote: string }) {
     target = t;
     draft = '';
@@ -238,7 +233,7 @@
     {:else if sent}
       <button class="sent-folded" aria-expanded="false" onclick={() => (hideSent = false)}>{sent.who}'s note</button>
     {/if}
-    <p class="hint">Select any text to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
+    <p class="hint">Select any text, then press Comment, to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
     {#if since}
       <div class="changes" class:off={!marking} role="group" aria-label="What's changed">
         <label class="tick"><input type="checkbox" bind:checked={marking} onchange={() => keep('review-changes', marking ? '' : 'off')} /> What's changed</label>
@@ -290,7 +285,7 @@
             {#snippet cell()}
               <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
               <p class="cell {field}" aria-label="{name}, row {n}" data-row={block.id} data-field={field}
-                onmouseup={(e) => select(block, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
+                onmouseup={(e) => picker?.look(block.id, field, e.currentTarget)}>{@html toHtml(text(block, field))}</p>
             {/snippet}
             {#snippet content()}
               {#if edits && was && text(was, field) !== text(block, field)}
@@ -326,6 +321,7 @@
         {@render removedRows(block.id)}
       {/if}
     {/each}
+    <SelectionComment bind:this={picker} script={table} onComment={start} />
   </div>
 
   <aside aria-label="Comments" data-tour="review-cards">
@@ -407,7 +403,7 @@
   .sent .fold { border: 0; background: none; }
   .sent-folded { display: block; margin: 0 0 20px; border: 1px solid #d6e0f7; background: #f5f8fe; }
   .review { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
-  .script { flex: 999 1 640px; min-width: 0; }
+  .script { position: relative; flex: 999 1 640px; min-width: 0; }
   aside { flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }
   .hint { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: 56px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.7fr); gap: 20px; padding: 0 12px; }

@@ -22,7 +22,7 @@ export const TOURS: Record<Tab, Step[]> = {
   ],
   review: [
     { target: 'review-note', title: 'The note from the writer', text: 'What the writer asked when they sent the script for review.' },
-    { target: 'review-row', title: 'Select text to comment', text: 'Select any words to comment on them or suggest new ones. Comment on a row works too.' },
+    { target: 'review-row', title: 'Select text to comment', text: 'Select any words, then press Comment to comment on them or suggest new ones. Comment on a row works too.' },
     { target: 'review-cards', title: 'Comments and suggestions', text: 'Reply, resolve, or accept a suggested change into the script. Every card shows who and when.' },
     { target: 'actions', title: 'Approve or send back', text: 'When you are done, approve the script, or send it back to the writer with a note.' },
   ],
