@@ -63,7 +63,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. SB-1 (storyboard timeline): mock-up board 63 agreed
   2026-11-14 (details in ROADMAP.md); its build waits for the user's next ranking.
-  The rest (AP-15, AP-8, AP-35, SB-1's build then EX-19 …) waits
+  The rest (AP-15, AP-8, SB-1's build then EX-19 …) waits
   for the user's next ranking; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
