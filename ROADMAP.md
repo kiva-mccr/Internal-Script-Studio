@@ -624,6 +624,11 @@ and suggestions, keeps every version, and exports them for production.
   Done 2026-11-14: the comments beside the script (new comment box, open cards with sorting, On hold, Resolved)
   moved to `ReviewComments.svelte`, leaving `Review.svelte` at 337 lines; `MAX_FILE`, `typeOf`, `Options`,
   `spotText`, `Kind`, `PreviewKind` and `LINES` are no longer exported. Nothing on screen changed.
+- [ ] **AP-43** Hide help text (asked by the user, 2026-11-14): a switch in Settings that hides the text explaining
+  what a feature does or how it works (hints, how-it-works lines, the explanations on empty lists and panels), to
+  save space for people who know the app. Off by default, so help text shows until someone turns it on; kept in this
+  browser. To settle in the mock-up: which texts count as help (a list of them), and whether hover titles and the
+  tour stay. Mock-up first.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
