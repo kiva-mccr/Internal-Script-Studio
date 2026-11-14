@@ -409,3 +409,31 @@ test('a first review marks nothing (RV-4)', async ({ page }) => {
   await expect(page.getByLabel('Dialogue, row 1')).toBeVisible();
   await expect(page.getByRole('group', { name: "What's changed" })).toHaveCount(0);
 });
+
+test('columns fold in Review, apart from Write, and picking a comment opens its column (RV-23)', async ({ page }) => {
+  await openReview(page);
+  await commentOn(page, 'On screen, row 1', 'sunlit leaf');
+  const form = page.getByRole('form', { name: 'New comment' });
+  await form.getByLabel('Comment', { exact: true }).fill('Could we shoot a real leaf?');
+  await form.getByRole('button', { name: 'Add comment' }).click();
+  // All three open at first; fold two and the dialogue takes the width, with a dot where a folded column has something.
+  await page.getByRole('button', { name: 'Fold On screen away' }).click();
+  await page.getByRole('button', { name: 'Fold Images & files away' }).click();
+  await expect(page.getByLabel('On screen, row 1')).toHaveCount(0);
+  await expect(page.getByLabel('Images & files, row 1')).toHaveCount(0);
+  await expect(page.getByTitle('On screen has something here').first()).toBeVisible();
+  expect((await page.getByLabel('Dialogue, row 1').boundingBox())!.width).toBeGreaterThan(600);
+  await expect(page.getByRole('button', { name: 'Fold Dialogue away' })).toHaveCount(0);
+  // Picking the card opens On screen again, with its words marked; Images & files stays folded.
+  await page.getByRole('article', { name: 'Comment by Sam' }).click();
+  await expect(page.getByLabel('On screen, row 1')).toBeVisible();
+  await expect.poll(() => marked(page)).toEqual(['sunlit leaf']);
+  await expect(page.getByRole('button', { name: 'Show Images & files' })).toBeVisible();
+  // Remembered in this browser; Write keeps its own folds, all open.
+  await page.reload();
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await expect(page.getByRole('button', { name: 'Show Images & files' })).toBeVisible();
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+  await expect(page.getByLabel('On screen, row 1')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Fold Images & files away' })).toBeVisible();
+});
