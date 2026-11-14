@@ -3,7 +3,7 @@
 The order of the comment lists (RV-16, board 55): Line (the default), Time or Type. The switch is
 `screens/SortSwitch.svelte`.
 
-- **Used by:** `screens/Review.svelte`, `screens/Comments.svelte`. **Tests:** `tests/unit/commentsort.test.ts`,
+- **Used by:** `screens/ReviewComments.svelte`, `screens/Comments.svelte`. **Tests:** `tests/unit/commentsort.test.ts`,
   `tests/e2e/comments.spec.ts`.
 
 ## Rules and pitfalls

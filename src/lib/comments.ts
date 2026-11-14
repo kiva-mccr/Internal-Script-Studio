@@ -15,7 +15,7 @@ import { readFileRef, type Row } from './script';
 export type Field = 'dialogue' | 'on_screen' | 'files';
 // An attached file (RV-11): `path` is inside the script's folder, `.studio/files/<note id>/<name>`.
 export type Attachment = { name: string; path: string; size: number };
-export const MAX_FILE = 50 * 1024 * 1024; // 50 MB: bigger things go in OneDrive, as a link in the text
+const MAX_FILE = 50 * 1024 * 1024; // 50 MB: bigger things go in OneDrive, as a link in the text
 export type Note = {
   v: 1;
   id: string;

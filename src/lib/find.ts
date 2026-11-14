@@ -4,7 +4,7 @@
 import { readFileRef, type Block } from './script';
 
 export type Field = 'title' | 'dialogue' | 'onScreen' | 'files';
-export type Options = { matchCase: boolean; wholeWords: boolean };
+type Options = { matchCase: boolean; wholeWords: boolean };
 // One match: where (block, field, and the Files line), and its place in the text as it reads ([start, end)).
 export type Spot = { block: number; field: Field; line: number; start: number; end: number };
 
@@ -124,7 +124,7 @@ export function replaceRaw(raw: string, start: number, end: number, words: strin
 }
 
 // The text a spot sits in, as it reads.
-export function spotText(blocks: Block[], spot: Spot): string {
+function spotText(blocks: Block[], spot: Spot): string {
   const b = blocks[spot.block];
   if (b.type === 'section') return b.title;
   if (spot.field === 'files') return fileWords(b.files[spot.line])?.text ?? '';
