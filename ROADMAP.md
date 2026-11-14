@@ -584,7 +584,7 @@ and suggestions, keeps every version, and exports them for production.
   Built as agreed: the steps are `lib/tour.ts`, pointing at data-tour marks; `screens/Tour.svelte` shows them. The
   takes are a made-up voice (espeak-ng with an MBROLA voice), in docs/example/…/voice/. An example made before this
   keeps its old files until Start over.
-- [ ] **AP-35** A "What's new" tour (asked by the user): every so often, after updates that add features (not
+- [-] **AP-35** A "What's new" tour (asked by the user; shelved by the user, 2026-11-14): every so often, after updates that add features (not
   fixes), the app shows a short tour of just those new features the next time it is opened, with a Skip button.
   Related to AP-34 (the tutorial per tab), and could reuse its tour. Mock-up first.
 - [ ] **AP-36** Pop-up windows open where the viewer is looking (a bug the user hit): a window that opens over the
