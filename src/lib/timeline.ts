@@ -2,6 +2,7 @@
 // blocks in time. The line holds only what differs from the default: a sequence of every image in the row's Files,
 // sharing the row's time equally, with nothing after it.
 
+import { clearMarks } from './format';
 import { rows, readFileRef, timelineOnly, type Row, type Script } from './script';
 
 export type After = { kind: 'hold'; seconds: number } | { kind: 'placeholder'; seconds: number; label: string };
@@ -75,15 +76,34 @@ export type TimeBlock =
   | { kind: 'hold' | 'placeholder'; id: string; start: number; seconds: number; label: string; after: string };
 export type Lane = { title: string; start: number; seconds: number; first: string }; // a section's span, and its first row
 
-// Word timings of a take (seconds from its start), when known, to place cuts on a word.
+// When each word of a row is said (seconds from the row's start), to place cuts on a word.
 export type Words = { word: string; start: number }[];
+
+// Word timings estimated from the dialogue: each word starts as far into the row as it is into the line, by letters
+// (a long word takes longer to say). Good enough to cut on; a speech model reading the take could refine it later.
+export function estimateWords(dialogue: string, seconds: number): Words {
+  const words = [...plainText(dialogue).matchAll(/\S+/g)];
+  const letters = (w: string) => Math.max(1, plain(w).length);
+  const all = words.reduce((n, w) => n + letters(w[0]), 0);
+  let before = 0;
+  return words.map((w) => {
+    const start = all ? (before / all) * seconds : 0;
+    before += letters(w[0]);
+    return { word: w[0], start };
+  });
+}
+
+// The dialogue's words as said, marks taken out (bold, links, equations' dollars).
+export function dialogueWords(dialogue: string): string[] {
+  return plainText(dialogue).split(/\s+/).filter(Boolean);
+}
 
 // The whole script in time: rows (take length, or read time without one; a row with neither is left out) and the
 // holds and placeholders after them. Matches Play the script (lib/play.svelte.ts plan).
 export function layout(
   script: Script,
   length: (row: Row) => { seconds: number; take: boolean },
-  words: (row: Row) => Words | null = () => null,
+  words: (row: Row, seconds: number) => Words | null = (row, seconds) => estimateWords(row.dialogue, seconds),
 ): { blocks: TimeBlock[]; lanes: Lane[]; total: number } {
   const blocks: TimeBlock[] = [];
   const lanes: Lane[] = [];
@@ -99,7 +119,7 @@ export function layout(
     const c = readChoices(block.timeline);
     if (seconds > 0) {
       const shown = picks(block);
-      blocks.push({ kind: 'row', id: block.id, start: t, seconds, take, collage: c.collage && shown.length > 1, shots: shots(shown, seconds, c, words(block)), picks: shown });
+      blocks.push({ kind: 'row', id: block.id, start: t, seconds, take, collage: c.collage && shown.length > 1, shots: shots(shown, seconds, c, words(block, seconds)), picks: shown });
       if (lane && !lane.first) lane.first = block.id;
       t += seconds;
     }
@@ -164,6 +184,7 @@ export function cutPositions(dialogueWords: string[], cuts: string[]): number[] 
   return at;
 }
 
+const plainText = (text: string) => clearMarks(text);
 export const plain = (word: string): string => word.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 
 export function rowById(script: Script, id: string): Row | undefined {

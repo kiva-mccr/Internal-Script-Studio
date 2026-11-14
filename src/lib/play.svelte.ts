@@ -1,25 +1,23 @@
 // Play the script (AU-2, mock-up 14): the rows in order, each for as long as its take, with the take's sound. A row
 // with no take waits in silence for its read time, so the timing stays true (the user's choice over skipping it).
 import { countWords } from './readtime.svelte';
-import { rows, type Script } from './script';
+import type { Row, Script } from './script';
+import { layout } from './timeline';
 import { Sound, takeFile, takeLength, type Take } from './voice.svelte';
 
-// One row's turn: how long it lasts, whether it has a take to hear, and when it starts (seconds from the top).
+// One turn: a row (its id), or a hold or placeholder after one (SB-1: "hold:<id>", "placeholder:<id>", always
+// silent); how long it lasts, whether it has a take to hear, and when it starts (seconds from the top).
 export type Step = { id: string; seconds: number; take: boolean; start: number };
 
-// The rows to play, in order. A row with no take lasts its dialogue's read time at `speed` words a minute; a row
-// with no take and no dialogue is skipped. No gap between rows, like the exported voice-over.
+// What plays, in order: the storyboard timeline's blocks (lib/timeline.ts layout), so the two always agree. A row
+// with no take lasts its dialogue's read time at `speed` words a minute; a row with no take and no dialogue is
+// skipped. No gap between rows, like the exported voice-over.
 export function plan(script: Script, takes: Record<string, Take>, speed: number): Step[] {
-  const steps: Step[] = [];
-  let start = 0;
-  for (const row of rows(script)) {
+  const length = (row: Row) => {
     const take = takes[row.id];
-    const seconds = take ? takeLength(take) : (countWords(row.dialogue) / speed) * 60;
-    if (!(seconds > 0)) continue;
-    steps.push({ id: row.id, seconds, take: !!take, start });
-    start += seconds;
-  }
-  return steps;
+    return take ? { seconds: takeLength(take), take: true } : { seconds: (countWords(row.dialogue) / speed) * 60, take: false };
+  };
+  return layout(script, length).blocks.map((b) => ({ id: b.id, seconds: b.seconds, take: b.kind === 'row' && b.take, start: b.start }));
 }
 
 const TICK = 100; // ms between looks at how far it has played

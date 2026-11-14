@@ -21,3 +21,14 @@ describe('plan', () => {
     expect(plan(script, {}, 150).map((s) => s.id)).toEqual(['a', 'b']);
   });
 });
+
+describe('plan with the storyboard timeline (SB-1)', () => {
+  it('plays a hold or placeholder after its row, in silence', () => {
+    const s: Script = { front: null, intro: '', blocks: [{ ...row('a', 'one two three'), timeline: 'then hold 2 s' }, { ...row('b', ''), timeline: 'then placeholder 3 s "Drone"' }] };
+    expect(plan(s, { a: take(4) }, 150)).toEqual([
+      { id: 'a', seconds: 4, take: true, start: 0 },
+      { id: 'hold:a', seconds: 2, take: false, start: 4 },
+      { id: 'placeholder:b', seconds: 3, take: false, start: 6 }, // row b has no time, its placeholder still plays
+    ]);
+  });
+});

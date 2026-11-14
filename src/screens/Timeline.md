@@ -18,6 +18,13 @@ offers its pictures, Sequence or Collage, + Add a picture (only for the timeline
   sideways, the page doesn't.
 - Pictures are blob URLs from the script's folder, made while the timeline is shown and revoked after; a missing
   file is a grey stand-in. Waveforms come from `lib/waveform.ts`, made once per take.
+- Playing: the section is `position: sticky; bottom: 0` while `player.started` (pinned to the bottom of the screen),
+  the panel is hidden, a playhead runs at `player.time`, and the preview (16:9, 320 px, ⤢ to 720 px) sits above the
+  right end showing the picture of the moment: the sequence's shot at `player.elapsed`, a collage's all, a hold the
+  last picture before it, a placeholder its words. Step ids are block ids (`plan` is made from `layout`).
+- Cut on a word: the dialogue's words as buttons; a click toggles a cut there (at most one fewer than the
+  pictures). Saved as the words (`cuts at "water"`), matched again in order, so picking the second of two equal
+  words lands on the first: a known limit.
 - Hide is this browser's choice (`timeline-hidden`), for every script.
 - `selected` is shared with Write's bars (`TimelineBar.svelte`): picking a hold on the timeline opens its bar's
   editor in the script too.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseScript, readFileRef, rows, timelineOnly, markTimelineOnly, writeScript, type Row } from '../../src/lib/script';
-import { changeChoices, cutPositions, cutTimes, layout, picks, pictureFiles, readChoices, shots, writeChoices } from '../../src/lib/timeline';
+import { changeChoices, cutPositions, cutTimes, dialogueWords, estimateWords, layout, picks, pictureFiles, readChoices, shots, writeChoices } from '../../src/lib/timeline';
 
 const source = `# Intro
 
@@ -111,6 +111,26 @@ describe('pictures', () => {
     // One cut for three pictures: the rest share what's left.
     const one = readChoices('cuts at "carbon"');
     expect(shots(['a', 'b', 'c'], 5, one, words).map((s) => s.start)).toEqual([0, 2.5, 3.75]);
+  });
+
+  it('estimates when each word is said, by letters, marks left out', () => {
+    // Sun (3 letters), and (3), water (5): 11 letters over 6 seconds.
+    const words = estimateWords('**Sun** and water', 6);
+    expect(words.map((w) => w.word)).toEqual(['Sun', 'and', 'water']);
+    expect(words.map((w) => w.start)).toEqual([0, expect.closeTo(18 / 11), expect.closeTo(36 / 11)]);
+    expect(dialogueWords('It *needs* light.')).toEqual(['It', 'needs', 'light.']);
+  });
+
+  it('a layout cuts on the estimated words without a speech model', () => {
+    const script = parseScript(source);
+    const { blocks } = layout(script, () => ({ seconds: 5, take: true }));
+    const first = blocks[0];
+    expect(first.kind === 'row' && first.shots.map((s) => s.path)).toEqual(['assets/icon-sun.png', 'assets/icon-water.png', 'assets/icon-co2.png']);
+    // "water" and "carbon" come about halfway and two thirds in.
+    const starts = first.kind === 'row' ? first.shots.map((s) => +s.start.toFixed(2)) : [];
+    expect(starts[0]).toBe(0);
+    expect(starts[1]).toBeGreaterThan(2);
+    expect(starts[2]).toBeGreaterThan(starts[1]);
   });
 
   it('finds the cut words in the dialogue', () => {

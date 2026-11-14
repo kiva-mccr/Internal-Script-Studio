@@ -12,4 +12,6 @@ time between its pictures, on the cut words when the take's word timings are kno
 - The line holds only what differs from the default; `writeChoices` of the default is '' (no line at all).
 - Parts it doesn't understand are kept in `rest` and written back, so a later feature's parts survive older apps.
 - Keep `layout`'s lengths the same as Play the script's plan (`lib/play.svelte.ts`), or the playhead drifts.
+- Word timings are estimated (`estimateWords`: by letters, over the row's length), not heard: no speech model
+  reads the takes yet. Good enough to cut on; refine later if real takes drift.
 - A cut word is matched by `plain` (lower case, letters and digits only), the first match after the previous cut.
