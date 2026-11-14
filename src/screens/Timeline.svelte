@@ -169,7 +169,7 @@
   }
 </script>
 
-<section class="timeline" class:pinned={player.started} aria-label="Timeline" use:near={() => (shown = true)}>
+<section class="timeline" class:pinned={player.started} aria-label="Timeline" data-tour={readOnly ? 'review-timeline' : 'timeline'} use:near={() => (shown = true)}>
   {#if now}
     <div class="preview" class:big role="img" aria-label="Preview: {showing.tag}">
       <div class="screen" class:collage-on={showing.paths.length > 1}>

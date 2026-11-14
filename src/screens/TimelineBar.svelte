@@ -11,7 +11,7 @@
   const name = $derived(after.kind === 'hold' ? 'Hold' : 'Placeholder');
 </script>
 
-<div class="bar" class:ph={after.kind === 'placeholder'} class:open class:lit data-after={n}>
+<div class="bar" data-tour="timeline-bar" class:ph={after.kind === 'placeholder'} class:open class:lit data-after={n}>
   <div class="line">
     <button class="main" aria-expanded={open} aria-label="{name} after row {n}, {after.seconds} seconds" onclick={onToggle}>
       <span class="name">{after.kind === 'hold' ? '❚❚ Hold' : 'Placeholder'}</span>

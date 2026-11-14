@@ -672,11 +672,17 @@ and suggestions, keeps every version, and exports them for production.
   where it works; the nine new ones are buttons: click, press the new key (Esc stops), kept in this browser, Reset.
   Refused in the page: a key without Ctrl or Alt, one already used, or one the browser or the app keeps (Ctrl+B,
   Ctrl+Z, Ctrl+D …). The row buttons' hover text names their key. On a Mac ⌘ counts as Ctrl and shows as ⌘.
-- [ ] **AP-47** The tour and the example catch up (asked by the user, 2026-11-14): the guided tour (AP-34) covers the
+- [x] **AP-47** The tour and the example catch up (asked by the user, 2026-11-14): the guided tour (AP-34) covers the
   storyboard timeline (SB-1: holds and placeholders as bars, cut on a word, pinned while playing, read only in
   Review), and the example script shows off the recent features where they fit: the timeline, comments on hold
   (RV-19), tab counts (RV-21), sorting comments (RV-16), last seen (AP-37), folding columns in Review (RV-23),
   keyboard shortcuts (AP-44) and hide help text (AP-43). Mock-up first (board 66).
+  Agreed on board 66 ("looks good"), 8 cards in Write. Built so: Write's tour gains Holds and placeholders, The
+  storyboard timeline, and Saved, and who was here (Shape the script and It saves itself folded into others); Review's
+  gains What's changed, Fold a column and The timeline, to look at. The example opens on Sam's version
+  (`samsVersion`: docs/example's script.md stays as first sent): Ana sends it back, Sam slows the zoom, adds a cut on
+  "running", a 2 s hold, a sketch only for the timeline and a 3 s placeholder, and sends it again (Review shows 4);
+  Ana comments on "chloroplasts"; Leo's quiz idea is on hold with Sam's reply; Ana was here 3 h before.
 - [ ] **EX-19** A DaVinci Resolve or Premiere Pro project from the timeline (asked by the user; Premiere added
   2026-11-13): the app builds a file that DaVinci Resolve or Adobe Premiere Pro opens, with the timeline from SB-1
   (images, takes and timings in order), so editors pick it up and keep working on it there. To explore: both open the
