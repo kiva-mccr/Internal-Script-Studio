@@ -33,9 +33,57 @@ async function selectText(page: Page, cell: string, text: string) {
   }, text)).toBe(true);
 }
 
+// Selecting only shows the small Comment button (RV-22); pressing it opens the box.
+const pickButton = (page: Page) => page.getByRole('button', { name: 'Comment on the selected words' });
+async function commentOn(page: Page, cell: string, text: string) {
+  await selectText(page, cell, text);
+  await pickButton(page).click();
+}
+
+test('selecting words shows a Comment button, and only pressing it opens the box (RV-22)', async ({ page }) => {
+  await openReview(page);
+  const form = page.getByRole('form', { name: 'New comment' });
+  await selectText(page, 'Dialogue, row 1', 'tiny factory');
+  await expect(pickButton(page)).toBeVisible();
+  await expect(form).toHaveCount(0);
+  // It sits just above the selection.
+  const [b, w] = await Promise.all([pickButton(page).boundingBox(), page.evaluate(() => {
+    const r = getSelection()!.getRangeAt(0).getBoundingClientRect();
+    return { top: r.top, left: r.left, right: r.right };
+  })]);
+  expect(b!.y + b!.height).toBeLessThanOrEqual(w.top);
+  expect(b!.y + b!.height).toBeGreaterThan(w.top - 20);
+  // Esc puts it away; so does selecting nothing.
+  await page.keyboard.press('Escape');
+  await expect(pickButton(page)).toHaveCount(0);
+  await selectText(page, 'Dialogue, row 1', 'tiny factory');
+  await expect(pickButton(page)).toBeVisible();
+  await page.evaluate(() => getSelection()!.removeAllRanges());
+  await expect(pickButton(page)).toHaveCount(0);
+  // A double-click only selects the word: the button shows, nothing opens.
+  await page.getByLabel('Dialogue, row 1').getByText(/tiny factory/).dblclick({ position: { x: 5, y: 5 } });
+  await expect(pickButton(page)).toBeVisible();
+  await expect(form).toHaveCount(0);
+  expect(await page.evaluate(() => getSelection()!.toString().trim())).not.toBe('');
+  await pickButton(page).click();
+  await expect(form).toContainText('Comment on row 1 · Dialogue');
+  await expect(pickButton(page)).toHaveCount(0);
+  // A selection across two cells shows no button.
+  await page.evaluate(() => {
+    const [a, b] = [document.querySelector('[aria-label="Dialogue, row 1"]')!, document.querySelector('[aria-label="On screen, row 1"]')!];
+    const range = document.createRange();
+    range.setStart(a.firstChild!, 0);
+    range.setEnd(b.firstChild!, 3);
+    getSelection()!.removeAllRanges();
+    getSelection()!.addRange(range);
+    a.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  });
+  await expect(pickButton(page)).toHaveCount(0);
+});
+
 test('select text to comment on it; the comment is saved as its own file', async ({ page }) => {
   await openReview(page);
-  await selectText(page, 'On screen, row 1', 'sunlit leaf');
+  await commentOn(page, 'On screen, row 1', 'sunlit leaf');
   const form = page.getByRole('form', { name: 'New comment' });
   await expect(form).toContainText('Comment on row 1 · On screen');
   await form.getByRole('button', { name: 'Add comment' }).click();
@@ -87,7 +135,7 @@ test('someone else’s comment appears, and one on changed text says so', async 
 });
 
 async function suggestOn(page: Page, cell: string, text: string, replace: string) {
-  await selectText(page, cell, text);
+  await commentOn(page, cell, text);
   const form = page.getByRole('form', { name: 'New comment' });
   await form.getByRole('button', { name: 'Suggest a change' }).click();
   await expect(form.getByLabel('Replace with')).toHaveValue(text);

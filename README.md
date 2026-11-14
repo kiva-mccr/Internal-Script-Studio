@@ -101,7 +101,8 @@ Status: a first working version. What it does today:
 - **Links:** Copy link gives a link straight to the script, for anyone with the same folder; it opens on Review. Copy for Teams copies a
   short message to paste into a Teams chat: the title as a link (which also opens on Review), status, version, rows, read-aloud time, who edited
   last, open comments and voice-over progress. It is a snapshot of when you copied it, and doesn't update.
-- **Review:** Write · Review · History. Select any text to comment on it or suggest a change, or comment on a
+- **Review:** Write · Review · History. Select any text and press the small Comment button above it to comment or suggest a
+  change (a double-click only selects a word), or comment on a
   whole row; reply, resolve, reopen; accept or reject suggestions (accepting changes the script, Undo puts it
   back). Put on hold shelves a comment or suggestion for later (here and in Write's Comments tab): after 5 seconds
   with Undo it slides into a folded "On hold" list, isn't counted as open, and comes back into the open list, marked
