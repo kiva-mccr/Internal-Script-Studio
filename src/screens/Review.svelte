@@ -1,14 +1,9 @@
 <script lang="ts">
-  import { onDestroy, tick } from 'svelte';
-  import { Linger } from '../lib/linger.svelte';
-  import { slideAway } from '../lib/slide';
-  import { fieldText as text, quoteGone, threads, type Field, type Flag, type Note, type Thread } from '../lib/comments';
-  import AttachBox from './AttachBox.svelte';
-  import CommentCard from './CommentCard.svelte';
+  import { tick } from 'svelte';
+  import { fieldText as text, threads, type Field, type Flag, type Note } from '../lib/comments';
   import FlagIcon from './FlagIcon.svelte';
+  import ReviewComments from './ReviewComments.svelte';
   import SelectionComment from './SelectionComment.svelte';
-  import SortSwitch from './SortSwitch.svelte';
-  import { heading, sortThreads, toSort, SORT_KEY } from '../lib/commentsort';
   import Take from './Take.svelte';
   import type { Player } from '../lib/play.svelte';
   import type { VoiceOver } from '../lib/voice.svelte';
@@ -62,44 +57,18 @@
   } = $props();
 
   const FIELDS: [Field, string][] = [['dialogue', 'Dialogue'], ['on_screen', 'On screen'], ['files', 'Images & files']];
-  const label = (field?: Field) => FIELDS.find(([f]) => f === field)?.[1] ?? '';
 
-  let target = $state<{ row: string; field: Field; quote: string } | null>(null);
-  let draft = $state('');
+  let active = $state(''); // the card picked: its quote is marked brighter
   let hideSent = $state(false); // the review note folded to a button (RV-8), until Review is left
-  let draftFiles = $state<File[]>([]);
-  let draftMissing = $state('');
-  let suggesting = $state(false);
-  let active = $state('');
-  let showResolved = $state(false);
-  let showHeld = $state(false);
-  let box = $state<HTMLTextAreaElement>();
+  let comments = $state<ReviewComments>(); // the comments beside the script: `start` opens a new one
   let picker = $state<SelectionComment>(); // the Comment button on selected words (RV-22)
-
-  let recent = $state<string[]>([]); // decided here just now: kept in place, with Undo (mock-up 4)
-  let gone = $state<string[]>([]); // deleted here just now: kept in place as "… deleted. Undo" (RV-7, mock-up 24)
-  // Put on hold here (RV-19): in place with Undo for 5 seconds, then into On hold, sliding away.
-  const holding = new Linger();
-  onDestroy(() => holding.clear());
-  // Deleted ones are kept only while they are in `gone`.
-  const all = $derived(
-    threads(notes, true, ends)
-      .filter((t) => !t.deleted || gone.includes(t.comment.id))
-      .map((t) => ({ ...t, replies: t.replies.filter((r) => !r.deleted || gone.includes(r.id)) })),
-  );
-  const live = $derived(all.filter((t) => !t.deleted));
-  const open = $derived(live.filter((t) => !t.resolved && !t.held));
-  let sort = $state(toSort(recall(SORT_KEY))); // RV-16: Line by default, or Time or Type
-  const sorted = $derived(sortThreads(all, sort, script.blocks.filter((b): b is Row => b.type === 'row')));
-  const shown = $derived(sorted.filter((t) => (!t.resolved && !t.held) || recent.includes(t.comment.id) || holding.has(t.comment.id)));
-  const held = $derived(sorted.filter((t) => !t.resolved && t.held && !holding.has(t.comment.id)));
-  const resolved = $derived(sorted.filter((t) => t.resolved && !recent.includes(t.comment.id)));
-
+  const start = (t: { row: string; field: Field; quote: string }) => comments?.start(t);
+  // Open comments, for marking their quotes (the list itself is ReviewComments').
+  const open = $derived(threads(notes, true, ends).filter((t) => !t.deleted && !t.resolved && !t.held));
+  const rowList = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
 
   const words = $derived(sectionWords(script)); // each section's read time (AP-12)
-  const numbers = $derived(
-    new Map(script.blocks.filter((b): b is Row => b.type === 'row').map((row, i) => [row.id, i + 1])),
-  );
+  const numbers = $derived(new Map(rowList.map((row, i) => [row.id, i + 1])));
 
   let table = $state<HTMLElement>();
 
@@ -182,47 +151,6 @@
     });
     return () => ['comment', 'comment-on', 'suggestion'].forEach((name) => CSS.highlights.delete(name));
   });
-
-  function where(t: Thread): string {
-    const n = numbers.get(t.comment.row ?? '');
-    return n ? `row ${n}` : 'a deleted row';
-  }
-
-  const rowList = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
-
-  function start(t: { row: string; field: Field; quote: string }) {
-    target = t;
-    draft = '';
-    draftFiles = [];
-    draftMissing = '';
-    suggesting = false;
-    queueMicrotask(() => box?.focus());
-  }
-
-  // Suggesting starts from the selected words, ready to change.
-  function suggest(on: boolean) {
-    suggesting = on;
-    draft = on ? target!.quote : '';
-    draftFiles = []; // a suggestion is only words
-    draftMissing = '';
-    queueMicrotask(() => box?.focus());
-  }
-
-  async function send(e: SubmitEvent) {
-    e.preventDefault();
-    if (!target) return;
-    const { row, field, quote } = target;
-    if (suggesting) {
-      if (draft === quote) return void ((draftMissing = 'Change the text first.'), box?.focus());
-      if (await onAdd({ kind: 'suggestion', row, field, quote, replace: draft })) target = null;
-      return;
-    }
-    if (!draft.trim() && !draftFiles.length) return void ((draftMissing = 'Write a comment first.'), box?.focus());
-    if (await onAdd({ kind: 'comment', row, field, quote, text: draft.trim() }, draftFiles)) target = null;
-  }
-
-  // Deleted ones stay in place as "… deleted. Undo" while their id is in `gone` (RV-7).
-  const setGone = (id: string, deleted: boolean) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id));
 </script>
 
 <div class="review">
@@ -329,68 +257,8 @@
     <SelectionComment bind:this={picker} script={table} onComment={start} />
   </div>
 
-  <aside aria-label="Comments" data-tour="review-cards">
-    {#if target}
-      <form class="card compose" aria-label="New comment" novalidate onsubmit={send}>
-        <div class="who">{suggesting ? 'Suggest a change to' : 'Comment on'} row {numbers.get(target.row)}{target.quote ? ` · ${label(target.field)}` : ''}</div>
-        {#if target.quote && target.field !== 'files'}
-          <div class="switch" role="group" aria-label="Comment or suggest">
-            <button type="button" aria-pressed={!suggesting} onclick={() => suggest(false)}>Comment</button>
-            <button type="button" aria-pressed={suggesting} onclick={() => suggest(true)}>Suggest a change</button>
-          </div>
-        {/if}
-        {#if target.quote}<blockquote>{target.quote}</blockquote>{/if}
-        {#snippet typing()}
-          <textarea bind:this={box} bind:value={draft} oninput={() => (draftMissing = '')} aria-label={suggesting ? 'Replace with' : 'Comment'} rows="3"></textarea>
-          {#if draftMissing}<p class="missing" role="alert">{draftMissing}</p>{/if}
-        {/snippet}
-        {#snippet buttons()}
-          <button class="primary small" type="submit">{suggesting ? 'Add suggestion' : 'Add comment'}</button>
-          <button class="link" type="button" onclick={() => (target = null)}>Cancel</button>
-        {/snippet}
-        {#if suggesting}
-          {@render typing()}
-          <div class="actions">{@render buttons()}</div>
-        {:else}
-          <AttachBox {dir} bind:files={draftFiles} actions={buttons}>{@render typing()}</AttachBox>
-        {/if}
-      </form>
-    {/if}
-
-    <div class="open">
-      <h2>Open · {open.length}</h2>
-      {#if all.length}<SortSwitch bind:sort />{/if}
-    </div>
-    {#each shown as t, i (t.comment.id)}
-      {#if heading(shown, i, sort)}<h3 class="kind">{heading(shown, i, sort)}</h3>{/if}
-      <div class="slot" out:slideAway>{@render card(t)}</div>
-    {:else}
-      <p class="quiet">No open comments.</p>
-    {/each}
-
-    {#if held.length}
-      <button class="link" aria-expanded={showHeld} onclick={() => (showHeld = !showHeld)}>
-        {showHeld ? '▾' : '▸'} On hold · {held.length}
-      </button>
-      {#if showHeld}
-        <p class="quiet">Back in the open list at the next Send for review or official version.</p>
-        {#each held as t (t.comment.id)}<div class="slot" out:slideAway>{@render card(t)}</div>{/each}
-      {/if}
-    {/if}
-
-    {#if resolved.length}
-      <button class="link" aria-expanded={showResolved} onclick={() => (showResolved = !showResolved)}>
-        {showResolved ? '▾' : '▸'} Resolved · {resolved.length}
-      </button>
-      {#if showResolved}{#each resolved as t (t.comment.id)}<div class="slot" out:slideAway>{@render card(t)}</div>{/each}{/if}
-    {/if}
-  </aside>
+  <ReviewComments bind:this={comments} bind:active {dir} {notes} {ends} {me} rows={rowList} {numbers} {onAdd} {onApply} />
 </div>
-
-{#snippet card(t: Thread)}
-  <CommentCard {t} {dir} {me} where={where(t)} gone={quoteGone(t.comment, rowList)} active={t.comment.id === active} recent={recent.includes(t.comment.id) || holding.has(t.comment.id)}
-    onActivate={() => (active = t.comment.id)} {onAdd} {onApply} onDecided={(id) => (recent = [...recent, id])} onHeld={(id) => holding.add(id)} onGone={setGone} />
-{/snippet}
 
 <!-- Rows removed since the last review (RV-4): one grey struck line each, where they were. -->
 {#snippet removedRows(after: string)}
@@ -398,7 +266,6 @@
     <p class="removed grid"><span class="tag">Removed</span><span class="gone"><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s>{#if visitBy(row.id)}{' · '}{visitBy(row.id)?.who}{/if}</span></p>
   {/each}
 {/snippet}
-
 
 <style>
   .sent { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 20px; padding: 14px 16px; border: 1px solid #d6e0f7;
@@ -413,7 +280,6 @@
   .sent-folded { display: block; margin: 0 0 20px; border: 1px solid #d6e0f7; background: #f5f8fe; }
   .review { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
   .script { position: relative; flex: 999 1 640px; min-width: 0; }
-  aside { flex: 1 1 300px; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }
   .hint { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: 56px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.7fr); gap: 20px; padding: 0 12px; }
   .head { position: sticky; top: 0; z-index: 1; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px;
@@ -468,21 +334,4 @@
   .files { font-size: 13px; color: #3d3d3d; }
   .cell :global(a) { color: var(--accent); }
   .cell :global(s) { color: #8a8a8a; }
-  h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-  .open { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
-  .open h2 { margin: 0; }
-  .kind { margin: 4px 0 0; font-size: 12px; font-weight: 600; color: var(--muted); }
-  .card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-  .compose { border-color: var(--accent); }
-  .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
-  .switch { display: flex; gap: 2px; padding: 3px; border-radius: 8px; background: #f2f2f2; align-self: flex-start; }
-  .switch button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 13px; }
-  .switch button[aria-pressed='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
-  blockquote { margin: 0; padding-left: 10px; border-left: 3px solid #e0b100; font-size: 14px; color: #3d3d3d; }
-  textarea { font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; resize: vertical; }
-  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .small { min-height: 40px; padding: 0 16px; font-size: 14px; }
-  .missing { margin: 0; font-size: 13px; color: var(--danger); }
-  .quiet { margin: 0; font-size: 13px; color: var(--muted); }
-  .slot { display: flex; flex-direction: column; }
 </style>

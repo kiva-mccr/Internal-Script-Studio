@@ -11,7 +11,7 @@ const FIELDS: Field[] = ['dialogue', 'on_screen', 'files'];
 const TYPES = ['Suggestions', 'On words', 'On a whole row'];
 
 // 0 a suggestion, 1 a comment on words, 2 a comment on a whole row (the user's order).
-export function typeOf(t: Thread): number {
+function typeOf(t: Thread): number {
   return t.comment.kind === 'suggestion' ? 0 : t.comment.quote ? 1 : 2;
 }
 

@@ -1,10 +1,10 @@
 # `src/lib/slide.ts`
 
 `slideAway`, the out transition for a comment card leaving its list (RV-19, the user's ask): it slides right and
-fades, then its height closes so the cards below slide up. On the wrapper of each card in `Review.svelte` and
+fades, then its height closes so the cards below slide up. On the wrapper of each card in `ReviewComments.svelte` and
 `Comments.svelte` (open, On hold and Resolved lists).
 
-- **Used by:** `screens/Review.svelte`, `screens/Comments.svelte`. **Tests:** `tests/e2e/hold.spec.ts`.
+- **Used by:** `screens/ReviewComments.svelte`, `screens/Comments.svelte`. **Tests:** `tests/e2e/hold.spec.ts`.
 
 ## Rules and pitfalls
 

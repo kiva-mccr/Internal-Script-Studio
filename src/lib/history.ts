@@ -4,7 +4,7 @@
 import { frontValue, parseScript, type Row, type Script } from './script';
 import { fileKey, keepVersions, recallVersions, remembered } from './versioncache';
 
-export type Kind = 'edit' | 'review' | 'restore' | 'merge' | 'outside' | 'restart' | 'official';
+type Kind = 'edit' | 'review' | 'restore' | 'merge' | 'outside' | 'restart' | 'official';
 export type Version = {
   v: 1;
   id: string;

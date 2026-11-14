@@ -1,7 +1,7 @@
 // Previews of files in Images & files, on comments and in Assets (AP-19, mock-up 41): what kind of preview a file
 // gets from its name, and the work to make one. PDF and TIFF readers are only fetched when such a file is shown.
 
-export type PreviewKind = 'image' | 'tif' | 'video' | 'audio' | 'pdf' | 'text' | 'word';
+type PreviewKind = 'image' | 'tif' | 'video' | 'audio' | 'pdf' | 'text' | 'word';
 
 export type Preview =
   | { kind: 'image' | 'tif'; url: string }
@@ -35,7 +35,7 @@ export function kindName(name: string): string {
 }
 
 // How many lines of a text or Word file are shown.
-export const LINES = 3;
+const LINES = 3;
 
 // Makes a file's preview, or null when it has none or it can't be read. Anything with a url is a blob URL the caller
 // revokes when done (revokePreview).
