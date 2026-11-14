@@ -31,6 +31,9 @@ Status: a first working version. What it does today:
   in place, a slim player for sound, or the first lines of a Word, text, Markdown or CSV file. Other kinds
   (PowerPoint, zip…) show their kind and size. Click a preview or a name to open the file. Select text for bold, italic, underline,
   strikethrough, a link, an equation (LaTeX) or Clear; Ctrl+B, I, U and K work too.
+  Once you change a Dialogue or On screen box, a small "▸ Before you started" under it shows the words as they were
+  when you opened the script, to compare as you go; "Put it back" restores them (Undo at the bottom brings yours back).
+  Other people's changes don't count as yours.
   It saves on its own a moment after you stop typing. If the browser stops letting the app edit the folder (Chrome
   and Edge do this after a tab sits in the background a while), the status says so: click Allow editing and what
   you typed is saved. Choosing "Allow on every visit" in the browser's question keeps this from coming back. The ‹ beside a column heading folds that column away (say,

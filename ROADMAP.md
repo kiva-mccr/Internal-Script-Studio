@@ -500,10 +500,15 @@ and suggestions, keeps every version, and exports them for production.
   the word like anywhere else. Placed by the user after the current queue. Mock-up first. Agreed on board 56 ("I
   like it") with its six suggested choices: a dark Comment button just above the end of the selection; one button
   (Suggest a change stays in the box); gone with the selection or Esc; the row's own Comment stays; the tour says so.
-- [ ] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
+- [x] **AP-38** The line as it was before you started (asked by the user): while editing a row in Write, a small
   dropdown on that row shows its words as they were when you started editing, so you can look back and forth and see
   how the line improved. Related to RV-15's "Show the edits" (old words above the box). Placed by the user after the
-  current queue. Mock-up first.
+  current queue. Mock-up first. Agreed on board 54 ("Looks good, I like plain") with its choices: "before" is the
+  words when the script was opened, kept until you leave it (saves don't move it); a grey "▸ Before you started"
+  under each changed Dialogue or On screen cell, closed at first, open while you type; the old words plain in a grey
+  box under yours; Put it back through the Undo bar; only your own changes, only in Write. Built so: `lib/started.ts`
+  (a `Started` kept by `Saving`) takes each row's words on opening and moves a row along when someone else's change
+  file (or an edit outside the app) changes it; rows you add have none.
 - [x] **RV-19** Put a comment on hold (asked by the user): a comment that isn't resolved but is shelved for later can
   be put On hold, which moves it out of the open list without losing it. Agreed with the user: the list shows how many
   are on hold, and held comments come back into view when the script is sent for review or a version is made, so they

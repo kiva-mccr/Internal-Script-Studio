@@ -42,3 +42,6 @@ back, `onEntry` says a status change's entry was written. `script`, `dir`, `stat
   `leave()`), then add a `review` History entry; a send's entry is also the next official version (`official: true`)
   unless `sendVersion` says nothing changed since the newest (RV-9). The button names contain "Write" (Send back
   to writer), so tests pick the Write tab with `exact: true`.
+- `started` (AP-38, `lib/started.ts`): taken on opening; every place that folds someone else's change into `shared`
+  calls `started.follow(before, after)`, so "Before you started" shows only this person's own changes. A new place
+  that changes `shared` from others must do the same.

@@ -3,6 +3,7 @@
   import type { Row } from '../lib/script';
   import { toHtml } from '../lib/format';
   import type { Marks } from '../lib/visit';
+  import type { Words } from '../lib/started';
   import { at as when } from '../lib/when';
   import type { Flag, Thread } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
@@ -17,13 +18,15 @@
   // block: the row, edited in place (onChange). i: its index in the script's blocks (data-block); n: its number.
   // columns: the grid's columns; folded: the columns folded away (AP-17). stepped: the flag stepped to (AP-9).
   // said: its open comments (RV-13); talking: its card is being read. visit: RV-15's marks. came: RV-12's file.
+  // start: its words when the script was opened (AP-38); onPutBack puts a cell's back (Write's, for the Undo bar).
   // onMove, onInsert, onRemove, onToSection and onToggleFlag are Write's (they change the blocks round it);
   // onMic: the mic (Write stops a take on another row first). onPaste: two or more paragraphs pasted into Dialogue (AP-13).
-  let { block = $bindable(), i, n, columns, folded, dir, root, folderName, voice, player, canPlay, name, flag, stepped, said, talking, visit, came,
-    onChange, onNotice, onPlayFrom, onFlag, onTalk, onMove, onInsert, onRemove, onToSection, onToggleFlag, onMic, onPaste }: {
+  let { block = $bindable(), i, n, columns, folded, dir, root, folderName, voice, player, canPlay, name, flag, stepped, said, talking, visit, came, start,
+    onChange, onPutBack, onNotice, onPlayFrom, onFlag, onTalk, onMove, onInsert, onRemove, onToSection, onToggleFlag, onMic, onPaste }: {
     block: Row; i: number; n: number | undefined; columns: string; folded: Set<string>; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle;
     folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string; flag: Flag | undefined; stepped: boolean;
     said: Thread[]; talking: boolean; visit: Marks | null; came: { row: string; line: string; from: string } | null;
+    start: Words | undefined; onPutBack: (field: 'dialogue' | 'onScreen') => void;
     onChange: () => void; onNotice: (message: string) => void; onPlayFrom: (id: string) => void;
     onFlag: (row: string, note: string | null) => Promise<boolean>; onTalk: (id: string) => void;
     onMove: (by: number) => void; onInsert: () => void; onRemove: () => void; onToSection: () => void; onToggleFlag: () => void; onMic: () => void;
@@ -36,6 +39,9 @@
   const sounding = $derived(voice.playing === block.id || (here && player.on));
   const was = $derived(visit?.changed.get(block.id));
   const by = $derived(was !== undefined ? visit?.by.get(block.id) : undefined);
+
+  // Before you started (AP-38): which cells show their old words. Closed at first; open while you keep typing.
+  let opened = $state({ dialogue: false, onScreen: false });
 
   // The running clock while recording.
   let now = $state(Date.now());
@@ -120,6 +126,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="dialogue" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote('dialogue', e.target)}><TextField bind:value={block.dialogue} oninput={onChange} label="Dialogue, row {n}" placeholder="What is said"
       onparagraphs={onPaste} /></div>
+    {@render started('dialogue', 'Dialogue')}
     {#if recording}
       {#if voice.cue}<p class="take" role="status">Getting ready…</p>
       {:else}<p class="take rec" role="status">● Recording {clock((now - voice.started) / 1000)} · ■ stops</p>{/if}
@@ -141,6 +148,7 @@
       {#if visit?.edits && was && was.onScreen !== block.onScreen}{@render before(was.onScreen, 'On screen', n)}{/if}
       <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
       <div class="screen" onclick={(e) => e.target instanceof HTMLTextAreaElement && clickQuote('on_screen', e.target)}><TextField bind:value={block.onScreen} oninput={onChange} label="On screen, row {n}" placeholder="What the viewer sees" /></div>
+      {@render started('onScreen', 'On screen')}
     </div>
   {/if}
   {#if folded.has('files')}{@render dot(block.files.length > 0, 'Images & files')}{:else}
@@ -171,6 +179,22 @@
 <!-- Show the edits (RV-15): the old words in their own line above the box, never inside it, so typing is as ever. -->
 {#snippet before(text: string, name: string, n: number | undefined)}
   <p class="was" aria-label="{name} before, row {n}">{@html toHtml(text) || '(empty)'}</p>
+{/snippet}
+
+<!-- Before you started (AP-38, board 54): under a cell you changed, its words as they were when the script was opened,
+     plain, in a grey box under the box you type in, with Put it back. -->
+{#snippet started(field: 'dialogue' | 'onScreen', name: string)}
+  {#if start && start[field] !== block[field]}
+    <div class="start">
+      <button class="open" aria-expanded={opened[field]} aria-label="Before you started: row {n} {name}" onclick={() => (opened[field] = !opened[field])}>
+        {opened[field] ? '▾' : '▸'} Before you started
+      </button>
+      {#if opened[field]}
+        <button class="back" aria-label="Put back row {n} {name}" onclick={() => onPutBack(field)}>Put it back</button>
+        <p class="old" class:big={field === 'dialogue'} aria-label="Row {n} {name} as it was">{@html toHtml(start[field]) || '(empty)'}</p>
+      {/if}
+    </div>
+  {/if}
 {/snippet}
 
 {#snippet micIcon()}
@@ -250,6 +274,15 @@
     border: 1px solid #c9d5f2; border-radius: 6px; background: #fff; color: var(--accent); font-size: 13px; }
   .seen:hover { border-color: var(--accent); }
   .was { margin: 0 0 4px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; color: #8a2b2b; text-decoration: line-through; }
+  /* Before you started (AP-38): small and grey under the cell; the old words read as plainly as the new. */
+  .start { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; margin-top: 4px; }
+  .start button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: none; font-size: 13px; font-weight: 500; }
+  .start .open { margin-left: -8px; color: var(--muted); }
+  .start .back { color: var(--accent-dark); }
+  .start button:hover { background: #f0f0f0; }
+  .old { flex: 1 0 100%; margin: 2px 0 0 -8px; padding: 6px 8px; border-radius: 6px; background: #f5f5f5; color: var(--muted);
+    font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
+  .old.big { font-size: 17px; }
   .flag-note { grid-column: 3 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px;
     padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7ed; color: var(--flag); font-size: 13px; }
   .flag-note label { display: flex; flex: 1 1 280px; align-items: center; gap: 8px; min-width: 0; }
