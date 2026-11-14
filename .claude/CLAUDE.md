@@ -58,7 +58,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   AP-9 (done), AP-24 (done), RV-7 (done), EX-12 (done), RV-11 (done), RV-8 (done), EX-9 (done), RV-4 (done), AS-1 (done). Since then, asked by the user: AP-28 (done), AU-5 (done), AU-7 (done), AU-8 (done), AU-9 (done), AP-30 (done), AP-29 (done), EX-16 (done), AP-19 (done), EX-15 (done), RV-13 (done). Then, the user's ranked picks (2026-11-12), mock-ups first: RV-14 (done), AP-32 (done), RV-15 (done), AP-33 (done). Then, added by the user (2026-11-13), in this order: RV-9 (done), RV-6 (done), RV-12 (done), EX-18 (done), AP-31 (done).
 - Done 2026-11-13: flaky tests, the screen split, HI-3, AP-34, RV-17, RV-18, RV-20 (AP-36 shelved by the user).
 - FX-1, then FX-2 (saving with each person's own change files, the user's design) went ahead of the round.
-- Now (the user's ranking, 2026-11-13), mock-ups first, built in this order: RV-19 (done), RV-22 (done), RV-16 (done), AP-38 (done), RV-21,
+- Now (the user's ranking, 2026-11-13), mock-ups first, built in this order: RV-19 (done), RV-22 (done), RV-16 (done), AP-38 (done), RV-21 (done),
   AP-39, then AP-40, AP-41, RV-23 (added by the user 2026-11-14, any order; mock-ups prepared before the queue
   restarts), then AP-37 last (on the network drive it may read "Sam last seen …"). The user is
   running the real-world checks with the field test checklist:
@@ -121,4 +121,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   Chromium was timed; a first visit on a new computer still reads every file.
 - The example's tour (AP-34) in real Chrome/Edge at other window sizes: only 1280 × 800 and 1920 × 1080 test Chromium
   were seen. Its takes are a made-up voice (espeak-ng); nothing was heard here.
+- Tab counts (RV-21) with two real computers: others' versions and comments are only simulated by writing their
+  files in tests.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.

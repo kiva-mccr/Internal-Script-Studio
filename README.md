@@ -114,7 +114,7 @@ Status: a first working version. What it does today:
   comments on words, then comments on a whole row (Type), remembered for Review and Write alike. Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
   50 MB each; bigger things go in OneDrive as a link). They show the same previews as Images & files, with the name
-  and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Review tab shows how many are open. Send for review (in Write), with an optional note for the
+  and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Write and Review tabs show what's new for you: Review, once it is sent for review, the rows changed since it was last sent back; Write, once it is sent back, the comments and suggestions from the review still open. Opening a tab clears its number, and it then counts only what comes later (your own never count). Send for review (in Write), with an optional note for the
   reviewers that they see at the top of Review, then Approve or Send back to writer (with an optional note for the
   writer, shown at the top of Comments in Write); each step (and the note)
   is noted in History, and the list shows the status. If comments, suggestions or missing files are still open,

@@ -28,7 +28,11 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 - Review and History are shown only once what is waiting is saved; `switchMode` keeps the newest mode asked for, so
   one that finishes late never replaces a mode picked meanwhile (History then Write at once stayed on History).
   Every change of mode goes through `switchMode` (or `showReview`/`showHistory`), never `mode = …`.
-- Comments are read on opening and every 5 s (`lib/comments.ts`); the Review tab shows how many are open.
+- Comments are read on opening and every 5 s (`lib/comments.ts`); the Comments panel's tab shows how many are open.
+- Tab counts (RV-21, `lib/tabcounts.ts`): Write's and Review's "what's new for you", worked out on opening, with the
+  5 s check, and on a change of mode or status (`readCounts`; Review's only there, never per keystroke, since it
+  reads History). A tab is marked seen (`lookAt`) on entering and on leaving it, and on leaving the script, so the
+  tab you are on never shows a number and what came while you were on it is seen.
 - Flags (AP-9): `flagged` comes from the comment notes (`flags()`), read every 5 s like comments; `flag` writes a
   `flag` or `unflag` note. Before Approve they come first, as `flag:<row id>`, and `showLoose` takes them back to
   Write, to that row's note.

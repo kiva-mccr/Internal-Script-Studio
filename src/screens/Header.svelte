@@ -11,8 +11,8 @@
   import Settings from './Settings.svelte';
 
   type Mode = 'write' | 'review' | 'history' | 'assets';
-  let { folder, title, ready, mode, openCount, loose, missingCount, voiceText, voiceWpm, play, editors, folding = '', reviewStatus, heldCount = 0, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
-    folder: string; title: string; ready: boolean; mode: Mode; openCount: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
+  let { folder, title, ready, mode, writeCount = 0, reviewCount = 0, loose, missingCount, voiceText, voiceWpm, play, editors, folding = '', reviewStatus, heldCount = 0, status, problem = '', onAllow, onLoose, onMode, onStatus, onFind, onPrompt, onCredits, onExport, onShare, onPlay, onStop, nextVersion }: {
+    folder: string; title: string; ready: boolean; mode: Mode; writeCount?: number; reviewCount?: number; loose: Loose[]; missingCount: number; voiceText: string; voiceWpm: number; editors: string[]; reviewStatus: string;
     heldCount?: number; // comments on hold (RV-19): Send for review says they come back
     // Play the script (AU-2): null when there is nothing to play here; time is '' until it has started.
     play: { time: string; on: boolean } | null; onPlay: () => void; onStop: () => void;
@@ -121,9 +121,11 @@
   </nav>
   {#if ready}
     <nav class="modes" aria-label="Mode">
-      <button aria-current={mode === 'write' ? 'page' : undefined} onclick={() => onMode('write')}>Write</button>
+      <button aria-current={mode === 'write' ? 'page' : undefined} onclick={() => onMode('write')}>
+        Write{#if writeCount}<span class="count" title="Comments and suggestions from the review, new to you" aria-label="{writeCount} new">{writeCount}</span>{/if}
+      </button>
       <button aria-current={mode === 'review' ? 'page' : undefined} onclick={() => onMode('review')}>
-        Review{#if openCount}<span class="count" aria-label="{openCount} open">{openCount}</span>{/if}
+        Review{#if reviewCount}<span class="count" title="Rows changed since it was sent back, new to you" aria-label="{reviewCount} new">{reviewCount}</span>{/if}
       </button>
       <button aria-current={mode === 'history' ? 'page' : undefined} onclick={() => onMode('history')}>History</button>
       <button aria-current={mode === 'assets' ? 'page' : undefined} onclick={() => onMode('assets')}>

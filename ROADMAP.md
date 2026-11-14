@@ -488,11 +488,13 @@ and suggestions, keeps every version, and exports them for production.
   RV-18: a before and after picture is shown to the user before it is merged. Built so (the user: "looks good"): a
   solid blue outline with a soft ring and tint on the card, a short flash when you jump to it, and a darker tint
   with a blue bar on its row in Write. Pictures: project files, comment-highlight/.
-- [ ] **RV-21** Tab counts that say what's new for you (asked by the user): today the Review tab's number is the open
-  comments. Instead, Review counts the rows changed between Send back to writer and the next Send for review (what
-  the reviewer has to look at), and Write counts the comments and suggestions made between Send for review and Send
-  back to writer (what the writer has to deal with). A count clears once you open its tab, then counts only what is
-  new since (remembered per browser, like RV-15). Placed by the user after the current queue. Mock-up first.
+- [x] **RV-21** Tab counts that say what's new for you (asked by the user, board 57 agreed as drawn): the Review tab's
+  number was the open comments. Now, while it is in review, Review counts the rows others changed since the last
+  Send back to writer (the rows "What's changed" marks; none on a first review), and once it is sent back, Write
+  counts others' still-open comments and suggestions made since the Send for review (not replies). Opening a tab
+  clears its number; after that it counts only what is new since you last had it open (kept per script in this
+  browser, like RV-15). The tab you're on never shows one. The open count stays on the Comments panel's tab and in
+  the check before Approve. `lib/tabcounts.ts`.
 - [x] **RV-22** A Comment button on selected words (asked by the user): in Review, selecting words today opens the
   comment box straight away (so a double-click on a word opens it too). Instead, selecting words shows a small Comment
   button beside them, and the box opens only when it is clicked, so selecting to read or copy doesn't start a

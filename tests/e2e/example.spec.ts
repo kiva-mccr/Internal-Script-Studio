@@ -10,7 +10,7 @@ test('the example opens with its pictures, comments and History, and nothing is 
   await page.getByText('How Photosynthesis Works').click();
   await expect(page.getByText('Every leaf you have ever seen is running a tiny factory.')).toBeVisible();
   await expect(page.locator('img[alt="leaf-closeup.jpg"], img[src^="blob:"]').first()).toBeVisible();
-  // Its name gains the open count ("Review 2 open") once the comments are read: matched by its start.
+  // Matched by its start: its name can gain a count of what's new (RV-21).
   await page.getByRole('button', { name: /^Review/ }).click();
   await expect(page.getByText('Could we shoot a real leaf for this instead of stock footage?')).toBeVisible();
   await page.getByRole('button', { name: 'History', exact: true }).click();

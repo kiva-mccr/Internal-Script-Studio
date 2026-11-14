@@ -63,7 +63,7 @@ test('rows with open comments get a bubble; it opens the Comments tab at that ca
 
   // Review has only Planning in the panel: its comments are beside the script already.
   await page.getByRole('button', { name: /^Review/ }).click();
-  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('3');
+  await expect(page.getByRole('button', { name: /^Review/ })).toHaveText('Review'); // no open count there since RV-21
   await expect(page.getByRole('button', { name: 'Open planning' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Open comments/ })).toHaveCount(0);
 });

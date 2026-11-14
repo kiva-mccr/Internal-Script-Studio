@@ -96,7 +96,6 @@ test('select text to comment on it; the comment is saved as its own file', async
   await expect(card).toContainText('Could we shoot a real leaf?');
   await expect.poll(() => marked(page)).toEqual(['sunlit leaf']);
   await expect(page.getByRole('heading', { name: 'Open · 1' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
   expect(await readJsonFiles(page, COMMENTS)).toMatchObject([{
     kind: 'comment', who: 'Sam', field: 'on_screen', quote: 'sunlit leaf', text: 'Could we shoot a real leaf?',
   }]);
@@ -152,7 +151,7 @@ test('suggest a change; accepting updates the script, and Undo puts it back', as
   const card = page.getByRole('article', { name: 'Suggestion by Sam' });
   await expect(card).toContainText('Sam suggested · row 3');
   await expect(card).toContainText('Replace “catch” with “absorb”.');
-  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
+  await expect(page.getByRole('heading', { name: 'Open · 1' })).toBeVisible();
   await card.getByRole('button', { name: 'Accept' }).click();
   await expect(card).toContainText('Accepted. The script is updated.');
   await expect(page.getByLabel('Dialogue, row 3')).toContainText('chloroplasts absorb the light');
