@@ -16,6 +16,9 @@
   import FlagIcon from './FlagIcon.svelte';
   import WriteRow from './WriteRow.svelte';
   import FoldHeads from './FoldHeads.svelte';
+  import Timeline from './Timeline.svelte';
+  import TimelineBar from './TimelineBar.svelte';
+  import { changeChoices, readChoices, type After } from '../lib/timeline';
 
   // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, or a paste made rows,
   // with the blocks as they were before, so the Editor can offer Undo. onNotice: a message for the person.
@@ -323,6 +326,44 @@
     return map;
   });
 
+  // The storyboard timeline (SB-1): the block picked on it (a row id, or "hold:<id>" / "placeholder:<id>"), shared
+  // with the hold and placeholder bars between rows. Changes go in the row's Timeline line, like any edit.
+  let chosen = $state('');
+  const rowOf = (id: string) => script.blocks.find((b): b is Extract<Block, { type: 'row' }> => b.type === 'row' && b.id === id);
+  function setTimeline(id: string, line: string) {
+    const row = rowOf(id);
+    if (!row || row.timeline === line) return;
+    row.timeline = line;
+    onChange();
+  }
+  function setFiles(id: string, files: string[]) {
+    const row = rowOf(id);
+    if (!row) return;
+    row.files = files;
+    onChange();
+  }
+  const setAfter = (id: string, after: After) => {
+    const row = rowOf(id);
+    if (row) setTimeline(id, changeChoices(row, (c) => (c.after = after)));
+  };
+  // ✕ on a bar or Remove in the panel: at once, through the Undo bar (no dialogs).
+  function removeAfter(id: string) {
+    const row = rowOf(id);
+    const after = row && readChoices(row.timeline).after;
+    if (!row || !after) return;
+    const before = script.blocks.map((b) => (b === row ? { ...b } : b));
+    row.timeline = changeChoices(row, (c) => (c.after = null));
+    if (chosen.endsWith(`:${id}`)) chosen = '';
+    onDeleted(before, `${after.kind === 'hold' ? 'Hold' : 'Placeholder'} after row ${numbers.get(row)} removed.`);
+    onChange();
+  }
+  function showRow(id: string) {
+    const el = table?.querySelector(`[data-row="${id}"]`);
+    if (!el) return;
+    const { top, bottom } = el.getBoundingClientRect();
+    if (top < 140 || bottom > innerHeight) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
   const focusIf = (node: HTMLInputElement, on: boolean) => {
     if (on) { node.focus(); fresh = null; }
   };
@@ -367,10 +408,16 @@
       </div>
     {:else}
       <WriteRow bind:block={() => block, (b) => (script.blocks[i] = b)} {i} n={numbers.get(block)} {columns} folded={folds.folded} {dir} {root} {folderName} {voice} {player} {canPlay} {name}
-        flag={flagged.get(block.id)} stepped={current === block.id} said={talkByRow.get(block.id) ?? []} talking={talkRow === block.id} {visit}
+        lit={chosen === block.id} flag={flagged.get(block.id)} stepped={current === block.id} said={talkByRow.get(block.id) ?? []} talking={talkRow === block.id} {visit}
         came={came?.row === block.id ? came : null} start={started.get(block.id)} onPutBack={(field) => putBack(block, field)} {onChange} {onNotice} {onPlayFrom} {onFlag} {onTalk}
         onMove={(by) => move(i, by)} onInsert={() => insertRow(i + 1)} onRemove={() => remove(i)} onToSection={() => toSection(i)}
         onToggleFlag={() => toggleFlag(block.id)} onMic={() => mic(block.id)} onPaste={(lines, head, tail) => pasteRows(block, lines, head, tail)} />
+      {@const after = readChoices(block.timeline).after}
+      {#if after}
+        {@const key = `${after.kind}:${block.id}`}
+        <TimelineBar {after} n={numbers.get(block) ?? 0} open={chosen === key} lit={player.row === key}
+          onToggle={() => (chosen = chosen === key ? '' : key)} onSet={(a) => setAfter(block.id, a)} onRemove={() => removeAfter(block.id)} />
+      {/if}
       {@render removedRows(block.id)}
     {/if}
   {/each}
@@ -380,6 +427,8 @@
     <button class="link" onmousedown={(e) => e.preventDefault()} onclick={addSection}>+ Add section</button>
   </div>
 </div>
+<Timeline {script} {dir} {voice} {canPlay} bind:selected={chosen} onTimeline={setTimeline} onFiles={setFiles} onRemoveAfter={removeAfter}
+  onShow={showRow} {onPlayFrom} {onNotice} />
 
 {#snippet removedRows(after: string)}
   {#each removedAfter.get(after) ?? [] as row (row)}

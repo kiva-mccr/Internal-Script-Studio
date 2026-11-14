@@ -15,6 +15,8 @@ preview get their kind and size on the chip.
   sound that won't play) shows its chip with kind and size.
 - AP-39: previews are made once the cell is within two screens (`use:near`). Until a file has been tried, a grey
   `.stand-in` of about its preview's size holds the place (120 px tall for a picture), so rows don't jump.
+- Files only for the storyboard timeline (a line ending ` (timeline)`, SB-1) are hidden behind one
+  "+2 for the timeline" chip that shows them; × still removes one.
 - A file that is not there (still syncing, or renamed) gives a plain message, not an error.
 - "From Sam's comment" (`came`, RV-12) works like "Copied from …".
 - "Copied from …" under a chip is only kept while the cell is shown; the script does not record where a file came from.

@@ -46,3 +46,4 @@ flag's note.
   first; it resets when Write is left). Put it back is Write's (`onPutBack`, through the Undo bar). The buttons' and the
   box's names never contain "Dialogue, row n" or "On screen, row n": tests find the text boxes with `getByLabel`, which
   matches part of a name.
+- `lit` (SB-1): the row's block is picked on the storyboard timeline; tinted like the row being played.

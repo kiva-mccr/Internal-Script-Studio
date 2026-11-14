@@ -52,5 +52,8 @@ deleting, keys, the flag bar, find, quotes marked, removed rows). Any column but
   Dialogue or On screen in its own `.was` line above the box, never in it (Images & files shows no old names here;
   Review does). Removed rows are a grey line after the row they followed (`removedRows`).
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.
+- The storyboard timeline (SB-1): `Timeline.svelte` comes after the table; holds and placeholders are also a
+  `TimelineBar.svelte` after their row. `chosen` (the block picked) is shared by both, and lights up its row
+  (`lit` on `WriteRow`). Removing one goes through the Undo bar (`onDeleted`), copying the row first.
 - Before you started (AP-38): `started` (the Editor's `file.started.rows`) goes to each row as `start`; Put it back
   (`putBack`) copies the row for the Undo bar (`onDeleted`) before setting the field, like a paste.

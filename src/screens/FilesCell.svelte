@@ -5,7 +5,7 @@
   import { addAsset, assetFile } from '../lib/folder';
   import { kindName, makePreview, previewKind, revokePreview, type Preview as Made } from '../lib/preview';
   import { sizeText } from '../lib/comments';
-  import { readFileRef } from '../lib/script';
+  import { readFileRef, timelineOnly } from '../lib/script';
   import { near } from '../lib/near';
 
   // files: the row's Files lines. root and here: the picked folder and this script's folder name, for "From other
@@ -76,6 +76,10 @@
     previews = { ...previews, [path]: null };
   }
 
+  // Files added only for the storyboard timeline (SB-1) are shown minimised: one "+2 for the timeline" chip.
+  let extras = $state(false);
+  const extraCount = $derived(files.filter(timelineOnly).length);
+
   let typed = $state('');
   let picker: HTMLInputElement;
 
@@ -120,6 +124,7 @@
 
 <div class="files" data-tour="files" use:near={() => (shown = true)}>
   {#each files as line, i (i + line)}
+    {#if extras || !timelineOnly(line)}
     {@const ref = readFileRef(line)}
     {@const preview = ref.kind === 'path' ? previews[ref.target] : null}
     {#if preview}
@@ -143,7 +148,12 @@
     </span>
     {#if copied?.line === line}<span class="copied">Copied from {copied.from}</span>
     {:else if came?.line === line}<span class="copied">From {came.from}</span>{/if}
+    {/if}
   {/each}
+  {#if extraCount}
+    <button class="extras" aria-expanded={extras} title={files.filter(timelineOnly).map((l) => readFileRef(l).label).join(', ')}
+      onclick={() => (extras = !extras)}>{extras ? 'Fold the timeline’s files' : `+${extraCount} for the timeline`}</button>
+  {/if}
 
   {#if adding}
     <form class="add-form" onsubmit={addTyped}>
@@ -188,6 +198,8 @@
   .add-form { display: flex; flex-direction: column; gap: 6px; width: 100%; }
   .ways { display: flex; flex-wrap: wrap; gap: 6px; }
   .copied { font-size: 12px; color: var(--muted); }
+  .extras { padding: 2px 8px; border: 0; border-radius: 10px; background: #f2f2f2; font-size: 12px; color: var(--muted); }
+  .extras:hover { background: #e4e4e4; color: var(--ink); }
   .choose { border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; padding: 5px 10px; font-size: 13px; }
   .add-form input { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: 6px; }
 </style>

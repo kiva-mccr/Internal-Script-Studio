@@ -5,7 +5,7 @@ The storyboard timeline (SB-1, mock-up 63): reads and writes a row's `Timeline:`
 (`layout`): rows, then the hold or placeholder after each, and the sections' spans. `shots` splits a sequence's
 time between its pictures, on the cut words when the take's word timings are known (`cutTimes`), else equally.
 
-- **Used by:** the Timeline panel (from PR 2 of SB-1). **Tests:** `tests/unit/timeline.test.ts`.
+- **Used by:** `screens/Timeline.svelte`, `screens/Write.svelte`. **Tests:** `tests/unit/timeline.test.ts`.
 
 ## Rules and pitfalls
 
