@@ -169,7 +169,7 @@ and suggestions, keeps every version, and exports them for production.
   no History versions, not in exports. A tab on the right edge of Write and Review; the 380 px panel pushes the
   columns narrower (in Review at 1280 px the comments then move under the script). One text box with the cells'
   formatting plus bullets, numbers and tick boxes; open or closed is remembered by the browser.
-- [ ] **AP-26** Opens without wifi (asked by the user; explore first): keep the whole app in the browser (a service
+- [-] **AP-26** Dropped by the user (2026-11-13): the scripts now live on a network drive, so working offline matters less. Opens without wifi (asked by the user; explore first): keep the whole app in the browser (a service
   worker caching its files) so it opens and works offline. The scripts are already on the computer through the synced
   folder; OneDrive catches up once back online. To explore: how an update reaches people (a new version on the next
   visit), and what stays online-only (Follow my voice's first model download, links, Copy for Teams).
@@ -555,7 +555,7 @@ and suggestions, keeps every version, and exports them for production.
   page should be centred in the part of the page on screen, not on the whole length of the page. The two pop-up
   windows in the code, Settings and Shared files, are pinned to the screen with a gap at the top, so which one the
   user saw (or a menu or panel inside the page) is to be confirmed first. Bug fix, no mock-up needed.
-- [ ] **AP-37** When each computer last synced (asked by the user): a web page can't ask OneDrive for its status, so
+- [ ] **AP-37** When each computer last synced (asked by the user; in this round after AP-39, thread started 2026-11-14; on the network drive it may become "last seen"): a web page can't ask OneDrive for its status, so
   each computer with the app open leaves a small "still here" mark in `.studio/` about once a minute, and the others
   show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
   OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
