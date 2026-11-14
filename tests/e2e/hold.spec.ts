@@ -43,7 +43,6 @@ test('Put on hold waits 5 seconds with Undo, then slides into On hold; not count
   await expect(panel.getByRole('button', { name: 'On hold · 1' })).toBeVisible();
   await expect(page.getByRole('button', { name: /open on row 4/ })).toHaveCount(0); // no bubble
   await expect(panel.getByRole('button', { name: 'Comments · 1' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('1');
 
   await panel.getByRole('button', { name: 'On hold · 1' }).click();
   await expect(panel).toContainText('Back in the open list at the next Send for review or official version.');

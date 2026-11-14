@@ -28,6 +28,7 @@
   import Write from './Write.svelte';
   import VisitBar from './VisitBar.svelte';
   import { sinceVisit, visitKey, type Marks, type Visit } from '../lib/visit';
+  import { reviewCount, seenKey, stamp, writeCount } from '../lib/tabcounts';
   import { addNote, flags, listNotes, threads, type Attachment, type Field, type Note } from '../lib/comments';
 
   // review: opened from a shared link, so it starts on the Review tab (RV-10). tour: in the example only, the guided
@@ -189,6 +190,7 @@
       keep(key, opened);
       if (file.dir && file.script) visit = sinceVisit(await listVersions(file.dir).catch(() => []), file.script, before, name);
       if (file.dir) notes = await listNotes(file.dir).catch(() => []);
+      await readCounts();
       if (file.dir) await voice.load(file.dir);
       checker = setInterval(checkOutside, CHECK_EVERY);
       heartbeat = setInterval(() => file.here(), HERE_EVERY);
@@ -198,6 +200,7 @@
   });
 
   onDestroy(() => {
+    lookAt(mode);
     voice.stopPlaying();
     player.stop();
     clearInterval(checker);
@@ -324,6 +327,34 @@
       .catch(() => {});
   }
   $effect(readReview);
+
+  // Tab counts (RV-21, board 57): what's new for you on Write and Review since you last had each open here. The tab
+  // you are on never shows one; leaving it, or the script, marks it seen (kept in this browser only).
+  const seen = $state({ write: recall(seenKey('write', untrack(() => folder.name), untrack(() => path))),
+    review: recall(seenKey('review', untrack(() => folder.name), untrack(() => path))) });
+  let versions = $state<Version[]>([]);
+  let reviewNew = $state(0);
+  const writeNew = $derived(writeCount(versions, allThreads, reviewStatus, name, seen.write));
+  function lookAt(tab: string) {
+    if (tab !== 'write' && tab !== 'review') return;
+    seen[tab] = stamp();
+    keep(seenKey(tab, folder.name, path), seen[tab]);
+  }
+  async function readCounts() {
+    const [d, s] = [file.dir, file.script];
+    if (!d || !s) return;
+    versions = await listVersions(d).catch(() => versions);
+    reviewNew = reviewCount(versions, s, reviewStatus, name, seen.review);
+  }
+  let shown = ''; // the tab last marked seen
+  $effect(() => {
+    const m = mode;
+    void [reviewStatus, dir];
+    untrack(() => {
+      if (m !== shown) (lookAt(shown), lookAt(m), (shown = m));
+      readCounts();
+    });
+  });
   async function setStatus(to: 'draft' | 'in review' | 'approved', note: string, message = '') {
     await file.setStatus(to, note, message);
   }
@@ -372,6 +403,7 @@
     await file.readEditors();
     notes = await listNotes(file.dir).catch(() => notes);
     await file.sync();
+    await readCounts();
   }
 
   // A row or section was deleted in Write: kept a few seconds so it can be undone.
@@ -461,7 +493,7 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} {openCount} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {heldCount} {status} problem={file.problem}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} writeCount={mode === 'write' ? 0 : writeNew} reviewCount={mode === 'review' ? 0 : reviewNew} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {heldCount} {status} problem={file.problem}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
   onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />
