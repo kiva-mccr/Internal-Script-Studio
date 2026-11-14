@@ -19,6 +19,8 @@ Status: a first working version. What it does today:
   offer to one line for good. Inside it, a short guided tour shows each tab the first time you open it: Next (or →)
   moves on, Skip tour (or Esc) stops the tours on every tab, and Take the tour in the blue strip plays it again.
 - **The list:** every script in the folder, its status, and who last edited it and when. New script starts one.
+  It opens fast on a network drive: your computer remembers each script's line, looks only at file names and dates,
+  and reads again only the scripts that changed, the ones on screen first.
 - **Writing:** each row is dialogue, what's on screen, and its images and files. Click to type; hover a row to move,
   add or delete it. Keys: Tab goes to the next box (Shift+Tab back), Ctrl+Enter adds a row below, Alt+Up and
   Alt+Down move the row. Add section puts a new section right after the box you are typing in (or at the end); a section

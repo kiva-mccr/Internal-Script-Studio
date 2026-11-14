@@ -2,89 +2,62 @@
   import People from './People.svelte';
   import SharedFiles from './SharedFiles.svelte';
   import { onMount } from 'svelte';
-  import { countMissing } from '../lib/assets';
-  import { flags, listNotes } from '../lib/comments';
-  import { forMe, waiting, type ForMe } from '../lib/forme';
-  import { listVersions } from '../lib/history';
+  import { waiting } from '../lib/forme';
   import { keep, recall } from '../lib/remember';
   import FlagIcon from './FlagIcon.svelte';
-  import { createScript, findScript, listScripts, readScript, type ScriptInfo } from '../lib/folder';
-  import { plan } from '../lib/play.svelte';
+  import { createScript, findScript } from '../lib/folder';
   import { clock, speaking } from '../lib/readtime.svelte';
-  import { parseScript, rows, type Script } from '../lib/script';
-  import { readTakes, type Take } from '../lib/voice.svelte';
+  import { length, ScriptList, type Entry } from '../lib/scriptlist.svelte';
   import { routeHash } from '../lib/route';
   import { ago } from '../lib/when';
 
   let { folder, name, onChangeFolder }: { folder: FileSystemDirectoryHandle; name: string; onChangeFolder: () => void } =
     $props();
 
-  let scripts = $state<ScriptInfo[] | null>(null);
+  // Each script's facts, remembered in this browser and checked against its files (AP-40).
+  // svelte-ignore state_referenced_locally
+  const list = new ScriptList(folder, name);
+  let scripts = $derived(list.ready ? Object.values(list.entries).sort((a, b) => b.edited - a.edited) : null);
   let error = $state('');
   let isOneScript = $state(false); // the picked folder is a single script's folder, not the one above it
   let adding = $state(false);
   let newName = $state('');
   let addError = $state('');
-  let missing = $state<Record<string, number>>({}); // files missing from each script's folder (EX-6), by path
-  let flagCount = $state<Record<string, number>>({}); // flagged rows in each script (AP-9), by path
-  let mine = $state<Record<string, ForMe>>({}); // what waits for you in each script (RV-14), by path
   let onlyMine = $state(recall('list-for-me') === '1'); // the All · For me switch, kept in this browser
   const show = (forMeOnly: boolean) => keep('list-for-me', (onlyMine = forMeOnly) ? '1' : '');
-  let mineCount = $derived(scripts?.filter((s) => waiting(mine[s.path.join('/')])).length ?? 0);
-  let shown = $derived(onlyMine ? (scripts ?? []).filter((s) => waiting(mine[s.path.join('/')])) : (scripts ?? []));
-  // Each script and its takes, for its length (AP-12), by path. The length itself follows the speaking speed.
-  let read = $state.raw<Record<string, { script: Script; takes: Record<string, Take> }>>({});
+  let mineCount = $derived(scripts?.filter((s) => waiting(s.counts?.mine)).length ?? 0);
+  let shown = $derived(onlyMine ? (scripts ?? []).filter((s) => waiting(s.counts?.mine)) : (scripts ?? []));
 
-  // The script's length as Play times it: each take, and read time for the rows with none. Recorded once every
-  // row has a take.
-  function length(path: string[]): { text: string; recorded: boolean } | null {
-    const one = read[path.join('/')];
-    if (!one) return null;
-    const steps = plan(one.script, one.takes, speaking.wpm);
-    const seconds = steps.reduce((sum, step) => sum + step.seconds, 0);
-    return seconds ? { text: clock(seconds), recorded: steps.every((step) => step.take) } : null;
+  // The script's length as Play times it, at the speaking speed. Recorded once every row has a take.
+  function lengthOf(script: Entry): { text: string; recorded: boolean } | null {
+    const got = script.counts && length(script.counts, speaking.wpm);
+    return got ? { text: clock(got.seconds), recorded: got.recorded } : null;
   }
 
   async function load() {
     try {
-      scripts = await listScripts(folder);
-      isOneScript = scripts.length === 0 && (await findScript(folder, [])) !== null;
+      await list.refresh();
+      isOneScript = !Object.keys(list.entries).length && (await findScript(folder, [])) !== null;
       error = '';
-      countAll(scripts);
     } catch {
       error = "The folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
     }
   }
   onMount(load);
 
-  // Counted after the list is shown, so a big folder doesn't hold it up. A script that can't be read shows nothing.
-  async function countAll(list: ScriptInfo[]) {
-    const next: Record<string, number> = {};
-    const flaggedNow: Record<string, number> = {};
-    const mineNow: Record<string, ForMe> = {};
-    const scripts: typeof read = {};
-    for (const info of list) {
-      try {
-        const dir = await findScript(folder, info.path);
-        if (!dir) continue;
-        const script = parseScript(await readScript(dir));
-        const key = info.path.join('/');
-        scripts[key] = { script, takes: await readTakes(dir) };
-        next[key] = await countMissing(dir, script);
-        const notes = await listNotes(dir);
-        flaggedNow[key] = flags(notes, rows(script).map((row) => row.id)).size;
-        // History only matters for a review or a send back, so an approved script's isn't read.
-        const versions = info.status === 'approved' ? [] : await listVersions(dir);
-        mineNow[key] = forMe(name, info.status, versions, notes);
-      } catch {
-        // Mid-sync: counted next time.
-      }
-    }
-    missing = next;
-    flagCount = flaggedNow;
-    mine = mineNow;
-    read = scripts;
+  // Rows on screen are read first.
+  const observer = new IntersectionObserver((seen) => {
+    for (const one of seen) list.seen((one.target as HTMLElement).dataset.name!, one.isIntersecting);
+  });
+  function watch(row: HTMLElement) {
+    observer.observe(row);
+    return { destroy: () => observer.unobserve(row) };
   }
+  // Leaving the list stops its reading, so it doesn't slow the script being opened.
+  onMount(() => () => {
+    observer.disconnect();
+    list.stop();
+  });
 
   async function create(event: SubmitEvent) {
     event.preventDefault();
@@ -152,13 +125,13 @@
       </div>
     {:else}
     <div class="scroll">
-      <div class="table">
+      <div class="table" aria-busy={list.busy}>
         <div class="head"><span>Script</span><span>Status</span><span>Length</span><span>Last edited</span></div>
         {#each shown as script (script.path.join('/'))}
-          {@const long = length(script.path)}
-          {@const me = mine[script.path.join('/')]}
-          <a class="row" href={routeHash(script.path)}>
-            <span class="title-cell"><span class="title">{script.title}</span>{#if flagCount[script.path.join('/')]}<span class="flagged"><FlagIcon size={12} />{flagCount[script.path.join('/')]} flagged</span>{/if}{#if missing[script.path.join('/')]}<span class="missing">{missing[script.path.join('/')]} missing</span>{/if}{#if me?.review}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Your review</span>{/if}{#if me?.replies}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L3 21l2-6.2A8 8 0 1 1 21 12z"></path></svg>{me.replies === 1 ? '1 reply' : `${me.replies} replies`}</span>{/if}{#if me?.back}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>Sent back to you</span>{/if}</span>
+          {@const long = lengthOf(script)}
+          {@const me = script.counts?.mine}
+          <a class="row" href={routeHash(script.path)} data-name={script.path[0]} use:watch>
+            <span class="title-cell"><span class="title">{script.title}</span>{#if script.counts?.flagged}<span class="flagged"><FlagIcon size={12} />{script.counts.flagged} flagged</span>{/if}{#if script.counts?.missing}<span class="missing">{script.counts.missing} missing</span>{/if}{#if me?.review}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Your review</span>{/if}{#if me?.replies}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.8 7L3 21l2-6.2A8 8 0 1 1 21 12z"></path></svg>{me.replies === 1 ? '1 reply' : `${me.replies} replies`}</span>{/if}{#if me?.back}<span class="mine"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>Sent back to you</span>{/if}</span>
             <span class="status"><span class="dot {script.status.replace(' ', '-')}" aria-hidden="true"></span>{label[script.status] ?? script.status}</span>
             <span class="length" title={long ? (long.recorded ? 'Recorded voice-over, every row' : `Read time at ${speaking.wpm} words a minute`) : undefined}>
               {long?.text ?? ''}{#if long?.recorded}<svg role="img" aria-label="recorded" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>{/if}

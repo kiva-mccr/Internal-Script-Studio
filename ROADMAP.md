@@ -594,13 +594,19 @@ and suggestions, keeps every version, and exports them for production.
   details" button that copies the full error (the browser's error name and message, what the app was doing, the
   app's version, the browser) for debugging, without cluttering the message. Messages name OneDrive or another
   system only when the app knows that's where the folder is (the save messages were changed in FX-1). Mock-up first.
-- [ ] **AP-40** The script list reads only what it needs (asked by the user): today the list, after showing names,
+- [x] **AP-40** The script list reads only what it needs (asked by the user): today the list, after showing names,
   reads every script's script file, take notes, all comment files and History (not approved ones) one after another,
   and again whenever the window gets focus. Instead: (1) only the scripts on screen are read, the rest as you scroll
   to them; (2) the counts (length, missing, flagged, For me) are remembered per script in the browser, and a script
   is read again only when its files changed (a folder listing with file dates, no file opened); (3) coming back to
   the window checks dates only. Goes with AP-39 and HI-3. Explore and measure on a big folder first; the list looks
-  the same, so no mock-up unless something visible changes.
+  the same, so no mock-up unless something visible changes. Built (2026-11-14, the user's pick of the plan over a
+  shared summary file, which waits until first visits prove slow): `lib/scriptlist.svelte.ts` keeps each script's
+  line in localStorage with a fingerprint (script.md's size and date, History and comment names, take dates, names in
+  the Files column's folders), reads only scripts whose fingerprint changed, four at a time, rows on screen first;
+  unknown scripts' titles first so the list shows whole. Measured on a made-up 60-script folder with 10 ms on every
+  folder call: first visit, rows 5 s → 1.5 s and counts 60 s → 17 s; next visit, rows 5 s → 0.2 s and checked in
+  1.2 s; coming back to the window 59 s → 1 s.
 - [x] **AP-42** A tidy pass (suggested from a size check, 2026-11-14): the code is healthy (about 11,300 lines, the
   biggest file 552), but the comment features keep landing in `Review.svelte` (488 lines) and `Editor.svelte`. Split
   Review's comment list and sorting out like Write was split, and drop exports nothing outside their file uses. No
