@@ -23,10 +23,10 @@
   // start: its words when the script was opened (AP-38); onPutBack puts a cell's back (Write's, for the Undo bar).
   // onMove, onInsert, onRemove, onToSection and onToggleFlag are Write's (they change the blocks round it);
   // onMic: the mic (Write stops a take on another row first). onPaste: two or more paragraphs pasted into Dialogue (AP-13).
-  let { block = $bindable(), i, n, columns, folded, dir, root, folderName, voice, player, canPlay, name, flag, stepped, said, talking, visit, came, start,
+  let { block = $bindable(), i, n, columns, folded, dir, root, folderName, voice, player, canPlay, name, lit = false, flag, stepped, said, talking, visit, came, start,
     onChange, onPutBack, onNotice, onPlayFrom, onFlag, onTalk, onMove, onInsert, onRemove, onToSection, onToggleFlag, onMic, onPaste }: {
     block: Row; i: number; n: number | undefined; columns: string; folded: Set<string>; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle;
-    folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string; flag: Flag | undefined; stepped: boolean;
+    folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string; lit?: boolean; flag: Flag | undefined; stepped: boolean;
     said: Thread[]; talking: boolean; visit: Marks | null; came: { row: string; line: string; from: string } | null;
     start: Words | undefined; onPutBack: (field: 'dialogue' | 'onScreen') => void;
     onChange: () => void; onNotice: (message: string) => void; onPlayFrom: (id: string) => void;
@@ -77,7 +77,7 @@
   }
 </script>
 
-<div class="row grid" style:grid-template-columns={columns} class:here class:stepped={flag && stepped} class:talking
+<div class="row grid" style:grid-template-columns={columns} class:here class:lit class:stepped={flag && stepped} class:talking
   class:visited={by} class:visit-on={by && visit?.on === block.id} style:--down="{(said.length ? 34 : 0) + (by ? 58 : 0)}px"
   data-row={block.id} data-block={i} data-visit={by ? block.id : undefined} data-tour="row">
   <div class="num">
@@ -213,7 +213,7 @@
   .grid { display: grid; gap: 0 24px; padding-left: 12px; padding-right: 12px; }
   .row { align-items: start; min-height: calc(64px + var(--down, 0px)); padding-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
   /* The row being played (AU-2). */
-  .row.here { border-radius: 8px; background: #eef2fb; }
+  .row.here, .row.lit { border-radius: 8px; background: #eef2fb; }
   .from { margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; }
   .from:hover { background: #f0f0f0; color: var(--accent); }
   /* The number turns into ▶ while the mouse is anywhere on the row (AU-7), so playing from here can be found. */

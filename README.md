@@ -174,6 +174,13 @@ Status: a first working version. What it does today:
   each take in time; the line being spoken is tinted and the page follows it. A row with no take waits in silence
   for its read time. With the mouse on a row, its number becomes ▶: click it to play from there (the row playing shows ❚❚); pause with the same button or Space, stop with ■ or
   Esc. It works the same in Review, where each line also shows its take to listen to, without the mic or delete.
+- **Storyboard timeline:** under the last row in Write, the script laid out in time: sections, then each row with its
+  pictures (every image or video in its Files, one after another, or side by side as a collage), then the voice-over
+  as a waveform (a row with no take gets its read time). Hover a block for its dialogue; click it to light up its row
+  and pick its pictures, switch Sequence or Collage, or add a picture just for the timeline (Files shows those
+  minimised, "+1 for the timeline"). A Hold (the last picture stays, in silence) or a Placeholder (a shot still to
+  come, with its length) can follow any row; it shows as a bar between the rows too: click it to change it, ✕ to
+  remove it (with Undo). − and + zoom; Hide folds the timeline away. Kept in the row's `Timeline:` line in script.md.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it, with a thumbnail for pictures, PDFs and videos: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.
