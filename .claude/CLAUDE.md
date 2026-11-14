@@ -62,7 +62,9 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   AP-39, then AP-40, AP-41, RV-23 (added by the user 2026-11-14, any order; mock-ups prepared before the queue
   restarts), then AP-37 last (on the network drive it may read "Sam last seen …"). The user is
   running the real-world checks with the field test checklist:
-  https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. The rest (AP-15, AP-8, AP-35, SB-1 then EX-19 …) waits
+  https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. Once this round is finished, if usage remains, start the
+  SB-1 (storyboard timeline) mock-up: mock-up only, no building (the user, 2026-11-14).
+  The rest (AP-15, AP-8, AP-35, SB-1's build then EX-19 …) waits
   for the user's next ranking; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
 
