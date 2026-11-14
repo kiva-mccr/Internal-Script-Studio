@@ -14,9 +14,11 @@ Status: a first working version. What it does today:
 
 - **First time:** type your name and choose your team's scripts folder ("Before you start" explains putting it on this
   computer, from a network drive or a synced folder such as OneDrive). The browser remembers both. New here? "Open the example" under it opens a
-  made-up script (one file of each kind the app previews, a voice-over take on every row, two comments and History)
+  made-up script (one file of each kind the app previews, a voice-over take on every row, a storyboard timeline with
+  a hold and a placeholder, comments of each kind with one on hold, and a History with a send back)
   to click around in first; your changes stay in this browser, Start over puts it back as new, and the – folds the
-  offer to one line for good. Inside it, a short guided tour shows each tab the first time you open it: Next (or →)
+  offer to one line for good. Inside it, a short guided tour shows each tab the first time you open it, the timeline
+  included: Next (or →)
   moves on, Skip tour (or Esc) stops the tours on every tab, and Take the tour in the blue strip plays it again.
 - **The list:** every script in the folder, its status, and who last edited it and when. New script starts one.
   It opens fast on a network drive: your computer remembers each script's line, looks only at file names and dates,

@@ -184,7 +184,7 @@
     {/if}
     <p class="hint help">Select any text, then press Comment, to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
     {#if since}
-      <div class="changes" class:off={!marking} role="group" aria-label="What's changed">
+      <div class="changes" class:off={!marking} data-tour="review-changed" role="group" aria-label="What's changed">
         <label class="tick"><input type="checkbox" bind:checked={marking} onchange={() => keep('review-changes', marking ? '' : 'off')} /> What's changed</label>
         {#if marking}
           <span class="what"><b>{sinceText.what}</b> {sinceText.when}</span>
@@ -197,7 +197,7 @@
         {/if}
       </div>
     {/if}
-    <div class="head grid" style:grid-template-columns={grid}><span>#</span><FoldHeads folds={shut} /></div>
+    <div class="head grid" data-tour="review-folds" style:grid-template-columns={grid}><span>#</span><FoldHeads folds={shut} /></div>
     {@render removedRows('')}
     {#each script.blocks as block, i (i)}
       {#if block.type === 'section'}

@@ -65,7 +65,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb.
 - Queue (the user's order, 2026-11-14), mock-ups first, built one at a time: AP-44 (shortcuts, done), AP-43 (hide help
-  text, done), then SB-1 (storyboard timeline, done 2026-11-14).
+  text, done), then SB-1 (storyboard timeline, done 2026-11-14), then AP-47 (the tour and the example catch up, done).
   The rest (AP-15, AP-8, EX-19 …) waits
   for the user's next ranking; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).
@@ -77,7 +77,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   change file (`changeFile` / `writeChange` in `tests/e2e/folder.ts`), not a write to script.md (that's now an
   outside edit). Typing saves after 1.5 s in tests (`save-every`), 30 s for real; script.md comes after, so poll it.
 - e2e tests start with the example's tour skipped (playwright.config.ts); a feature named in the tour keeps its
-  `data-tour` mark, and its step in `lib/tour.ts` changes with it.
+  `data-tour` mark, and its step in `lib/tour.ts` changes with it. The example opens on `samsVersion` of
+  docs/example's script.md (lib/example.md).
 - A file being written shows in a folder listing as "name.crswap" until it closes, and its real name is there, empty
   (or briefly gone), from the start. Tests read a folder's JSON files with `readJsonFiles` (waits for whole files)
   and count them with `expect.poll`, never `listFiles` + `readFile` + `JSON.parse`.

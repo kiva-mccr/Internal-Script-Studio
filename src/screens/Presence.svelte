@@ -23,7 +23,7 @@
 
 <svelte:window onpointerdown={away} onkeydown={(e) => e.key === 'Escape' && (open = false)} />
 {#if editors.length || last}
-  <span class="presence" bind:this={el}>
+  <span class="presence" data-tour="presence" bind:this={el}>
     {#if editors.length}
       <button class="editing" aria-expanded={open} onclick={() => (open = !open)}>
         <span class="dot" aria-hidden="true"></span>{editingText(editors)}{#if folding}<span class="spin" role="img" aria-label="Bringing in {folding}’s changes" title="Bringing in {folding}’s changes"></span>{/if}

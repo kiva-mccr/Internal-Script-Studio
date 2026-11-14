@@ -99,3 +99,32 @@ test('the example shows every kind of file the app previews, and a take on every
   await expect(page.getByText('Outdated')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Play the script' })).toBeVisible();
 });
+
+test('the example shows off the recent features: timeline, a send back, a held comment, sorting and who was here (AP-47)', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Open the example' }).click();
+  await page.getByText('How Photosynthesis Works').click();
+  // Sam's version: holds and placeholders as bars, a picture only for the timeline, and the timeline itself.
+  await expect(page.getByRole('button', { name: 'Hold after row 2, 2 seconds' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Placeholder after row 4, 3 seconds' })).toBeVisible();
+  await expect(page.getByText('+1 for the timeline')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Timeline' })).toHaveCount(1);
+  // Ana left three hours ago.
+  await expect(page.getByRole('button', { name: 'Ana was here 3 h ago' })).toBeVisible();
+  // Review counts the four rows Sam changed since Ana sent it back, and marks them.
+  await expect(page.getByRole('button', { name: /^Review/ })).toContainText('4');
+  await page.getByRole('button', { name: /^Review/ }).click();
+  await expect(page.getByText('Zoom slowed down, and there\'s a timeline under the script for the filmmakers.')).toBeVisible();
+  await expect(page.getByText('4 rows changed')).toBeVisible();
+  // Three open comments in a different order by line, time and type; Leo's is on hold.
+  const aside = page.getByRole('complementary', { name: 'Comments' });
+  await expect(aside.getByRole('button', { name: 'On hold · 1' })).toBeVisible();
+  const order = async () => (await aside.locator('article').allTextContents()).map((t) =>
+    t.includes('real leaf') ? 'leaf' : t.includes('everyday') ? 'everyday' : t.includes('slow down') ? 'slow' : '?').join(' ');
+  await expect.poll(order).toBe('leaf everyday slow');
+  const sort = aside.getByRole('group', { name: 'Sort comments' });
+  await sort.getByRole('button', { name: 'Time' }).click();
+  await expect.poll(order).toBe('slow everyday leaf');
+  await sort.getByRole('button', { name: 'Type' }).click();
+  await expect.poll(order).toBe('everyday leaf slow');
+});

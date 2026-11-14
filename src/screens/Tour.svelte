@@ -42,6 +42,8 @@
       last = now;
       await wait(100);
     }
+    // Some parts come in a moment after the first (who was here is read from the folder): wait a little for them.
+    for (let tries = 0; tries < 20 && !list.every((step) => find(step)); tries++) await wait(50);
     if (which !== tab) return;
     steps = list.filter((step) => find(step)); // a part not on the page now (a hidden note) is left out
     playing = which;

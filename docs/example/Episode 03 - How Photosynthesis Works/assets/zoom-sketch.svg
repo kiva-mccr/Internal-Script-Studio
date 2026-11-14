@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="270" viewBox="0 0 480 270">
+  <rect width="480" height="270" fill="#F4F1E6"/>
+  <g fill="none" stroke="#3D6B35" stroke-width="4" stroke-linecap="round">
+    <path d="M40 200 C60 120 120 80 150 70 C150 130 120 190 40 200 Z"/>
+    <path d="M44 196 L140 80"/>
+    <rect x="200" y="85" width="90" height="100" rx="18"/>
+    <circle cx="400" cy="135" r="48"/>
+    <path d="M370 120 H430 M366 135 H434 M370 150 H430"/>
+  </g>
+  <g fill="none" stroke="#8C8C8C" stroke-width="3" stroke-dasharray="6 6">
+    <path d="M160 135 H190 M300 135 H340"/>
+  </g>
+  <ellipse cx="245" cy="135" rx="16" ry="10" fill="#6BAF5F"/>
+  <text x="240" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#5F5F5F">Zoom: leaf, cell, chloroplast (sketch)</text>
+</svg>
