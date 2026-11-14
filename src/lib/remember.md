@@ -2,9 +2,9 @@
 
 What the browser remembers between visits: your name (localStorage) and the picked folder (IndexedDB). Also the
 browser check, the folder picker and the permission calls. `recall` and `keep`: small choices (Print's, the
-teleprompter's, the Write screen's folded columns, the microphone in Settings) in localStorage.
+teleprompter's, the Write screen's folded columns, the microphone in Settings, the comment sort) in localStorage.
 
-- **Used by:** `App.svelte`, `lib/example.ts`, `screens/Setup.svelte`, `screens/Header.svelte`, `screens/Teleprompter.svelte`, `screens/Write.svelte`. **Tests:** `tests/unit/remember.test.ts`,
+- **Used by:** `App.svelte`, `lib/example.ts`, `screens/Setup.svelte`, `screens/Header.svelte`, `screens/Teleprompter.svelte`, `screens/Write.svelte`, `screens/SortSwitch.svelte`. **Tests:** `tests/unit/remember.test.ts`,
   `tests/e2e/setup.spec.ts`.
 
 ## Rules and pitfalls

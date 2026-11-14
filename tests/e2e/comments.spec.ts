@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { listFiles, readFile, readJsonFiles, setUp } from './folder';
 
@@ -154,7 +154,7 @@ test('clicking the bubble again scrolls back to the card, and the card stands ou
   await ben.evaluate((el) => {
     let box = el.parentElement;
     while (box && box.scrollHeight <= box.clientHeight) box = box.parentElement;
-    box!.scrollTop = box!.scrollHeight;
+    box!.scrollTop = 0; // Ben's is last in line order (RV-16)
   });
   await expect(ben).not.toBeInViewport({ ratio: 0.5 });
   await page.getByRole('button', { name: '1 open comment on row 4' }).click();
@@ -259,4 +259,32 @@ test('Use in script copies a file on a comment into its row, only in Write (RV-1
   const inReview = page.getByRole('article', { name: 'Comment by Ana' });
   await expect(inReview.getByTitle('Open notes.pdf')).toBeVisible();
   await expect(inReview.getByRole('button', { name: /Use in script/ })).toHaveCount(0);
+});
+
+const names = (cards: Locator) => cards.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
+
+test('comments are in line order, or sorted by time or type; the choice is kept for Review too (RV-16)', async ({ page }) => {
+  await open(page, [BEN, SUGGEST, ANA]);
+  await page.getByRole('button', { name: '1 open suggestion on row 3' }).click();
+  const panel = page.getByRole('complementary', { name: 'Comments' });
+  const cards = panel.getByRole('article');
+  const sort = panel.getByRole('group', { name: 'Sort comments' });
+  await expect(sort.getByRole('button', { name: 'Line' })).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => names(cards)).toEqual(['Comment by Ana', 'Suggestion by Ana', 'Comment by Ben']);
+
+  await sort.getByRole('button', { name: 'Time' }).click();
+  await expect.poll(() => names(cards)).toEqual(['Comment by Ben', 'Suggestion by Ana', 'Comment by Ana']);
+
+  await sort.getByRole('button', { name: 'Type' }).click();
+  await expect.poll(() => names(cards)).toEqual(['Suggestion by Ana', 'Comment by Ana', 'Comment by Ben']);
+  await expect(panel.getByRole('heading', { level: 3 })).toHaveText(['Suggestions · 1', 'On words · 1', 'On a whole row · 1']);
+
+  // Review opens with the same choice.
+  await page.getByRole('button', { name: /^Review/ }).click();
+  const aside = page.getByRole('complementary', { name: 'Comments' });
+  await expect(aside.getByRole('group', { name: 'Sort comments' }).getByRole('button', { name: 'Type' })).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => names(aside.getByRole('article'))).toEqual(['Suggestion by Ana', 'Comment by Ana', 'Comment by Ben']);
+  await aside.getByRole('button', { name: 'Line' }).click();
+  await expect.poll(() => names(aside.getByRole('article'))).toEqual(['Comment by Ana', 'Suggestion by Ana', 'Comment by Ben']);
+  await expect(aside.getByRole('heading', { name: /^Suggestions/ })).toHaveCount(0);
 });

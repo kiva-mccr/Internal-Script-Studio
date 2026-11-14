@@ -19,3 +19,5 @@ the script is a draft again. New comments are started in Review only.
 - On hold (RV-19): a folded "On hold · n" between the open cards and Resolved; `ends` comes from the Editor.
 - "Use in script" (RV-12) is on open cards whose row still exists; the Editor copies the file (`onUse`).
 - Where a card is: "row 3, Dialogue", or "row 3" for a comment on the whole row.
+- Sorted (RV-16): `lib/commentsort.ts`; the switch (`SortSwitch.svelte`) sits at the top once there are any comments,
+  sharing Review's remembered choice. By Type, an `h3.kind` heading starts each kind in the open list.
