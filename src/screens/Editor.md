@@ -23,8 +23,10 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
   `script` with a function binding that sets `file.script`.
 - The 5 s check (`checkOutside`): access first (`file.checkAccess`), then missing files, takes, who else is editing
   (`file.readEditors`), comments, and last others' change files (`file.sync`). Ctrl+S saves at once (FX-2).
-- "… is editing": `file` writes yours on opening and every 30 s (`heartbeat` here); the Editor removes it on leaving,
-  with the name read as the editor closes (leaving the example takes its props away first, which threw).
+- "… is editing": `file` writes yours on opening and every 30 s (`heartbeat` here); leaving, the Editor writes a last
+  one marked `left` (`file.here(true, who, dir)`, AP-37), with the name and folder read as the editor closes (leaving
+  the example takes its props away first, which threw). Closing the tab tries the same from `beforeUnload`, best
+  effort: if the tab is gone first, the others see "last seen" instead of "was here".
 - No browser dialogs (the user's rule): deleting shows an Undo bar; messages sit at the bottom of the window.
   Only a failed save keeps the browser's "Leave site?" prompt, because leaving then would lose work.
 - Review and History are shown only once what is waiting is saved; `switchMode` keeps the newest mode asked for, so

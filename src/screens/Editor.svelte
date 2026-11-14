@@ -11,7 +11,6 @@
   import { share } from '../lib/share';
   import { shareLink } from '../lib/route';
   import { frontValue, rows, type Block } from '../lib/script';
-  import { removeEditing } from '../lib/editing';
   import { backNote, holdEnds, listVersions, OUTSIDE, reviewEnd, reviewNote, type Version } from '../lib/history';
   import { Saving } from '../lib/saving.svelte';
   import Assets from './Assets.svelte';
@@ -209,7 +208,7 @@
     clearInterval(heartbeat);
     const d = file.dir;
     const who = name; // read now: leaving the example takes the props away before leave() is done
-    file.leave().finally(() => d && removeEditing(d, who));
+    file.leave().finally(() => file.here(true, who, d)); // "Sam was here" for the others (AP-37)
   });
 
   // The newest mode asked for: Review or History, shown only once what is waiting is saved, never replaces a mode
@@ -456,8 +455,8 @@
 
   // Leaving saves what is waiting. Only a failed save or a lost OK, which would lose work, asks the browser to hold the page.
   function beforeUnload(event: BeforeUnloadEvent) {
-    file.leave();
-    if (status === 'failed' || status === 'locked') event.preventDefault();
+    if (status === 'failed' || status === 'locked') return void (file.leave(), event.preventDefault());
+    file.leave().finally(() => file.here(true)); // best effort: a tab closing may not finish it ("last seen" then)
   }
 </script>
 
@@ -495,7 +494,7 @@
 {#if exporting && script && dir}
   <Export {script} {dir} folder={folder.name} title={title ?? ''} version={exporting.version} start={exporting.to} onPrint={print} onBack={() => (exporting = null)} />
 {:else}
-<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} writeCount={mode === 'write' ? 0 : writeNew} reviewCount={mode === 'review' ? 0 : reviewNew} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} folding={file.folding} {reviewStatus} {heldCount} {status} problem={file.problem}
+<Header folder={folder.name} title={title ?? ''} ready={!!script} {mode} writeCount={mode === 'write' ? 0 : writeNew} reviewCount={mode === 'review' ? 0 : reviewNew} {loose} missingCount={lostFiles.size} {voiceText} voiceWpm={takesSpeed(voice.takes)} editors={file.editors} seen={file.seen} folding={file.folding} {reviewStatus} {heldCount} {status} problem={file.problem}
   play={canPlay ? { time: player.started ? `${clock(player.time)} / ${clock(player.total)}` : '', on: player.on } : null} onPlay={() => play()} onStop={() => player.stop()}
   onMode={switchMode}
   onAllow={() => file.allow()} onStatus={setStatus} onLoose={showLoose} onExport={openExport} onShare={shareNow} nextVersion={() => file.nextVersion()} onFind={() => (switchMode('write'), (finding = true))} onCredits={() => (crediting = true)} onPrompt={() => (status === 'waiting' && save(), player.stop(), (promptFrom = whereAmI()), (prompting = true))} />

@@ -59,7 +59,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Done 2026-11-13: flaky tests, the screen split, HI-3, AP-34, RV-17, RV-18, RV-20 (AP-36 shelved by the user).
 - FX-1, then FX-2 (saving with each person's own change files, the user's design) went ahead of the round.
 - Now (the user's ranking, 2026-11-13), mock-ups first, built in this order: RV-19 (done), RV-22 (done), RV-16 (done), AP-38 (done), RV-21 (done),
-  AP-39 (done), AP-42 (done), then AP-40 (done), AP-41 (done), RV-23 (done), then AP-37 last (on the network drive it may read "Sam last seen …"). The user is
+  AP-39 (done), AP-42 (done), then AP-40 (done), AP-41 (done), RV-23 (done), then AP-37 (done). The user is
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. SB-1 (storyboard timeline) goes last in the queue (the user): no
   mock-up yet; they are answering a list of questions (in the "Recommend the next round" thread) that will guide it.
@@ -128,4 +128,6 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   JPEGs and 4K webm in headless test Chromium were timed; real GPU raster and the user's screen are unseen.
 - The script list's memory (AP-40) on the real network drive: only timed with a made-up 10 ms delay per folder call
   in test Chromium; whether SMB's file dates change as expected when another computer saves is unseen.
+- Who was here (AP-37) with two real computers on the network drive: others' editing files are only written in
+  tests; whether a closing tab (not leaving to the list) gets its "left" file written in time is unseen.
 - Allow editing (AP-25) after Chrome really takes back access: tests fake the lost OK; how long Chrome waits is unseen.
