@@ -100,7 +100,7 @@
     </button>
     <input type="file" multiple hidden bind:this={picker} onchange={picked} />
   </div>
-  <p class="hint">You can also drop files here, or paste a screenshot.</p>
+  <p class="hint help">You can also drop files here, or paste a screenshot.</p>
 </div>
 
 {#snippet line(item: File | Attachment, size: number, remove: () => void)}

@@ -1,10 +1,11 @@
 <script lang="ts">
   // Settings (AU-3, mock-up 19; the mic list AU-5, board 33): a window in the page, opened from ⋯. Each kind of setting has its own small heading,
-  // so more can be added later: Voice-over (the microphone and the clean-up of takes, AU-4), then Read time (the speaking speed, AP-12), then Keyboard shortcuts (AP-44, `Shortcuts.svelte`). A choice
+  // so more can be added later: Screen (Hide help text, AP-43, board 64), Voice-over (the microphone and the clean-up of takes, AU-4), then Read time (the speaking speed, AP-12), then Keyboard shortcuts (AP-44, `Shortcuts.svelte`). A choice
   // takes effect at once. voiceWpm: the script's takes' speed together, offered as the speed (0 with no takes).
   import { cleaning, setCleaning } from '../lib/cleanup.svelte';
   import { chooseMic, chosenMic, listMics, type Mic } from '../lib/mic';
   import { setSpeed, speaking } from '../lib/readtime.svelte';
+  import { helpHidden, hideHelp } from '../lib/helptext';
   import Shortcuts from './Shortcuts.svelte';
 
   let { voiceWpm = 0, onClose }: { voiceWpm?: number; onClose: () => void } = $props();
@@ -15,6 +16,7 @@
   let listOpen = $state(false);
   let active = $state(0);
   let field = $state<HTMLButtonElement>();
+  let hidingHelp = $state(helpHidden());
   let done = $state<HTMLButtonElement>();
 
   $effect(() => {
@@ -77,7 +79,10 @@
       <button class="close" aria-label="Close" onclick={onClose}>×</button>
     </div>
     <div class="body">
-      <h3>Voice-over</h3>
+      <h3>Screen</h3>
+      <label class="check"><input type="checkbox" checked={hidingHelp} onchange={(e) => hideHelp((hidingHelp = e.currentTarget.checked))} />
+        <span>Hide help text<small>The grey lines that explain how things work. For people who know the app.</small></span></label>
+      <h3 class="next">Voice-over</h3>
       <label for="mic">Microphone</label>
       <div class="picker" onfocusout={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && (listOpen = false)}>
         <button id="mic" class="field" bind:this={field} role="combobox" aria-haspopup="listbox" aria-expanded={listOpen}
@@ -99,7 +104,7 @@
           </ul>
         {/if}
       </div>
-      <p class="hint">
+      <p class="hint" class:help={!listed || mics.length > 0}>
         {#if listed && !mics.length}
           The names of your microphones show once Chrome may use the mic: record a take, or allow it in the address bar.
         {:else}
@@ -108,12 +113,12 @@
       </p>
       <p class="group">Clean up each take</p>
       <label class="check"><input type="checkbox" checked={cleaning.crop} onchange={(e) => setCleaning({ crop: e.currentTarget.checked })} />
-        <span>Crop the silence at the start and end<small>Keeps a quarter second either side, and drops the click of the mouse.</small></span></label>
+        <span>Crop the silence at the start and end<small class="help">Keeps a quarter second either side, and drops the click of the mouse.</small></span></label>
       <label class="check"><input type="checkbox" checked={cleaning.noise} onchange={(e) => setCleaning({ noise: e.currentTarget.checked })} />
-        <span>Reduce background noise<small>Edge's and Chrome's own noise reduction. A good mic in a quiet room may sound better without it.</small></span></label>
+        <span>Reduce background noise<small class="help">Edge's and Chrome's own noise reduction. A good mic in a quiet room may sound better without it.</small></span></label>
       <label class="check"><input type="checkbox" checked={cleaning.level} onchange={(e) => setCleaning({ level: e.currentTarget.checked })} />
-        <span>Make every take equally loud<small>So one row isn't louder than the next when the script plays or is joined into one file.</small></span></label>
-      <p class="hint">The recording itself is kept whole, so turning these off later brings it all back. Takes recorded before
+        <span>Make every take equally loud<small class="help">So one row isn't louder than the next when the script plays or is joined into one file.</small></span></label>
+      <p class="hint help">The recording itself is kept whole, so turning these off later brings it all back. Takes recorded before
         these switches play as they are.</p>
       <h3 class="next">Read time</h3>
       <label for="speed">Speaking speed</label>
@@ -124,7 +129,7 @@
         <button class="step" aria-label="Faster" onclick={() => setSpeed(speaking.wpm + 10)}>+</button>
         <span>words a minute</span>
       </div>
-      <p class="hint">150 is a calm speaking speed. The teleprompter uses this speed too.</p>
+      <p class="hint help">150 is a calm speaking speed. The teleprompter uses this speed too.</p>
       {#if voiceWpm && voiceWpm !== speaking.wpm}
         <p class="hint takes">Your takes average {voiceWpm} words a minute.
           <button class="outline use" onclick={() => setSpeed(voiceWpm)}>Use {voiceWpm}</button></p>

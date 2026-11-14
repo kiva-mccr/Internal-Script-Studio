@@ -49,6 +49,8 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - Save tokens: search ROADMAP.md by step ID instead of reading it whole; read a file's note before the file.
 - Ask before changing a decision already settled (Decisions in ROADMAP.md).
 - No browser dialogs (confirm, alert, validation bubbles): messages and checks are shown in the page.
+- A new grey line that explains how a feature works gets `class="help"`, so Hide help text (AP-43) hides it
+  (rules in `src/lib/helptext.md`).
 - Merging: the user lets Claude merge its own PRs once checks pass, then check the live site after the deploy.
   Turn on auto-merge (merge method) right after opening a PR, so GitHub merges it the moment `test` passes; nothing
   wakes a thread when CI ends, and waiting on a reminder left green PRs unmerged. Then check the deploy and live site.
@@ -63,7 +65,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb.
 - Queue (the user's order, 2026-11-14), mock-ups first, built one at a time: AP-44 (shortcuts, done), AP-43 (hide help
-  text), then SB-1 (storyboard timeline; mock-up board 63 agreed 2026-11-14, details in ROADMAP.md).
+  text, done), then SB-1 (storyboard timeline; mock-up board 63 agreed 2026-11-14, details in ROADMAP.md).
   The rest (AP-15, AP-8, EX-19 …) waits
   for the user's next ranking; "Last" in ROADMAP.md (EX-5, CC-1) waits until everything else is done.
 - Mock-ups (one board per design, numbered): https://claude.ai/artifact/2XDZmS7J5NEPZsz91RQMiL (private to the user).

@@ -91,7 +91,7 @@
         <label>
           Your name
           <input bind:this={nameInput} bind:value={name} maxlength="40" autocomplete="name" />
-          <span class="hint">Shown on your edits and comments.</span>
+          <span class="hint help">Shown on your edits and comments.</span>
         </label>
         <button class="primary" type="submit">Choose folder</button>
       </form>

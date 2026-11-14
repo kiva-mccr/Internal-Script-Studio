@@ -75,7 +75,7 @@
     <div class="body">
       {#if error}<p class="error" role="alert">{error}<CopyDetails message={error} /></p>{/if}
       {#if people && !people.length && !error}
-        <p class="empty">Nobody yet. People are added from a script: ⋯, then Credits.</p>
+        <p class="empty">Nobody yet.<span class="help"> People are added from a script: ⋯, then Credits.</span></p>
       {/if}
       {#each people ?? [] as person (person.id)}
         {@const scripts = on.get(person.id) ?? []}

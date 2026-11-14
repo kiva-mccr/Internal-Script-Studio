@@ -45,3 +45,6 @@ button { font: inherit; cursor: pointer; }
 /* Find and replace (AP-32): every match, and the one you're on. */
 ::highlight(find) { background: #fff1a8; }
 ::highlight(find-on) { background: #ffb547; }
+
+/* Hide help text (AP-43): Settings puts help-off on <html>; anything marked class="help" goes. See lib/helptext.md. */
+:root.help-off .help { display: none !important; }

@@ -97,7 +97,7 @@
   </div>
 
   {#if !all.length}
-    <p class="empty">No files, links or notes in the Files column yet. Add them in Write.</p>
+    <p class="empty">No files, links or notes in the Files column yet.<span class="help"> Add them in Write.</span></p>
   {:else if byRow}
     <div class="box" data-tour="assets-list">
       {#each rows as row, i (row.n)}
@@ -136,7 +136,7 @@
       {/if}
     </div>
   {/if}
-  <p class="hint">A row number goes to that row in Write. Links are listed but not checked online.</p>
+  <p class="hint help">A row number goes to that row in Write. Links are listed but not checked online.</p>
 </section>
 
 <style>

@@ -158,7 +158,7 @@
           <div class="details"><Contact bind:this={contact} {root} {person} {me} uses={scripts(person.id)} onSaved={saved} /></div>
         {/if}
       {:else}
-        <p class="empty">No credits yet. Add the people who worked on this script.</p>
+        <p class="empty">No credits yet.<span class="help"> Add the people who worked on this script.</span></p>
       {/each}
 
       {#if adding}

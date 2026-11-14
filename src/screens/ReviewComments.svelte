@@ -162,7 +162,7 @@
       {showHeld ? '▾' : '▸'} On hold · {held.length}
     </button>
     {#if showHeld}
-      <p class="quiet">Back in the open list at the next Send for review or official version.</p>
+      <p class="quiet help">Back in the open list at the next Send for review or official version.</p>
       {#each held as t (t.comment.id)}<div class="slot" out:slideAway>{@render card(t)}</div>{/each}
     {/if}
   {/if}

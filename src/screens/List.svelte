@@ -109,10 +109,10 @@
     <div class="empty">
       {#if isOneScript}
         <h1>This is one script's folder</h1>
-        <p>Click Change folder and pick the folder above it, the one that holds all your team's scripts.</p>
+        <p class="help">Click Change folder and pick the folder above it, the one that holds all your team's scripts.</p>
       {:else}
         <h1>No scripts here yet</h1>
-        <p>Each script is a folder with a script.md file in it. Click New script to start one.</p>
+        <p class="help">Each script is a folder with a script.md file in it. Click New script to start one.</p>
       {/if}
     </div>
   {:else if scripts}

@@ -642,11 +642,17 @@ and suggestions, keeps every version, and exports them for production.
   Done 2026-11-14: the comments beside the script (new comment box, open cards with sorting, On hold, Resolved)
   moved to `ReviewComments.svelte`, leaving `Review.svelte` at 337 lines; `MAX_FILE`, `typeOf`, `Options`,
   `spotText`, `Kind`, `PreviewKind` and `LINES` are no longer exported. Nothing on screen changed.
-- [ ] **AP-43** Hide help text (asked by the user, 2026-11-14): a switch in Settings that hides the text explaining
-  what a feature does or how it works (hints, how-it-works lines, the explanations on empty lists and panels), to
-  save space for people who know the app. Off by default, so help text shows until someone turns it on; kept in this
-  browser. To settle in the mock-up: which texts count as help (a list of them), and whether hover titles and the
-  tour stay. Mock-up first.
+- [x] **AP-43** Hide help text (asked by the user, 2026-11-14): a switch in Settings that hides the text explaining
+  what a feature does or how it works, to save space for people who know the app. Off by default; kept in this
+  browser. Agreed on board 64 ("looks good") with its five choices: a tick box under a new "Screen" heading at the
+  top of Settings; it hides the grey lines that explain how a feature works (Review's "Select any text…", the lines
+  under Settings' fields and switches and under its keyboard shortcuts, Assets' "A row number goes…", "You can also
+  drop files here…", Setup's "Shown on your edits…", Comments' "Click a card…" and "Back in the open list…", and the
+  notes under Send for review and Approve); empty screens keep their heading or short fact and lose the explanation
+  ("No scripts here yet" stays, "Each script is a folder…" goes); errors and warnings, the line under the tick box,
+  hover titles, the tour and "Kept in this browser only." always stay; nothing replaces the hidden text.
+  Built so: an explaining line is marked `class="help"`, and one rule in app.css hides them all while `<html>` has
+  `help-off` (`lib/helptext.ts`).
 - [x] **AP-44** Keyboard shortcuts for common tasks (asked by the user, 2026-11-14): next and previous comment in
   Review (and in Write's comments), moving up and down between rows, deleting a row, and duplicating, splitting (at
   the cursor) and joining rows in Write. Builds on AP-14's keys. Rule (the user's): no shortcut switches between Write,

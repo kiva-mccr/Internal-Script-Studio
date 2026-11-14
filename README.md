@@ -72,7 +72,9 @@ Status: a first working version. What it does today:
   browser's reason: hover for all of it. What you typed is also kept in the browser until it's saved, so closing the
   page first doesn't lose it.
 - **Export / Share** at the top right of a script holds Copy link and Copy for Teams, then Print, Fountain, Final Draft and
-  Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter, Credits and Settings.
+  Voice-over; **the ⋯ menu** holds Find and replace (in Write), Teleprompter, Credits and Settings. Settings > Hide
+  help text (off to start, kept in this browser) takes away the grey lines that explain how things work, for people
+  who know the app.
 - **Credits and contacts:** ⋯ › Credits lists who worked on the script, each with a short blurb on what they did on
   it. Add someone from the folder's people (Find narrows by name or role) or someone new by name. Each person's email
   and LinkedIn are kept once for the whole folder: change them from any script (Contact details) and every script
