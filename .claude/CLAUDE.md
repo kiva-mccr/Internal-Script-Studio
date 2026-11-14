@@ -60,7 +60,7 @@ Run through `.claude/CHECKLIST.md`. Keep README.md current in the same commit as
 - FX-1, then FX-2 (saving with each person's own change files, the user's design) went ahead of the round.
 - Now (the user's ranking, 2026-11-13), mock-ups first, built in this order: RV-19 (done), RV-22 (done), RV-16 (done), AP-38 (done), RV-21 (done),
   AP-39, then AP-40, AP-41, RV-23 (added by the user 2026-11-14, any order; mock-ups prepared before the queue
-  restarts), then AP-37 last (on the network drive it may read "Sam last seen …"). The user is
+  restarts), AP-42 (a tidy pass, approved 2026-11-14: before RV-21 if it hasn't started building, else next), then AP-37 last (on the network drive it may read "Sam last seen …"). The user is
   running the real-world checks with the field test checklist:
   https://claude.ai/artifact/FT4p8XLBVTSrEQMow71NDb. SB-1 (storyboard timeline) goes last in the queue (the user): no
   mock-up yet; they are answering a list of questions (in the "Recommend the next round" thread) that will guide it.
