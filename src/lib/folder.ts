@@ -16,18 +16,24 @@ export async function listScripts(root: FileSystemDirectoryHandle): Promise<Scri
   const found: ScriptInfo[] = [];
   for await (const entry of root.values()) {
     if (entry.kind !== 'directory' || entry.name.startsWith('.')) continue;
-    const file = await fileIn(entry as FileSystemDirectoryHandle, SCRIPT);
-    if (!file) continue;
-    const front = parseScript(await file.text()).front;
-    found.push({
-      path: [entry.name],
-      title: frontValue(front, 'title') || entry.name,
-      status: frontValue(front, 'status') || 'draft',
-      edited: file.lastModified,
-      who: await lastEditor(entry as FileSystemDirectoryHandle),
-    });
+    const info = await scriptHead(entry as FileSystemDirectoryHandle);
+    if (info) found.push(info);
   }
   return found.sort((a, b) => b.edited - a.edited);
+}
+
+// One folder's title, status, last edit and editor; null when it holds no script.md.
+export async function scriptHead(dir: FileSystemDirectoryHandle): Promise<ScriptInfo | null> {
+  const file = await fileIn(dir, SCRIPT);
+  if (!file) return null;
+  const front = parseScript(await file.text()).front;
+  return {
+    path: [dir.name],
+    title: frontValue(front, 'title') || dir.name,
+    status: frontValue(front, 'status') || 'draft',
+    edited: file.lastModified,
+    who: await lastEditor(dir),
+  };
 }
 
 // The script folder a link names, or null if there is none.
@@ -117,7 +123,7 @@ export function safeName(name: string): string {
   return name.replace(BAD_NAME, ' ').replace(/\s+/g, ' ').trim().replace(/^\.+/, '').slice(0, 120);
 }
 
-async function fileIn(dir: FileSystemDirectoryHandle, name: string): Promise<File | null> {
+export async function fileIn(dir: FileSystemDirectoryHandle, name: string): Promise<File | null> {
   try {
     return await (await dir.getFileHandle(name)).getFile();
   } catch {
