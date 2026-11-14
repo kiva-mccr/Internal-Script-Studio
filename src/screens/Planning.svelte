@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { combinePlans, readPlan, writePlan } from '../lib/planning';
   import { keep } from '../lib/remember';
@@ -19,6 +21,7 @@
   const SAVE_AFTER = 1500; // ms after the last change, as the script
   const CHECK_EVERY = 5000; // ms between looks for someone else's save
   const RETRY_AFTER = 6000;
+  const PLAN_FAILED = "The plan couldn't be saved, trying again"; // the copy icon's key; the foot says it shorter
 
   let text = $state('');
   let ready = $state(false);
@@ -77,7 +80,8 @@
         text = next;
         status = 'saved';
       } else changed(); // typed while saving
-    } catch {
+    } catch (e) {
+      problem(PLAN_FAILED, 'saving plan.md', e);
       status = 'failed';
       timer = setTimeout(save, RETRY_AFTER);
     }
@@ -122,7 +126,7 @@
         {/if}
       </div>
       <p class="foot" aria-live="polite">
-        Kept with the script, in plan.md{status === 'failed' ? " · Couldn't save, trying again" : status === 'saving' ? ' · Saving…' : status === 'waiting' ? ' · Editing…' : ''}
+        Kept with the script, in plan.md{status === 'failed' ? " · Couldn't save, trying again" : status === 'saving' ? ' · Saving…' : status === 'waiting' ? ' · Editing…' : ''}{#if status === 'failed'}<CopyDetails message={PLAN_FAILED} />{/if}
       </p>
     {/if}
   </aside>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   // Files from other scripts (AS-1, mock-up 29): a window in the page, opened from a row's + Add. Lists the files and
   // links of every other script, newest edited first; Find narrows by name; one is picked and added to the row.
   // Without onAdd it only browses (the script list's Files, AS-1b): every script, a file opens, a script's name opens it.
@@ -13,7 +15,7 @@
   } = $props();
 
   let groups = $state<SharedScript[] | null>(null);
-  let failed = $state(false);
+  let failed = $state(''); // what went wrong, shown in place of the list or at the foot
   let query = $state('');
   let picked = $state<{ group: SharedScript; file: SharedFile } | null>(null);
   let adding = $state(false);
@@ -38,7 +40,7 @@
           previews = { ...previews, [`${g.folder}/${f.target}`]: url };
         }
       }
-    }, () => (failed = true));
+    }, (e) => (failed = problem("The other scripts couldn't be read. If the shared folder is still syncing, wait a moment and try again.", 'looking through the other scripts', e)));
     return () => {
       gone = true;
       made.forEach((url) => URL.revokeObjectURL(url));
@@ -67,7 +69,7 @@
   async function open(g: SharedScript, f: SharedFile) {
     if (f.kind === 'link') return void window.open(f.target, '_blank', 'noopener');
     const file = await assetFile(await root.getDirectoryHandle(g.folder), f.target).catch(() => null);
-    if (!file) return void (failed = true);
+    if (!file) return void (failed = problem("That file couldn't be opened. If the shared folder is still syncing, wait a moment and try again.", 'opening a file from another script'));
     const url = URL.createObjectURL(file);
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -78,8 +80,8 @@
     adding = true;
     try {
       onAdd(await copyShared(root, picked.group.folder, picked.file, dir), picked.group.title);
-    } catch {
-      failed = true;
+    } catch (e) {
+      failed = problem("That file couldn't be copied. If the shared folder is still syncing, wait a moment and try again.", 'copying a file from another script', e);
       adding = false;
     }
   }
@@ -97,7 +99,7 @@
     </div>
     <div class="body">
       {#if !groups}
-        <p class="empty">{failed ? "The other scripts couldn't be read. If the shared folder is still syncing, wait a moment and try again." : 'Looking through the other scripts…'}</p>
+        <p class="empty">{failed || 'Looking through the other scripts…'}<CopyDetails message={failed} /></p>
       {:else if !groups.length}
         <p class="empty">{onAdd ? 'No other script has files yet.' : 'No script has files yet.'}</p>
       {:else if !shown.length}
@@ -123,7 +125,7 @@
     </div>
     <div class="foot">
       <span>
-        {#if failed && groups}That file couldn't be {onAdd ? 'copied' : 'opened'}. If the shared folder is still syncing, wait a moment and try again.
+        {#if failed && groups}{failed}<CopyDetails message={failed} />
         {:else if !onAdd}Click a file to open it, or a script's name to open the script.
         {:else if picked}{picked.file.kind === 'link' ? `${picked.file.name} is a link: it is added as the same link.` : `${picked.file.name} will be copied into this script's assets folder.`}
         {:else}Pick a file.{/if}

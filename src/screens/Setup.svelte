@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import { untrack } from 'svelte';
   import { askAccess, canOpenFolders, cleanName, pickFolder } from '../lib/remember';
   import { exampleFolded, foldExample } from '../lib/example';
@@ -33,8 +35,8 @@
     error = '';
     try {
       await onExample(cleanName(name) || 'Guest');
-    } catch {
-      error = "The example couldn't be opened in this browser.";
+    } catch (e) {
+      error = problem("The example couldn't be opened in this browser.", 'opening the example', e);
     }
   }
 
@@ -49,8 +51,8 @@
     try {
       const folder = await pickFolder();
       if (folder) onOpen(folder, cleanName(name));
-    } catch {
-      error = "That folder couldn't be opened. Try again, or pick a different folder.";
+    } catch (e) {
+      error = problem("That folder couldn't be opened. Try again, or pick a different folder.", 'opening the picked folder', e);
     }
   }
 
@@ -59,8 +61,8 @@
     try {
       if (remembered && (await askAccess(remembered))) onOpen(remembered, savedName);
       else error = 'The browser needs your OK to open the folder. Click the button again and choose Allow.';
-    } catch {
-      error = "That folder couldn't be opened. It may have moved: choose it again.";
+    } catch (e) {
+      error = problem("That folder couldn't be opened. It may have moved: choose it again.", 'reopening the remembered folder', e);
       reopening = false;
     }
   }
@@ -96,11 +98,11 @@
       <p class="small">Opened this from a link? You'll go straight to that script next.</p>
       <details>
         <summary>Before you start: put the folder on this computer</summary>
-        <ol>
-          <li>Open the shared folder in OneDrive on the web (the link your team sent you).</li>
-          <li>Click <b>Add shortcut to My files</b>.</li>
-          <li>Wait a minute for it to appear in the OneDrive folder on this computer, then click Choose folder and pick it.</li>
-        </ol>
+        <ul>
+          <li>A network drive: it's on this computer already. Click Choose folder and pick the scripts folder on it.</li>
+          <li>A synced folder, such as OneDrive: add the shared folder to your files, wait for it to appear on this
+            computer, then click Choose folder and pick it.</li>
+        </ul>
       </details>
       {#if folded}
         <button class="unfold" onclick={() => fold(false)}>▸ Try it with an example</button>
@@ -120,7 +122,7 @@
       {/if}
     {/if}
 
-    {#if error}<p class="error" role="alert">{error}</p>{/if}
+    {#if error}<p class="error" role="alert">{error}<CopyDetails message={error} /></p>{/if}
   </div>
 </main>
 
@@ -138,8 +140,7 @@
   .small { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
   details { width: 100%; text-align: left; font-size: 14px; line-height: 1.5; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
   summary { cursor: pointer; color: var(--ink); }
-  ol { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
-  b { color: var(--ink); font-weight: 600; }
+  ul { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
   .example { width: 100%; box-sizing: border-box; display: flex; gap: 14px; align-items: flex-start; text-align: left;
     padding: 16px 8px 16px 16px; border: 1px solid var(--line); border-radius: 10px; }
   .example svg { flex: none; margin-top: 2px; color: var(--muted); }

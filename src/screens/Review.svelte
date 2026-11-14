@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
   import { tick } from 'svelte';
   import { fieldText as text, threads, type Field, type Flag, type Note } from '../lib/comments';
   import FlagIcon from './FlagIcon.svelte';
@@ -75,7 +76,7 @@
   // Listening (AU-9): a take's ▶ plays it alone, or pauses and carries on the script while it plays that row.
   async function play(id: string) {
     if (player.row === id) return player.toggle();
-    await voice.play(dir, id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing."));
+    await voice.play(dir, id).catch((e) => onNotice(problem("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing.", 'playing a take', e)));
   }
 
   // The page follows the row being played, as in Write.

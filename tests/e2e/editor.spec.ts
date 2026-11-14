@@ -379,7 +379,9 @@ test("a save that keeps failing says Couldn't save with the browser's error, and
   await expect(status).toHaveText("Couldn't save (NoModificationAllowedError), trying again", { timeout: 15000 });
   await expect(status).toHaveAttribute('title', 'Writing your changes: NoModificationAllowedError: Busy');
   await expect(page.locator('header .voice')).toHaveCount(0); // the length steps aside for the red message
+  await expect(page.locator('header').getByRole('button', { name: 'Copy details' })).toBeVisible(); // AP-41
   await expect(status).toHaveText('Saved', { timeout: 15000 });
+  await expect(page.locator('header').getByRole('button', { name: 'Copy details' })).toHaveCount(0);
   await expect(page.locator('header .voice')).toBeVisible();
   await expect.poll(() => readFile(page, SCRIPT)).toContain('Dialogue:\nSaved in the end.\n');
 });

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { assetList, missingFiles } from '../lib/assets';
   import { Player, plan } from '../lib/play.svelte';
@@ -194,8 +196,8 @@
       if (file.dir) await voice.load(file.dir);
       checker = setInterval(checkOutside, CHECK_EVERY);
       heartbeat = setInterval(() => file.here(), HERE_EVERY);
-    } catch {
-      notice = "The script couldn't be opened. If the shared folder is still syncing, wait a moment and reload.";
+    } catch (e) {
+      notice = problem("The script couldn't be opened. If the shared folder is still syncing, wait a moment and reload.", 'opening the script', e);
     }
   });
 
@@ -252,8 +254,8 @@
       await addNote(dir, { ...entry, who: name }, undefined, files);
       notes = await listNotes(dir);
       return true;
-    } catch {
-      notice = "That couldn't be saved. If the shared folder is still syncing, wait a moment and try again.";
+    } catch (e) {
+      notice = problem("That couldn't be saved. If the shared folder is still syncing, wait a moment and try again.", 'saving a comment', e);
       return false;
     }
   }
@@ -289,8 +291,8 @@
       came = { row, line, from };
       changed();
       return true;
-    } catch {
-      notice = "The file couldn't be copied into the script's folder.";
+    } catch (e) {
+      notice = problem("The file couldn't be copied into the script's folder.", 'copying a file into the script', e);
       return false;
     }
   }
@@ -484,7 +486,7 @@
   {/if}
   {#if notice}
     <div class="banner" role="alert">
-      <p>{notice}</p>
+      <p>{notice}<CopyDetails message={notice} /></p>
       <button class="link" onclick={() => (notice = '')}>OK</button>
     </div>
   {/if}

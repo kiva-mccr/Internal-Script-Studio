@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   // One person's contact details (AP-31, board 50): email and LinkedIn, kept once for the whole folder. Done saves
   // them (a new file in .studio/people/) when they changed. Used by the Credits window and by People.
   import { savePerson, type Person } from '../lib/people';
@@ -20,8 +22,8 @@
     try {
       onSaved(await savePerson(root, { ...person, email, linkedin }, me));
       return true;
-    } catch {
-      error = "Couldn't save the contact details. If the shared folder is still syncing, wait a moment and try again.";
+    } catch (e) {
+      error = problem("Couldn't save the contact details. If the shared folder is still syncing, wait a moment and try again.", 'saving contact details', e);
       return false;
     }
   }
@@ -32,7 +34,7 @@
     <label>Email<input type="email" bind:value={email} placeholder="name@example.org" /></label>
     <label>LinkedIn<input bind:value={linkedin} placeholder="linkedin.com/in/…" /></label>
   </div>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}
+  {#if error}<p class="error" role="alert">{error}<CopyDetails message={error} /></p>{/if}
   <div class="foot">
     <span>Shared by every script: a change here shows in all {uses}.</span>
     <button class="primary small" onclick={done}>Done</button>

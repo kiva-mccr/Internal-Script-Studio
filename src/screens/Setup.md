@@ -1,6 +1,7 @@
 # `src/screens/Setup.svelte`
 
-The first-time screen (mock-up 1): your name, Choose folder, and the "Before you start" OneDrive steps. Also the
+The first-time screen (mock-up 1): your name, Choose folder, and the "Before you start" steps (a network drive, or a synced
+folder such as OneDrive: the team is on a network drive). Also the
 "Welcome back" screen when the browser wants permission for the remembered folder again, and the Chrome-or-Edge
 note for other browsers. Under the folder steps, the offer of the example to try (AP-33, board 46), which the – folds
 to one line, remembered by the browser (`lib/example.ts`).

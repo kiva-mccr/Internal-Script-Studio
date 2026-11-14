@@ -12,8 +12,8 @@ Open it at **https://p2p-script-studio.kivamccr.xyz/** (Chrome or Edge on a desk
 
 Status: a first working version. What it does today:
 
-- **First time:** type your name and choose your team's scripts folder (it explains how to add the shared OneDrive
-  folder with "Add shortcut to My files"). The browser remembers both. New here? "Open the example" under it opens a
+- **First time:** type your name and choose your team's scripts folder ("Before you start" explains putting it on this
+  computer, from a network drive or a synced folder such as OneDrive). The browser remembers both. New here? "Open the example" under it opens a
   made-up script (one file of each kind the app previews, a voice-over take on every row, two comments and History)
   to click around in first; your changes stay in this browser, Start over puts it back as new, and the – folds the
   offer to one line for good. Inside it, a short guided tour shows each tab the first time you open it: Next (or →)
@@ -173,6 +173,10 @@ Status: a first working version. What it does today:
   Each person saves only their own small change files, so two computers never write the same file; their changes
   appear on their own, row by row, and only a place you both changed is shown side by side for you to pick. Works
   on a network drive, OneDrive or any shared folder.
+- **When something goes wrong:** the message says so in plain words, with a small grey copy icon after it. The icon
+  copies the details for whoever is fixing it: what the app was doing, the browser's own error, the folder's name,
+  the page, the live version, the browser and the time (plain text, ready to paste into Teams or an email). Hints
+  such as "Give it a name first." have no icon.
 
 Needs Chrome or Edge on a desktop computer. The code is on GitHub (the link in the bottom-right corner). The bottom-left corner shows the live version, "PR #62" for
 example: after a refresh it tells you whether a new version is live, hovering shows what that version added and when,

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
   import Preview from './Preview.svelte';
   import SharedFiles from './SharedFiles.svelte';
   import { addAsset, assetFile } from '../lib/folder';
@@ -97,8 +98,8 @@
       for (const file of chosen) paths.push(await addAsset(dir, file));
       onChange([...files, ...paths]);
       adding = false;
-    } catch {
-      onNotice("The file couldn't be copied into the script's folder.");
+    } catch (e) {
+      onNotice(problem("The file couldn't be copied into the script's folder.", 'copying a file into the script', e));
     }
   }
 

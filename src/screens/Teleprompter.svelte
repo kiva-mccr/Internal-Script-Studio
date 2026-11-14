@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import { onDestroy, onMount, tick, untrack } from 'svelte';
   import { clearMarks, plain, toHtml } from '../lib/format';
   import { addMark, follow, LEAD, move, normal, voiceAt, type Mark } from '../lib/follow';
@@ -219,7 +221,7 @@
           listening = null;
           voice = '';
           voiceBox.checked = false;
-          voiceError = "Speech recognition stopped working on this device. Use Start and the speed instead.";
+          voiceError = problem("Speech recognition stopped working on this device. Use Start and the speed instead.", 'following your voice');
         },
       });
       if (voice !== 'loading') return started.stop(); // switched off while it was getting ready
@@ -230,9 +232,9 @@
     } catch (e) {
       voice = '';
       voiceBox.checked = false; // the box was ticked by the click, and `voice` stayed ''
-      voiceError = (e as ListenError)?.why === 'microphone'
+      voiceError = problem((e as ListenError)?.why === 'microphone'
         ? "The microphone isn't allowed. Allow it from the address bar, then switch Follow my voice on again."
-        : "Speech recognition couldn't be downloaded. Check the internet connection, then try again.";
+        : "Speech recognition couldn't be downloaded. Check the internet connection, then try again.", 'starting Follow my voice', e);
     }
   }
 
@@ -269,7 +271,7 @@
   {#if voice === 'on'}<p class="listening" role="status"><span class="dot" aria-hidden="true"></span>Listening: it follows as you speak</p>{/if}
   {#if voice === 'loading' || voiceError}
     <div class="notice" role={voiceError ? 'alert' : 'status'}>
-      {#if voiceError}{voiceError}
+      {#if voiceError}{voiceError}<CopyDetails message={voiceError} />
       {:else if got.total}
         Getting speech recognition ready: {mb(got.loaded)} of {mb(got.total)} MB. Only the first time; it stays on this computer.
         <progress max={got.total} value={got.loaded}></progress>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   // People (AP-31, board 50): everyone in the folder and how to reach them, from the script list's People button, so
   // nobody has to open a script to find someone. A name opens their contact details and the scripts that credit
   // them; someone no script credits can be taken out of the list. People are added from a script's Credits.
@@ -24,9 +26,9 @@
   async function load() {
     try {
       [people, on] = await Promise.all([listPeople(root), creditedOn(root)]);
-    } catch {
+    } catch (e) {
       people = [];
-      error = "The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
+      error = problem("The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.", 'reading the people in the folder', e);
     }
   }
 
@@ -50,8 +52,8 @@
       await removePerson(root, person, me);
       people = people!.filter((p) => p.id !== person.id);
       open = '';
-    } catch {
-      error = `Couldn't remove ${person.name}. If the shared folder is still syncing, wait a moment and try again.`;
+    } catch (e) {
+      error = problem(`Couldn't remove ${person.name}. If the shared folder is still syncing, wait a moment and try again.`, 'removing a person', e);
     }
   }
 
@@ -71,7 +73,7 @@
       <button class="close" aria-label="Close" onclick={close}>×</button>
     </div>
     <div class="body">
-      {#if error}<p class="error" role="alert">{error}</p>{/if}
+      {#if error}<p class="error" role="alert">{error}<CopyDetails message={error} /></p>{/if}
       {#if people && !people.length && !error}
         <p class="empty">Nobody yet. People are added from a script: ⋯, then Credits.</p>
       {/if}

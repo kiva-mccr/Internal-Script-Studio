@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   // Credits (AP-31, board 50): a window in the page, opened from ⋯ in a script. The script's credits pick from the
   // people kept once for the folder (lib/people.ts) and add a short blurb on what each did on this script. Contact
   // details are the folder's, so a change shows in every script. Changing the credits changes the script's front
@@ -41,8 +43,8 @@
   async function load() {
     try {
       people = await listPeople(root);
-    } catch {
-      error = "The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
+    } catch (e) {
+      error = problem("The people in the folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.", 'reading the people in the folder', e);
     }
     creditedOn(root).then((found) => (on = found));
   }
@@ -100,8 +102,8 @@
       add(person);
       newName = '';
       editing = person.id;
-    } catch {
-      error = `Couldn't add ${name}. If the shared folder is still syncing, wait a moment and try again.`;
+    } catch (e) {
+      error = problem(`Couldn't add ${name}. If the shared folder is still syncing, wait a moment and try again.`, 'adding a person', e);
     }
   }
 
@@ -132,7 +134,7 @@
       <button class="close" aria-label="Close" onclick={close}>×</button>
     </div>
     <div class="body">
-      {#if error}<p class="error" role="alert">{error}</p>{/if}
+      {#if error}<p class="error" role="alert">{error}<CopyDetails message={error} /></p>{/if}
       {#each credits as credit (credit.id)}
         {@const person = byId.get(credit.id)}
         <div class="credit">

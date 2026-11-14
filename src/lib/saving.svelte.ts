@@ -11,6 +11,7 @@ import { merge, type Merged, type Side } from './merge';
 import { diff, fold } from './changes';
 import { listChanges, readChange, readFolded, removeChange, writeChange, writeFolded } from './changefiles';
 import { Started } from './started';
+import { errorText, problem } from './problems';
 
 // How long typing waits before it is saved (the user's pick: 30 s, or at once with Ctrl+S). Tests make it shorter
 // through `save-every` in this browser's storage.
@@ -29,11 +30,12 @@ const STALE_AFTER = 60 * 1000; // a change this much older than script.md was su
 // saved: all written. waiting: changes not written yet. saving. failed: the last write failed (tried again).
 // conflict: someone else changed a place you changed too, waiting for the person to pick (`clash`).
 // locked: the browser took back its OK to edit the folder; only a click (Allow editing) can ask again.
+/** The top bar's copy icon (AP-41) copies what went wrong behind this. */
+export const SAVE_FAILED = "Couldn't save, trying again";
 export type Status = 'saved' | 'waiting' | 'saving' | 'failed' | 'conflict' | 'locked';
 
 export type Clash = { merged: Merged; heading: string; mineLabel: string; theirsLabel: string; combined: string; copy?: string };
 
-const errorText = (e: unknown) => (e instanceof Error ? `${e.name}: ${e.message}` : String(e));
 
 export class Saving {
   dir = $state<FileSystemDirectoryHandle | null>(null);
@@ -122,7 +124,7 @@ export class Saving {
     }
   }
 
-  // On opening: a copy OneDrive kept beside script.md (script-LAPTOP-SAM.md) is combined row by row, then saved as
+  // On opening: a copy a sync tool (OneDrive) kept beside script.md (script-LAPTOP-SAM.md) is combined row by row, then saved as
   // a change of this person's; the copy is removed once that is saved.
   async #lookForCopies(dir: FileSystemDirectoryHandle, text: string) {
     try {
@@ -130,7 +132,7 @@ export class Saving {
         if (!/^script-.+\.md$/i.test(name)) continue;
         const copy = await (await (await dir.getFileHandle(name)).getFile()).text();
         return this.#offer(merge(this.last?.text ?? text, text, copy), {
-          heading: 'OneDrive kept two copies of this script', mineLabel: 'script.md', theirsLabel: name,
+          heading: 'Two copies of this script were found', mineLabel: 'script.md', theirsLabel: name,
           mineName: 'script.md', theirsName: name, copy: name,
         });
       }
@@ -300,8 +302,8 @@ export class Saving {
       const when = new Date(version.when).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
       await this.#entry('restore', `Restored the version from ${when.replace(' AM', ' am').replace(' PM', ' pm')}`);
       return true;
-    } catch {
-      this.notice("That version couldn't be restored. If the shared folder is busy, wait a moment and try again.");
+    } catch (e) {
+      this.notice(problem("That version couldn't be restored. If the shared folder is busy, wait a moment and try again.", 'restoring a version', e));
       return false;
     }
   }
@@ -321,8 +323,8 @@ export class Saving {
     try {
       await this.leave();
       return await this.#entry('official', official);
-    } catch {
-      this.notice("The official version couldn't be published. If the shared folder is busy, wait a moment and try again.");
+    } catch (e) {
+      this.notice(problem("The official version couldn't be published. If the shared folder is busy, wait a moment and try again.", 'publishing an official version', e));
       return null;
     }
   }
@@ -452,6 +454,7 @@ export class Saving {
       // Retrying can't bring back a lost OK (the browser asks only from a click), so that waits for Allow editing.
       if (!(await hasAccess(this.folder).catch(() => true))) return void (this.status = 'locked');
       this.problem = `Writing your changes: ${errorText(e)}`;
+      problem(SAVE_FAILED, 'writing your changes', e);
       this.status = 'failed';
       this.#timer = setTimeout(() => this.save(), RETRY_AFTER);
     }
