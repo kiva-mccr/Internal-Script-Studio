@@ -289,8 +289,9 @@ const FIELDS = [
   ['dialogue', 'Dialogue'],
   ['onScreen', 'On screen'],
   ['files', 'Images & files'],
+  ['timeline', 'Timeline'],
 ] as const;
-const FIELD_KEY = { dialogue: 'dialogue', onScreen: 'on_screen', files: 'files' } as const;
+const FIELD_KEY = { dialogue: 'dialogue', onScreen: 'on_screen', files: 'files', timeline: undefined } as const;
 
 function fieldText(row: Row, field: (typeof FIELDS)[number][0]): string {
   return field === 'files' ? row.files.join('\n') : row[field];

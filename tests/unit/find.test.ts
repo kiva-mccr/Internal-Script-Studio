@@ -3,7 +3,7 @@ import { before, findAll, fitCase, replaceAll, replaceOne, replaceRaw, visible }
 import type { Block } from '../../src/lib/script';
 
 const row = (id: string, dialogue: string, onScreen = '', files: string[] = []): Block =>
-  ({ type: 'row', id, dialogue, onScreen, files, note: '' });
+  ({ type: 'row', id, dialogue, onScreen, files, timeline: '', note: '' });
 const plain = { matchCase: false, wholeWords: false };
 
 describe('visible', () => {

@@ -19,6 +19,7 @@ const FIELDS = [
   ['dialogue', 'Dialogue'],
   ['onScreen', 'On screen'],
   ['files', 'Images & files'],
+  ['timeline', 'Timeline'],
 ] as const;
 type Field = (typeof FIELDS)[number][0];
 

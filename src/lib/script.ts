@@ -7,6 +7,7 @@ export type Row = {
   dialogue: string;
   onScreen: string;
   files: string[];
+  timeline: string; // the storyboard timeline's choices for the row (SB-1), as typed; read by lib/timeline.ts
   note: string; // text before the row's first label
 };
 export type Section = { type: 'section'; title: string; note: string };
@@ -17,10 +18,10 @@ export type Script = {
   blocks: Block[];
 };
 
-const LABELS = { 'Dialogue:': 'dialogue', 'On screen:': 'onScreen', 'Files:': 'files' } as const;
+const LABELS = { 'Dialogue:': 'dialogue', 'On screen:': 'onScreen', 'Files:': 'files', 'Timeline:': 'timeline' } as const;
 type Field = (typeof LABELS)[keyof typeof LABELS];
-const LABEL = /^(Dialogue:|On screen:|Files:)[ \t]?(.*)$/;
-const ESCAPED = /^\\(Dialogue:|On screen:|Files:|#)/;
+const LABEL = /^(Dialogue:|On screen:|Files:|Timeline:)[ \t]?(.*)$/;
+const ESCAPED = /^\\(Dialogue:|On screen:|Files:|Timeline:|#)/;
 const ROW = /^## (?!#)/;
 const SECTION = /^# (?!#)/;
 const ID = /<!--\s*id:\s*([a-z0-9]+)\s*-->/;
@@ -48,6 +49,7 @@ export function parseScript(source: string): Script {
     if (!block) script.intro = value;
     else if (block.type === 'section' || field === null) block.note = value;
     else if (field === 'files') block.files = fileLines(value);
+    else if (field === 'timeline') block.timeline = value.replace(/\s*\n\s*/g, ' ');
     else block[field] = value;
   };
 
@@ -57,7 +59,7 @@ export function parseScript(source: string): Script {
       flush();
       field = null;
       block = ROW.test(line)
-        ? { type: 'row', id: line.match(ID)?.[1] ?? '', dialogue: '', onScreen: '', files: [], note: '' }
+        ? { type: 'row', id: line.match(ID)?.[1] ?? '', dialogue: '', onScreen: '', files: [], timeline: '', note: '' }
         : { type: 'section', title: line.slice(2).trim(), note: '' };
       script.blocks.push(block);
       continue;
@@ -93,6 +95,7 @@ export function writeScript(script: Script): string {
     row.push(`Dialogue:\n${escape(block.dialogue)}`.trimEnd() + '\n');
     row.push(`On screen:\n${escape(block.onScreen)}`.trimEnd() + '\n');
     row.push(['Files:', ...block.files.map((file) => `- ${file}`)].join('\n'));
+    if (block.timeline) row.push(`\nTimeline: ${block.timeline}`);
     parts.push(row.join('\n'));
   }
   return parts.join('\n\n') + '\n';
@@ -103,7 +106,7 @@ export function rows(script: Script): Row[] {
 }
 
 export function emptyRow(script: Script): Row {
-  return { type: 'row', id: newId(new Set(rows(script).map((row) => row.id))), dialogue: '', onScreen: '', files: [], note: '' };
+  return { type: 'row', id: newId(new Set(rows(script).map((row) => row.id))), dialogue: '', onScreen: '', files: [], timeline: '', note: '' };
 }
 
 // The paragraphs of pasted text, one per line, blank lines and spaces around them dropped (AP-13: a draft from
@@ -153,7 +156,13 @@ export function withAuthor(script: Script, name: string): Script {
 
 export type FileRef = { kind: 'path' | 'link' | 'words'; label: string; target: string };
 
+// A file added only for the storyboard timeline (SB-1) ends " (timeline)"; Files shows it minimised.
+const TIMELINE_ONLY = /\s+\(timeline\)$/;
+export const timelineOnly = (line: string): boolean => TIMELINE_ONLY.test(line);
+export const markTimelineOnly = (line: string): string => (timelineOnly(line) ? line : `${line} (timeline)`);
+
 export function readFileRef(line: string): FileRef {
+  line = line.replace(TIMELINE_ONLY, '');
   const link = line.match(/^\[([^\]]*)\]\((\S+)\)$/);
   if (link) return { kind: 'link', label: link[1] || link[2], target: link[2] };
   if (/^https?:\/\//.test(line)) return { kind: 'link', label: line, target: line };
@@ -172,7 +181,7 @@ function fileLines(value: string): string[] {
 
 // A line in a field that would read as a label or a heading gets a backslash in front.
 function escape(text: string): string {
-  return text.replace(/^(Dialogue:|On screen:|Files:|#)/gm, '\\$1');
+  return text.replace(/^(Dialogue:|On screen:|Files:|Timeline:|#)/gm, '\\$1');
 }
 
 // Drops blank lines at both ends.

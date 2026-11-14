@@ -71,7 +71,7 @@ describe('span', () => {
   it('times the take, its words a minute and Play the script by the cropped part', () => {
     const t = { by: 'Sam', at: 0, seconds: 6, text: 'one two three four five', from: 0.5, to: 2.5, gain: 1 };
     expect(wpm(t, '')).toBe(150); // 5 words in 2 s
-    const script: Script = { front: null, intro: '', blocks: [{ type: 'row', id: 'a', dialogue: 'one two three four five', onScreen: '', files: [], note: '' }] };
+    const script: Script = { front: null, intro: '', blocks: [{ type: 'row', id: 'a', dialogue: 'one two three four five', onScreen: '', files: [], timeline: '', note: '' }] };
     expect(plan(script, { a: t }, 150)[0].seconds).toBe(2);
   });
 });

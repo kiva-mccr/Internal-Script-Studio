@@ -79,6 +79,7 @@ Each row has three fields, each starting with its label at the start of a line:
 | `Dialogue:` | Dialogue | what is said, word for word |
 | `On screen:` | On screen | what the viewer sees |
 | `Files:` | Images and files | the row's assets, one per line |
+| `Timeline:` | (none: the storyboard timeline) | optional, one line; see below |
 
 - A field's text may start on the label's line or on the lines below, and runs until the next label or heading.
   It may hold several paragraphs and ordinary Markdown. The app shows these marks as formatting (AP-11):
@@ -90,8 +91,35 @@ Each row has three fields, each starting with its label at the start of a line:
   - a path inside the script's folder: `assets/leaf-closeup.jpg`
   - a link, with a name: `[Chloroplast animation](https://…)`
   - plain words for something not found yet: `Stock shot of a forest (to find)`
+- A file added only for the storyboard timeline (SB-1) ends ` (timeline)`: `- assets/icon-water.png (timeline)`.
+  Files shows it minimised ("+2 for the timeline"); everything else reads it without the mark.
 - A line of text that itself starts with a label (a narrator saying "Dialogue: …") is written with a backslash in
   front, `\Dialogue:`, and shown without it.
+
+### The storyboard timeline (SB-1, optional)
+
+A row may end with one `Timeline:` line, after Files, holding only what differs from the default (a sequence of
+every image and video in the row's Files, sharing the row's time equally, nothing after it). Its parts, separated
+by commas:
+
+| Part | Meaning |
+|------|---------|
+| `collage` | all the pictures at once, side by side, for the whole row (`sequence`, the default, is not written) |
+| `without assets/old.png` | leave this picture out (one part per picture) |
+| `cuts at "water" "carbon"` | the second picture starts on the word "water", the third on "carbon" (timed from the take) |
+| `then hold 2 s` | after the row, the last picture stays on screen, in silence |
+| `then placeholder 3 s "Drone shot"` | after the row, a placeholder of that length, with what goes there |
+
+```markdown
+Files:
+- assets/icon-sun.png
+- assets/icon-water.png (timeline)
+
+Timeline: cuts at "water", then hold 2 s
+```
+
+A part the app doesn't understand is kept as typed. A dialogue line that starts with `Timeline:` is written
+`\Timeline:`, like the other labels.
 
 ### Anything else
 
