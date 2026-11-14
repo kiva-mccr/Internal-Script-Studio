@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { setFolderName } from './lib/problems';
   import { onMount } from 'svelte';
   import { opensReview, parseRoute, routeHash } from './lib/route';
   import { hasAccess, loadFolder, loadName, saveFolder, saveName } from './lib/remember';
@@ -32,6 +33,9 @@
   let undoStart = $state<(() => Promise<FileSystemDirectoryHandle>) | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
 
+
+  // The folder's name goes in an error's copied details (AP-41).
+  $effect(() => setFolderName(example ? 'the example' : (folder?.name ?? '')));
 
   onMount(async () => {
     const inExample = session('');

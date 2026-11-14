@@ -23,10 +23,11 @@ test('the first line does not name OneDrive', async ({ page }) => {
   await expect(page.locator('.lead')).toHaveText(/^Pick the shared folder your team keeps scripts in\./);
 });
 
-test('shows the OneDrive steps', async ({ page }) => {
+test('shows the steps for a network drive or a synced folder', async ({ page }) => {
   await page.goto('./');
   await page.getByText('Before you start').click();
-  await expect(page.getByText('Add shortcut to My files')).toBeVisible();
+  await expect(page.getByText(/^A network drive/)).toBeVisible();
+  await expect(page.getByText(/^A synced folder, such as OneDrive/)).toBeVisible();
 });
 
 test('closing the picker leaves you on the screen', async ({ page }) => {

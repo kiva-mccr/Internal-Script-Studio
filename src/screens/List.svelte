@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import People from './People.svelte';
   import SharedFiles from './SharedFiles.svelte';
   import { onMount } from 'svelte';
@@ -39,8 +41,8 @@
       await list.refresh();
       isOneScript = !Object.keys(list.entries).length && (await findScript(folder, [])) !== null;
       error = '';
-    } catch {
-      error = "The folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
+    } catch (e) {
+      error = problem("The folder couldn't be read. If the shared folder is still syncing, wait a moment and try again.", 'reading the list of scripts', e);
     }
   }
   onMount(load);
@@ -66,7 +68,7 @@
       const made = await createScript(folder, newName, name);
       location.hash = routeHash([made]);
     } catch (e) {
-      addError = e instanceof Error && !(e instanceof DOMException) ? e.message : "The script couldn't be created.";
+      addError = e instanceof Error && !(e instanceof DOMException) ? e.message : problem("The script couldn't be created.", 'creating a script', e);
     }
   }
 
@@ -97,12 +99,12 @@
         <button class="primary small" type="submit">Create</button>
         <button class="link" type="button" onclick={() => { adding = false; addError = ''; }}>Cancel</button>
       </div>
-      {#if addError}<p class="error" role="alert">{addError}</p>{/if}
+      {#if addError}<p class="error" role="alert">{addError}<CopyDetails message={addError} /></p>{/if}
     </form>
   {/if}
 
   {#if error}
-    <p class="error" role="alert">{error}</p>
+    <p class="error" role="alert">{error}<CopyDetails message={error} /></p>
   {:else if scripts && scripts.length === 0}
     <div class="empty">
       {#if isOneScript}

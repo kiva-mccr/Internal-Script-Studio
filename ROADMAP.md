@@ -590,10 +590,16 @@ and suggestions, keeps every version, and exports them for production.
 - [ ] **RV-23** Fold columns in Review too (asked by the user): the ‹ fold from AP-17 (Write only today) also works
   in Review, every column open by default. Whether Review remembers its own folds or shares Write's is for the
   mock-up. Mock-up first.
-- [ ] **AP-41** Copy the details of any error (asked by the user): every error message gets a small, quiet "copy
+- [x] **AP-41** Copy the details of any error (asked by the user): every error message gets a small, quiet "copy
   details" button that copies the full error (the browser's error name and message, what the app was doing, the
   app's version, the browser) for debugging, without cluttering the message. Messages name OneDrive or another
   system only when the app knows that's where the folder is (the save messages were changed in FX-1). Mock-up first.
+  Built (board 61, the user picked look A): a small grey copy icon after every error (in pages, the bottom message,
+  the top bar's "Couldn't save", the plan's foot, Follow my voice, files from other scripts, the voice-over export),
+  turning into a tick when copied. It copies plain text: the message, "While: …", the browser's error, the folder's
+  name, the page, the live version, the browser and the time (`lib/problems.ts`). Hints get no icon. The last
+  OneDrive wording went: "Two copies of this script were found", and the Setup steps cover a network drive or a
+  synced folder such as OneDrive.
 - [x] **AP-40** The script list reads only what it needs (asked by the user): today the list, after showing names,
   reads every script's script file, take notes, all comment files and History (not approved ones) one after another,
   and again whenever the window gets focus. Instead: (1) only the scripts on screen are read, the rest as you scroll

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   import { onMount } from 'svelte';
   import { changes, holdEnds, isOfficial, isSend, listVersions, officialNumber, officialNumbers, summary, type Version } from '../lib/history';
   import { threads, type Note, type Thread } from '../lib/comments';
@@ -63,8 +65,8 @@
       const newestOfficial = versions.findIndex(isOfficial);
       picked = Math.max(newestOfficial, 0);
       shown = Math.max(PAGE, picked + 1);
-    } catch {
-      error = "History couldn't be read. If the shared folder is still syncing, wait a moment and try again.";
+    } catch (e) {
+      error = problem("History couldn't be read. If the shared folder is still syncing, wait a moment and try again.", 'reading History', e);
     }
   }
 
@@ -189,7 +191,7 @@
 </script>
 
 {#if error}
-  <p class="error" role="alert">{error}</p>
+  <p class="error" role="alert">{error}<CopyDetails message={error} /></p>
 {:else if versions && versions.length === 0}
   <p class="empty">No history yet. It starts with the next save.</p>
 {:else if versions && selected}

@@ -11,6 +11,8 @@ version (`Print.svelte`) and the teleprompter (`Teleprompter.svelte`, saves what
 
 ## Rules and pitfalls
 
+- The bottom message shows `CopyDetails` (AP-41): it appears only for messages given to `problem()`, so hints
+  shown there get no icon.
 - "Use in script" (RV-12, `useFile`) copies a comment's file through `addAsset` (never overwrites), adds the line
   to the row and saves as any edit; a file still syncing gives a plain message.
 - Review's note (RV-8) and the version when the last review ended (RV-4) are read from History when Review opens

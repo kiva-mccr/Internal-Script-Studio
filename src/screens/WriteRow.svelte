@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { problem } from '../lib/problems';
   import { clock } from '../lib/readtime.svelte';
   import type { Row } from '../lib/script';
   import { toHtml } from '../lib/format';
@@ -55,7 +56,7 @@
   // A row's own ▶: while the script is playing that row, it pauses and carries on.
   async function play() {
     if (here) return player.toggle();
-    await voice.play(dir, block.id).catch(() => onNotice("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing."));
+    await voice.play(dir, block.id).catch((e) => onNotice(problem("That take couldn't be played. If someone just recorded it, the shared folder may still be syncing.", 'playing a take', e)));
   }
 
   // A note is written when the box is left or Enter is pressed, not on every key.
@@ -133,8 +134,8 @@
     {:else if take}
       <Take {take} dialogue={block.dialogue} n={n ?? 0} {sounding} at={here ? player.at : voice.playing === block.id ? voice.at : 0}
         onPlay={play}
-        onCurrent={() => voice.current(dir, block.id, block.dialogue).catch(() => onNotice("Outdated couldn't be hidden."))}
-        onDrop={() => voice.remove(dir, block.id).catch(() => onNotice("The take couldn't be deleted."))} />
+        onCurrent={() => voice.current(dir, block.id, block.dialogue).catch((e) => onNotice(problem("Outdated couldn't be hidden.", 'hiding Outdated on a take', e)))}
+        onDrop={() => voice.remove(dir, block.id).catch((e) => onNotice(problem("The take couldn't be deleted.", 'deleting a take', e)))} />
     {:else if here}
       <p class="take" role="status">
         <span class="bar"><span style:width="{player.at * 100}%"></span></span>

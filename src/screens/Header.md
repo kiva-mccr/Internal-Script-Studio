@@ -10,6 +10,8 @@ Copy for Teams, EX-10) above Export (Print…, Fountain, Final Draft, Voice-over
 
 ## Rules and pitfalls
 
+- "Couldn't save" has the copy icon (AP-41), keyed by `SAVE_FAILED` from `lib/saving.svelte.ts`, which records
+  the error with `problem()`.
 - One menu is open at a time (`menu`). It closes on Esc, on a click outside both menus, after choosing, and a
   moment after a copy (the item says "Link copied" or "Copied, paste it in Teams"; a failed copy says so in the menu).
   Tests open ⋯ with the "More" button, and an export with "Export" (it matches "Export / Share") then its item.

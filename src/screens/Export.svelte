@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+  import { problem } from '../lib/problems';
+  import CopyDetails from './CopyDetails.svelte';
   // The export screen (EX-9, board 27): opened from Export / Share on one format, in place of the script. Formats
   // on the left, the real result in the middle (redrawn as settings change), the settings and Print… or Save on the
   // right. Settings are remembered in this browser; their defaults are what the exports did before.
@@ -99,10 +101,11 @@
   const GAP = 0.5;
   let clips = $state<Clip[] | null>(null);
   let failed = $state(false);
+  const VOICE_FAILED = "The voice-over couldn't be put together. If the shared folder is still syncing the takes, wait a moment and try again.";
   let audio = $state<HTMLAudioElement>();
   $effect(() => {
     if (format !== 'voice' || clips || failed) return;
-    readClips(dir, script, RATE).then((c) => (clips = c), () => (failed = true));
+    readClips(dir, script, RATE).then((c) => (clips = c), (e) => (problem(VOICE_FAILED, 'putting the voice-over together', e), (failed = true)));
   });
   const reads = $derived(rows(script).map((row) => (countWords(row.dialogue) / speaking.wpm) * 60));
   const lined = $derived(clips ? lineUp(clips, reads, RATE, voiceHow.silence) : []);
@@ -215,7 +218,7 @@
     {:else}
       <p class="caption">{name} voice-over.wav · 48 kHz mono</p>
       {#if failed}
-        <p class="message" role="alert">The voice-over couldn't be put together. If the shared folder is still syncing the takes, wait a moment and try again.</p>
+        <p class="message" role="alert">{VOICE_FAILED}<CopyDetails message={VOICE_FAILED} /></p>
       {:else if !clips}
         <p class="message">Putting the takes together…</p>
       {:else if !clips.length}

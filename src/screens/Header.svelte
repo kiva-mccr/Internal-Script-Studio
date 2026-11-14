@@ -4,6 +4,8 @@
 </script>
 
 <script lang="ts">
+  import CopyDetails from './CopyDetails.svelte';
+  import { SAVE_FAILED } from '../lib/saving.svelte';
   import { editingText } from '../lib/editing';
   import type { Format } from './Export.svelte';
   import type { Shared } from '../lib/share';
@@ -27,7 +29,7 @@
     nextVersion: () => Promise<{ n: number; still: boolean }>; // what Send for review makes (RV-9)
   } = $props();
 
-  const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: "Couldn't save, trying again", conflict: 'Not saved',
+  const statusText = { saved: 'Saved', waiting: 'Editing…', saving: 'Saving…', failed: SAVE_FAILED, conflict: 'Not saved',
     locked: 'Not saved: the browser needs your OK to edit the folder' };
   // A failed save names the browser's error, so it can be reported (the field test on a shared folder): the name in
   // the bar, all of it on hover.
@@ -113,7 +115,7 @@
     </a>
     <span class="title">{title}</span>
     <!-- Beside the title, where Word and Google Docs put it (AP-16, the user's pick): it is about the script, not an action. -->
-    {#if ready}<span class="status" class:bad role="status" data-tour="saved" title={status === 'failed' ? problem : undefined}>{shownStatus}</span>{/if}
+    {#if ready}<span class="status" class:bad role="status" data-tour="saved" title={status === 'failed' ? problem : undefined}>{shownStatus}</span>{#if status === 'failed'}<CopyDetails message={SAVE_FAILED} />{/if}{/if}
     <!-- The length follows Saved as one grey line (mock-up 30, A), and steps aside for a red message. -->
     {#if ready && voiceText && !bad}<span class="voice" title={voiceText.includes('/') ? 'Voice-over recorded so far / the whole script (takes, plus read time for the rest)' : 'Read time of the whole script'}>{voiceText}</span>{/if}
     <!-- The browser took back its OK to edit the folder: only a click can ask again (mock-up 18, option A). -->
