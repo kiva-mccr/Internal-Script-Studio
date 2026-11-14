@@ -1,10 +1,15 @@
-// "Sam is editing": one small file per person in .studio/editing/ (docs/studio-folder.md). The only files in
-// .studio/ that change: each person writes a new one every 30 s and removes their own older ones.
+// "Sam is editing": one small file per person in .studio/editing/ (docs/studio-folder.md). Each person writes a new
+// one every 30 s and removes their own older ones; on leaving, a last one marked `left` stays ("Sam was here", AP-37).
 import { jsonNames, readJson, stamp, writeText } from './files';
+import { ago, at } from './when';
 
-export type Editing = { v: 1; who: string; since: string; seen: string; last_written: string };
+// left: when the person left the script (their last file, AP-37); never editing then.
+export type Editing = { v: 1; who: string; since: string; seen: string; last_written: string; left?: string };
 
-export const FRESH_FOR = 2 * 60 * 1000; // older than this, the person has gone (closed laptop)
+const FRESH_FOR = 2 * 60 * 1000; // older than this, the person has gone (closed laptop)
+const QUIET_FOR = 2 * 60 * 60 * 1000; // gone without leaving: "last seen" (amber) until this old, then "was here"
+const BAR_FOR = 7 * 24 * 60 * 60 * 1000; // the top bar names the last person here up to this far back
+export const KEEP_FOR = 30 * 24 * 60 * 60 * 1000; // older editing files are removed, and not listed
 
 export function fileName(who: string): string {
   return (who.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'someone') + '.json';
@@ -19,19 +24,19 @@ export async function writeEditing(dir: FileSystemDirectoryHandle, entry: Editin
   for (const old of await ownFiles(folder, entry.who)) if (old < name) await folder.removeEntry(old).catch(() => {});
 }
 
-export async function removeEditing(dir: FileSystemDirectoryHandle, who: string): Promise<void> {
-  const folder = await editingFolder(dir, false);
-  if (folder) for (const name of await ownFiles(folder, who)) await folder.removeEntry(name).catch(() => {});
-}
-
-// Everyone's newest editing file, stale ones too (their last_written still counts when a script is opened).
-export async function readEditing(dir: FileSystemDirectoryHandle): Promise<Editing[]> {
+// Everyone's newest editing file, stale and left ones too (their last_written still counts when a script is opened).
+// Anyone's file over 30 days old is removed (AP-37).
+export async function readEditing(dir: FileSystemDirectoryHandle, now = Date.now()): Promise<Editing[]> {
   const folder = await editingFolder(dir, false);
   if (!folder) return [];
   const newest = new Map<string, Editing>();
   for (const name of await jsonNames(folder)) {
     const entry = await readJson<Editing>(folder, name);
     if (entry?.v !== 1 || !entry.who) continue; // half-written: skipped
+    if (now - Date.parse(entry.seen) > KEEP_FOR) {
+      await folder.removeEntry(name).catch(() => {});
+      continue;
+    }
     const had = newest.get(fileName(entry.who));
     if (!had || had.seen <= entry.seen) newest.set(fileName(entry.who), entry);
   }
@@ -46,11 +51,40 @@ async function ownFiles(folder: FileSystemDirectoryHandle, who: string): Promise
 
 const base = (who: string) => fileName(who).slice(0, -'.json'.length);
 
+// Has the script open now: seen in the last 2 minutes, and hasn't left.
+export const isEditing = (e: Editing, now = Date.now()) => !e.left && now - Date.parse(e.seen) < FRESH_FOR;
+
 // The other people who have the script open now.
 export function othersEditing(entries: Editing[], me: string, now = Date.now()): string[] {
+  return entries.filter((e) => fileName(e.who) !== fileName(me) && isEditing(e, now)).map((e) => e.who);
+}
+
+// Who has been here (AP-37): everyone else in the last 30 days, newest first. editing: has it open now; quiet:
+// stopped checking in without leaving, under 2 hours ago (the laptop slept or lost the drive); here: left, or long gone.
+export type Seen = { who: string; time: number; state: 'editing' | 'quiet' | 'here' };
+
+export function whoWasHere(entries: Editing[], me: string, now = Date.now()): Seen[] {
   return entries
-    .filter((e) => fileName(e.who) !== fileName(me) && now - Date.parse(e.seen) < FRESH_FOR)
-    .map((e) => e.who);
+    .filter((e) => fileName(e.who) !== fileName(me) && now - Date.parse(e.seen) <= KEEP_FOR)
+    .map((e): Seen => {
+      const time = Date.parse(e.seen);
+      return { who: e.who, time, state: isEditing(e, now) ? 'editing' : !e.left && now - time < QUIET_FOR ? 'quiet' : 'here' };
+    })
+    .sort((a, b) => b.time - a.time);
+}
+
+// The top bar when nobody else is editing: "Sam was here 12 min ago", "Sam last seen 3 min ago", '' past 7 days.
+export function lastHereText(seen: Seen[], now = Date.now()): string {
+  const last = seen[0];
+  if (!last || last.state === 'editing' || now - last.time > BAR_FOR) return '';
+  return `${last.who} ${last.state === 'quiet' ? 'last seen' : 'was here'} ${ago(last.time, now)}`;
+}
+
+// One line of the list: "editing now", "last seen 3 min ago", "3 h ago", then "Yesterday, 5:40 pm".
+export function seenWhen(seen: Seen, now = Date.now()): string {
+  if (seen.state === 'editing') return 'editing now';
+  if (seen.state === 'quiet') return `last seen ${ago(seen.time, now)}`;
+  return now - seen.time < 24 * 60 * 60 * 1000 ? ago(seen.time, now) : at(seen.time, now);
 }
 
 // "Sam is editing", "Sam and Ana are editing", "Sam, Ana and Lee are editing".

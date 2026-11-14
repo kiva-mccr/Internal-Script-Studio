@@ -573,11 +573,13 @@ and suggestions, keeps every version, and exports them for production.
   page should be centred in the part of the page on screen, not on the whole length of the page. The two pop-up
   windows in the code, Settings and Shared files, are pinned to the screen with a gap at the top, so which one the
   user saw (or a menu or panel inside the page) is to be confirmed first. Bug fix, no mock-up needed.
-- [ ] **AP-37** When each computer last synced (asked by the user; in this round after AP-39, thread started 2026-11-14; on the network drive it may become "last seen"): a web page can't ask OneDrive for its status, so
-  each computer with the app open leaves a small "still here" mark in `.studio/` about once a minute, and the others
-  show how old the newest mark they can see is ("Sam's computer last synced 2 min ago"), which says how far behind
-  OneDrive is. To work out: keeping to the write-once rule for `.studio/` without piling up files, and where it shows
-  (beside "… is editing"?). Mock-up first.
+- [x] **AP-37** When others were last here (asked by the user; reframed for the network drive as "last seen", board
+  62, agreed 2026-11-14 with all six choices): no new files. The "… is editing" file Sam writes every 30 s stays when
+  Sam leaves, as one last file marked `left` (older ones removed; written once). The top bar says "Sam is editing" as
+  before, or when nobody is, "Sam was here 12 min ago" (up to 7 days back), or "Sam last seen 3 min ago" with an
+  amber ring when Sam stopped checking in without leaving (for 2 hours). Click it: everyone who opened the script in
+  the last 30 days. Files over 30 days old are removed. The script list is unchanged. Not seen for real: two
+  computers on the network drive, and whether a closing tab writes its "left" file in time.
 - [x] **AP-39** No blank page when scrolling fast (a bug the user hit; board 59, agreed 2026-11-13): measured on a
   150-row script in test Chromium. Text and small pictures scrolled smoothly; camera-size photos (4000 × 3000) fell
   to about 7 frames a second (150 ms a frame: Chrome unpacked each full photo again as it came on screen), and 150

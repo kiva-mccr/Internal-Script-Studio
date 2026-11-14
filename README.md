@@ -172,6 +172,9 @@ Status: a first working version. What it does today:
   use it, with a thumbnail for pictures, PDFs and videos: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.
 - **Two people:** the top of a script says who else is editing it, with a small spinner while their changes come in.
+  When nobody else is, it says who was last here ("Sam was here 12 min ago"), or "Sam last seen 3 min ago" in amber
+  when Sam's computer went quiet without leaving (asleep, or off the drive), so their last typing may not be in yet.
+  Click it to see everyone who opened the script in the last 30 days.
   Each person saves only their own small change files, so two computers never write the same file; their changes
   appear on their own, row by row, and only a place you both changed is shown side by side for you to pick. Works
   on a network drive, OneDrive or any shared folder.

@@ -424,8 +424,9 @@ test('columns fold in Review, apart from Write, and picking a comment opens its 
   await expect(page.getByTitle('On screen has something here').first()).toBeVisible();
   expect((await page.getByLabel('Dialogue, row 1').boundingBox())!.width).toBeGreaterThan(600);
   await expect(page.getByRole('button', { name: 'Fold Dialogue away' })).toHaveCount(0);
-  // Picking the card opens On screen again, with its words marked; Images & files stays folded.
-  await page.getByRole('article', { name: 'Comment by Sam' }).click();
+  // Picking the card opens On screen again, with its words marked; Images & files stays folded. Clicked on its words:
+  // the card's middle can be its Resolve button, which resolved it (seen under load).
+  await page.getByRole('article', { name: 'Comment by Sam' }).getByText('Could we shoot a real leaf?').click();
   await expect(page.getByLabel('On screen, row 1')).toBeVisible();
   await expect.poll(() => marked(page)).toEqual(['sunlit leaf']);
   await expect(page.getByRole('button', { name: 'Show Images & files' })).toBeVisible();

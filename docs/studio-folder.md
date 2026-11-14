@@ -165,7 +165,12 @@ is open, the person's older ones removed:
   they last wrote.
 - Anyone else opening the script sees "Sam is editing" while `seen` is under **2 minutes** old. Older than that, it
   is ignored (Sam closed the laptop), but kept until its `last_written` has been checked (see above).
-- Deleted when Sam leaves the script. `sam.json` files from before FX-2 are read too, and removed by their owner.
+- When Sam leaves the script, Sam's app writes one last file with `"left": "<time>"` and removes Sam's older ones
+  (AP-37): never more than one file per person, and still written once. A `left` file never counts as editing.
+  It shows the others "Sam was here 12 min ago". A file not `left` and over 2 minutes old means Sam went quiet
+  without leaving (the laptop slept, or lost the drive): "Sam last seen 3 min ago", for 2 hours.
+- Anyone's file over 30 days old is removed by whoever has the script open. `sam.json` files from before FX-2 are
+  read too, and removed by their owner.
 
 It is a warning, not a lock: anyone can still edit, and conflicts are caught as above.
 

@@ -5,7 +5,7 @@ import { untrack } from 'svelte';
 import { askAccess, hasAccess } from './remember';
 import { findScript, readScript, writeScriptFile } from './folder';
 import { newId, parseScript, rows, setFrontValue, withAuthor, writeScript, type Script } from './script';
-import { fileName, FRESH_FOR, readEditing, othersEditing, writeEditing, writerOf, type Editing } from './editing';
+import { fileName, isEditing, readEditing, othersEditing, whoWasHere, writeEditing, writerOf, type Editing, type Seen } from './editing';
 import { addVersion, heads, listVersions, officialNumber, OUTSIDE, sendVersion, sha256, type Version } from './history';
 import { merge, type Merged, type Side } from './merge';
 import { diff, fold } from './changes';
@@ -43,6 +43,7 @@ export class Saving {
   status = $state<Status>('saved');
   clash = $state<Clash | null>(null);
   editors = $state<string[]>([]); // other people with this script open
+  seen = $state<Seen[]>([]); // everyone else who has been here, newest first (AP-37)
   problem = $state(''); // why the last save failed, in the browser's words, for the person to report
   folding = $state(''); // whose changes are being folded in right now (a spinner beside "… is editing")
   shared = ''; // the script as everyone has it: script.md plus every change file folded in, this person's too
@@ -94,11 +95,13 @@ export class Saving {
     return true;
   }
 
-  // "… is editing": a new file for this person, with when they were last here and what they last wrote.
-  async here() {
-    if (!this.dir) return;
-    const entry: Editing = { v: 1, who: this.name(), since: this.#since, seen: new Date().toISOString(), last_written: await sha256(this.#wrote) };
-    await writeEditing(this.dir, entry).catch(() => {});
+  // "… is editing": a new file for this person, with when they were last here and what they last wrote. Leaving,
+  // a last one marked `left` ("Sam was here", AP-37); the name and folder are passed then, as the props may be gone.
+  async here(left = false, who = this.name(), dir = this.dir) {
+    if (!dir) return;
+    const now = new Date().toISOString();
+    const entry: Editing = { v: 1, who, since: this.#since, seen: now, last_written: await sha256(this.#wrote), ...(left ? { left: now } : {}) };
+    await writeEditing(dir, entry).catch(() => {});
   }
 
   // On opening: the newest version should match script.md. If not, the keeper wrote it since (its note says so),
@@ -220,7 +223,7 @@ export class Saving {
   // Only the keeper writes script.md, so two computers never write it at once.
   #keeper(): boolean {
     const now = Date.now();
-    const others = this.#entries.filter((e) => fileName(e.who) !== fileName(this.name()) && now - Date.parse(e.seen) < FRESH_FOR);
+    const others = this.#entries.filter((e) => fileName(e.who) !== fileName(this.name()) && isEditing(e, now));
     const here = [...others, { who: this.name(), since: this.#since }];
     here.sort((a, b) => a.since.localeCompare(b.since) || a.who.localeCompare(b.who));
     return fileName(here[0].who) === fileName(this.name());
@@ -483,6 +486,7 @@ export class Saving {
     if (!this.dir) return;
     this.#entries = await readEditing(this.dir).catch(() => this.#entries);
     this.editors = othersEditing(this.#entries, this.name());
+    this.seen = whoWasHere(this.#entries, this.name());
   }
 
   // Saves what is waiting, then names the version the script is: "v3" while it is still that official version, ''
