@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { readFile, setUp } from './folder';
+import { readFile, readJsonFiles, setUp } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const svg = (fill: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="${fill}"/></svg>`;
@@ -88,4 +88,65 @@ test('the timeline can be hidden, and stays hidden', async ({ page }) => {
   await page.getByRole('link', { name: 'Back to Video Scripts' }).click();
   await page.getByRole('link', { name: /How Photosynthesis Works/ }).click();
   await expect(timeline(page).getByRole('button', { name: '⌃ Show' })).toBeVisible();
+});
+
+test('cut on a word: a click on a word starts the next picture there', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', files);
+  const t = timeline(page);
+  await t.getByRole('button', { name: /^Row 2 · / }).click();
+  const words = t.getByRole('group', { name: 'Cut on a word' });
+  await words.getByRole('button', { name: 'water,' }).click();
+  await expect(words.getByRole('button', { name: 'water,' })).toHaveAttribute('aria-pressed', 'true');
+  await saved(page).toContain('Timeline: cuts at "water"\n');
+  // Two pictures: one cut at most.
+  await expect(words.getByRole('button', { name: 'carbon' })).toBeDisabled();
+  await words.getByRole('button', { name: 'water,' }).click();
+  await saved(page).not.toContain('cuts at');
+});
+
+test('playing: the timeline pins to the bottom, the preview follows, a hold plays in silence', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('prompter-speed', '400');
+    const wav = () => {
+      const rate = 8000, n = rate * 1.5, buf = new DataView(new ArrayBuffer(44 + n * 2));
+      const text = (at: number, s: string) => [...s].forEach((c, i) => buf.setUint8(at + i, c.charCodeAt(0)));
+      text(0, 'RIFF'); buf.setUint32(4, 36 + n * 2, true); text(8, 'WAVEfmt '); buf.setUint32(16, 16, true);
+      buf.setUint16(20, 1, true); buf.setUint16(22, 1, true); buf.setUint32(24, rate, true); buf.setUint32(28, rate * 2, true);
+      buf.setUint16(32, 2, true); buf.setUint16(34, 16, true); text(36, 'data'); buf.setUint32(40, n * 2, true);
+      for (let i = 0.2 * rate; i < 1.3 * rate; i++) buf.setInt16(44 + i * 2, Math.round(8000 * Math.sin(i / 3)), true);
+      return new Blob([buf], { type: 'audio/wav' });
+    };
+    (window as unknown as { studioRecord: () => Promise<{ stop: () => Promise<Blob> }> }).studioRecord = async () => ({ stop: async () => wav() });
+  });
+  await setUp(page, '#/Episode%2003', { ...files, 'Episode 03/script.md': script.replace('- assets/music-bed.mp3\n', '- assets/music-bed.mp3\n\nTimeline: then hold 1 s\n') });
+  await page.getByRole('button', { name: 'Record row 2', exact: true }).click();
+  await page.getByRole('button', { name: 'Stop recording row 2' }).click();
+  const t = timeline(page);
+  // The take shows as a waveform.
+  await expect(t.getByRole('img', { name: /^Take, / })).toBeVisible();
+  await page.getByRole('button', { name: 'Play from row 2' }).click();
+  await expect(page.locator('.timeline.pinned')).toBeVisible();
+  await expect(t.getByRole('img', { name: /^Preview: Row 2/ })).toBeVisible();
+  await expect(t.getByRole('img', { name: 'Preview: Hold' })).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('.bar.lit')).toBeVisible();
+  await t.getByRole('button', { name: 'Make the preview big' }).click();
+  await expect(page.locator('.preview.big')).toBeVisible();
+  await page.keyboard.press('Escape'); // stops it (if the last rows haven't already)
+  await expect(page.locator('.timeline.pinned')).toHaveCount(0);
+});
+
+test('in Review the timeline is read only, and a click on a block comments on its row', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', { ...files, 'Episode 03/script.md': script.replace('- assets/music-bed.mp3\n', '- assets/music-bed.mp3\n\nTimeline: then hold 1 s\n') });
+  await page.getByRole('button', { name: /^Review/ }).click();
+  const t = timeline(page);
+  await expect(t.getByText('click a block to comment on its row')).toBeVisible();
+  // A hold comments on the row before it; no panel opens.
+  await t.getByRole('button', { name: /^Hold · / }).click();
+  await expect(t.locator('.panel')).toHaveCount(0);
+  const form = page.getByRole('form', { name: 'New comment' });
+  await expect(form).toContainText('Comment on row 2, on the timeline');
+  await form.getByLabel('Comment', { exact: true }).fill('Hold this a bit longer?');
+  await form.getByRole('button', { name: 'Add comment' }).click();
+  await expect(page.getByRole('article', { name: 'Comment by Sam' })).toContainText('Sam commented · row 2, on the timeline');
+  expect(await readJsonFiles(page, 'Episode 03/.studio/comments')).toMatchObject([{ kind: 'comment', row: 'p8x2m', on: 'timeline', quote: '' }]);
 });

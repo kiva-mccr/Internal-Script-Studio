@@ -427,7 +427,7 @@
     <button class="link" onmousedown={(e) => e.preventDefault()} onclick={addSection}>+ Add section</button>
   </div>
 </div>
-<Timeline {script} {dir} {voice} {canPlay} bind:selected={chosen} onTimeline={setTimeline} onFiles={setFiles} onRemoveAfter={removeAfter}
+<Timeline {script} {dir} {voice} {player} {canPlay} bind:selected={chosen} onTimeline={setTimeline} onFiles={setFiles} onRemoveAfter={removeAfter}
   onShow={showRow} {onPlayFrom} {onNotice} />
 
 {#snippet removedRows(after: string)}

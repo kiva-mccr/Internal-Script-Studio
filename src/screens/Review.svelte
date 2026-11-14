@@ -7,6 +7,7 @@
   import ReviewComments from './ReviewComments.svelte';
   import SelectionComment from './SelectionComment.svelte';
   import Take from './Take.svelte';
+  import Timeline from './Timeline.svelte';
   import type { Player } from '../lib/play.svelte';
   import type { VoiceOver } from '../lib/voice.svelte';
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
@@ -65,7 +66,8 @@
   let hideSent = $state(false); // the review note folded to a button (RV-8), until Review is left
   let comments = $state<ReviewComments>(); // the comments beside the script: `start` opens a new one
   let picker = $state<SelectionComment>(); // the Comment button on selected words (RV-22)
-  const start = (t: { row: string; field: Field; quote: string }) => comments?.start(t);
+  const start = (t: { row: string; field: Field; quote: string; on?: 'timeline' }) => comments?.start(t);
+  let block = $state(''); // the block picked on the storyboard timeline (SB-1)
   // Open comments, for marking their quotes (the list itself is ReviewComments').
   const open = $derived(threads(notes, true, ends).filter((t) => !t.deleted && !t.resolved && !t.held));
   const rowList = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
@@ -272,6 +274,9 @@
       {/if}
     {/each}
     <SelectionComment bind:this={picker} script={table} onComment={start} />
+    <!-- The storyboard timeline (SB-1), read only: a click on a block comments on its row. -->
+    <Timeline {script} {dir} {voice} {player} {canPlay} readOnly bind:selected={block} {onPlayFrom} {onNotice}
+      onComment={(row) => start({ row, field: 'dialogue', quote: '', on: 'timeline' })} />
   </div>
 
   <ReviewComments bind:this={comments} bind:active={() => active, pick} {dir} {notes} {ends} {me} rows={rowList} {numbers} {onAdd} {onApply} />

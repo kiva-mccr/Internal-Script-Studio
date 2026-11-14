@@ -5,20 +5,25 @@
   import { clock, countWords, speaking } from '../lib/readtime.svelte';
   import { keep, recall } from '../lib/remember';
   import { markTimelineOnly, rows, type Row, type Script } from '../lib/script';
-  import { changeChoices, layout, pictureFiles, readChoices, type After, type TimeBlock } from '../lib/timeline';
+  import { changeChoices, cutPositions, dialogueWords, layout, pictureFiles, readChoices, type After, type TimeBlock } from '../lib/timeline';
+  import type { Player } from '../lib/play.svelte';
   import { takeLength, type VoiceOver } from '../lib/voice.svelte';
   import { waveform, wavePath } from '../lib/waveform';
   import AfterEditor from './AfterEditor.svelte';
+  import { near } from '../lib/near';
 
   // The storyboard timeline (SB-1, board 63), under the last row in Write: sections, rows with their pictures, and
   // the voice-over, laid out in time. Mostly a view of the script; the only choices are the pictures and the holds
   // and placeholders, kept in each row's Timeline line. selected: the block picked (a row id, or "hold:<id>" /
   // "placeholder:<id>"), shared with the bars in the script. onTimeline sets a row's Timeline line; onFiles its
   // Files; onRemoveAfter removes the hold or placeholder after a row (with Undo); onShow scrolls to a row.
-  let { script, dir, voice, canPlay, selected = $bindable(), onTimeline, onFiles, onRemoveAfter, onShow, onPlayFrom, onNotice }: {
-    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; canPlay: boolean; selected: string;
-    onTimeline: (id: string, line: string) => void; onFiles: (id: string, files: string[]) => void; onRemoveAfter: (id: string) => void;
-    onShow: (id: string) => void; onPlayFrom: (id: string) => void; onNotice: (message: string) => void;
+  // readOnly (Review): no choices; a click on a block comments on its row (onComment), a hold or placeholder on the
+  // row before it.
+  let { script, dir, voice, player, canPlay, selected = $bindable(), readOnly = false, onTimeline = () => {}, onFiles = () => {},
+    onRemoveAfter = () => {}, onShow = () => {}, onComment = () => {}, onPlayFrom, onNotice }: {
+    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; selected: string; readOnly?: boolean;
+    onTimeline?: (id: string, line: string) => void; onFiles?: (id: string, files: string[]) => void; onRemoveAfter?: (id: string) => void;
+    onShow?: (id: string) => void; onComment?: (row: string) => void; onPlayFrom: (id: string) => void; onNotice: (message: string) => void;
   } = $props();
 
   const KEY = 'timeline-hidden';
@@ -47,17 +52,19 @@
     return list;
   });
 
-  // The pictures, as blob URLs from the script's folder, made while the timeline is open and freed after.
+  // The pictures, as blob URLs from the script's folder, made while the timeline is open and freed after. Like the
+  // previews (AP-39), only once it comes near the screen: opening a script doesn't wait on the timeline's work.
+  let shown = $state(false);
   let urls = $state<Record<string, string>>({});
   const paths = $derived([...new Set(rows(script).flatMap((r) => pictureFiles(r).map((p) => p.path)))].join('\n'));
   $effect(() => {
     const list = paths ? paths.split('\n') : [];
-    if (hidden) return;
+    if (hidden || !shown) return;
     let gone = false;
     const made: string[] = [];
     (async () => {
       const next: Record<string, string> = {};
-      for (const path of list.filter((p) => !isVideo(p))) {
+      for (const path of list) {
         const file = await assetFile(dir, path);
         if (gone) return;
         if (file) made.push((next[path] = URL.createObjectURL(file)));
@@ -74,7 +81,7 @@
   // Waveforms of the takes, by row id, made once each.
   let waves = $state<Record<string, string>>({});
   $effect(() => {
-    if (hidden) return;
+    if (hidden || !shown) return;
     for (const [id, take] of Object.entries(voice.takes)) {
       waveform(dir, id, take).then((peaks) => {
         if (peaks && waves[id] !== wavePath(peaks)) waves = { ...waves, [id]: wavePath(peaks) };
@@ -86,9 +93,41 @@
   const selRow = $derived(block?.kind === 'row' ? byId.get(block.id) : undefined);
   const selAfter = $derived(block && block.kind !== 'row' ? readChoices(byId.get(block.after)?.timeline ?? '').after : null);
 
+  // Playing (PR 3): the timeline pins to the bottom of the screen, a playhead runs along it and a preview shows the
+  // picture of the moment above its right end; ⤢ makes the preview big.
+  const now = $derived(player.started ? laid.blocks.find((b) => b.id === player.row) : undefined);
+  const into = $derived(Math.min(player.elapsed, now?.seconds ?? 0));
+  let big = $state(false);
+  // The picture(s) on screen: a sequence's shot of the moment, a collage's all, a hold the last one before it.
+  const showing = $derived.by((): { paths: string[]; card: string; tag: string } => {
+    if (!now) return { paths: [], card: '', tag: '' };
+    if (now.kind !== 'row') {
+      if (now.kind === 'placeholder') return { paths: [], card: `Placeholder${now.label ? `: ${now.label}` : ''}`, tag: 'Placeholder' };
+      const before = laid.blocks.slice(0, laid.blocks.indexOf(now)).findLast((b) => b.kind === 'row');
+      const last = before?.kind === 'row' ? (before.collage ? before.picks : before.shots.slice(-1).map((s) => s.path)) : [];
+      return { paths: last, card: last.length ? '' : 'Hold', tag: 'Hold' };
+    }
+    const n = numbers.get(now.id);
+    if (!now.picks.length) return { paths: [], card: plain(byId.get(now.id)?.onScreen ?? '').trim() || `Row ${n}`, tag: `Row ${n}` };
+    if (now.collage) return { paths: now.picks, card: '', tag: `Row ${n} · collage` };
+    const i = Math.max(0, now.shots.findLastIndex((s) => s.start <= into));
+    return { paths: [now.shots[i].path], card: '', tag: `Row ${n}${now.shots.length > 1 ? ` · ${i + 1} of ${now.shots.length}` : ''}` };
+  });
+
+  // Cut on a word (the user's pick on board 63): in a sequence, a click on a word starts the next picture there.
+  function toggleCut(row: Row, at: number, room: number) {
+    const words = dialogueWords(row.dialogue);
+    const c = readChoices(row.timeline);
+    const on = cutPositions(words, c.cuts);
+    const next = on.includes(at) ? on.filter((i) => i !== at) : [...on, at].sort((a, b) => a - b);
+    if (next.length > room) return;
+    onTimeline(row.id, changeChoices(row, (x) => (x.cuts = next.map((i) => words[i].replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')))));
+  }
+
   let tipFor = $state(''); // the block hovered or focused, whose dialogue shows above it
 
   function pick(b: TimeBlock) {
+    if (readOnly) return onComment(b.kind === 'row' ? b.id : b.after);
     selected = selected === b.id ? '' : b.id;
     if (selected) onShow(b.kind === 'row' ? b.id : b.after);
   }
@@ -130,10 +169,31 @@
   }
 </script>
 
-<section class="timeline" aria-label="Timeline">
+<section class="timeline" class:pinned={player.started} aria-label="Timeline" use:near={() => (shown = true)}>
+  {#if now}
+    <div class="preview" class:big role="img" aria-label="Preview: {showing.tag}">
+      <div class="screen" class:collage-on={showing.paths.length > 1}>
+        {#each showing.paths as path (path)}
+          {#if isVideo(path) && urls[path]}
+            <video src={urls[path]} autoplay muted playsinline></video>
+          {:else if urls[path]}
+            <img src={urls[path]} alt="" />
+          {:else}
+            <span class="vid">{path.split('/').at(-1)}</span>
+          {/if}
+        {/each}
+        {#if showing.card}<span class="pcard" class:ph={now.kind === 'placeholder'}>{showing.card}</span>{/if}
+        <span class="tag">{showing.tag}</span>
+      </div>
+      <div class="pbar">
+        <span>{clock(player.time)} / {clock(player.total)}</span>
+        <button aria-label={big ? 'Make the preview small' : 'Make the preview big'} title={big ? 'Make the preview small' : 'Make the preview big'} onclick={() => (big = !big)}>{big ? '⤡' : '⤢'}</button>
+      </div>
+    </div>
+  {/if}
   <div class="top">
     <h2>Timeline</h2>
-    {#if total}<span class="sum">{clock(total)} <span class="help">· from the takes, read time where there is none</span></span>{/if}
+    {#if total}<span class="sum">{clock(total)} <span class="help">· {readOnly ? 'click a block to comment on its row' : 'from the takes, read time where there is none'}</span></span>{/if}
     <span class="grow"></span>
     {#if !hidden && total}
       <span class="zoom" role="group" aria-label="Zoom">
@@ -141,6 +201,7 @@
         <button aria-label="Zoom in" title="Zoom in" disabled={zoom >= 16} onclick={() => (zoom = Math.min(16, zoom * 2))}>+</button>
       </span>
     {/if}
+    {#if player.started}<span class="pin">Pinned to the bottom while playing</span>{/if}
     <button class="link fold" aria-expanded={!hidden} onclick={() => hide(!hidden)}>{hidden ? '⌃ Show' : '⌄ Hide'}</button>
   </div>
 
@@ -162,7 +223,7 @@
           <div class="lane blocks">
             {#each laid.blocks as b (b.id)}
               {@const row = b.kind === 'row' ? byId.get(b.id) : undefined}
-              <button class="blk {b.kind}" class:on={selected === b.id} style:left="{pct(b.start)}%" style:width="{pct(b.seconds)}%"
+              <button class="blk {b.kind}" class:on={selected === b.id} class:now={now?.id === b.id} style:left="{pct(b.start)}%" style:width="{pct(b.seconds)}%"
                 aria-label={tip(b)} aria-pressed={selected === b.id} onclick={() => pick(b)}
                 onmouseenter={() => (tipFor = b.id)} onmouseleave={() => (tipFor = '')} onfocus={() => (tipFor = b.id)} onblur={() => (tipFor = '')}>
                 {#if b.kind === 'row'}
@@ -190,6 +251,7 @@
               </button>
             {/each}
           </div>
+          {#if now}<span class="head" aria-hidden="true" style:left="{pct(player.time)}%"></span>{/if}
           <div class="lane voice">
             {#each laid.blocks as b (b.id)}
               {#if b.kind === 'row'}
@@ -206,7 +268,9 @@
         </div>
       </div>
 
-      {#if selRow && block?.kind === 'row'}
+      {#if player.started || readOnly}
+        <!-- While playing (and in Review), only the tracks: the panel comes back when it stops. -->
+      {:else if selRow && block?.kind === 'row'}
         {@const files = pictureFiles(selRow)}
         {@const c = readChoices(selRow.timeline)}
         <div class="panel">
@@ -232,6 +296,18 @@
             {/if}
             {#if canPlay}<button class="play" onclick={() => onPlayFrom(selRow.id)}>▶ Play from here</button>{/if}
           </div>
+          {#if block.picks.length > 1 && !c.collage}
+            {@const words = dialogueWords(selRow.dialogue)}
+            {@const cuts = cutPositions(words, c.cuts)}
+            <div class="line words" role="group" aria-label="Cut on a word">
+              <span class="muted">Cut on a word:</span>
+              {#each words as w, i (i)}
+                <button class="word" class:cut={cuts.includes(i)} aria-pressed={cuts.includes(i)} disabled={!cuts.includes(i) && cuts.length >= block.picks.length - 1}
+                  onclick={() => toggleCut(selRow, i, block.picks.length - 1)}>{w}</button>
+              {/each}
+              <span class="help">{block.picks.length} pictures: up to {block.picks.length - 1} cuts; without them they share the time equally.</span>
+            </div>
+          {/if}
           <p class="foot">
             {#if !c.after}After this row: <button class="link" onclick={() => addAfter(selRow, 'hold')}>+ Hold</button> · <button class="link" onclick={() => addAfter(selRow, 'placeholder')}>+ Placeholder</button> · {/if}
             <span class="help">{!files.length ? 'No pictures yet: its On screen words show instead.' : block.picks.length < 2 ? 'One picture fills the row’s time.' : c.collage ? 'Collage: all at once, side by side, for the whole row.' : 'Sequence: one after another, sharing the row’s time.'}</span>
@@ -262,6 +338,26 @@
 {/snippet}
 
 <style>
+  .timeline.pinned { position: sticky; bottom: 0; z-index: 5; box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08); }
+  .pin { font-size: 12px; color: var(--accent); }
+  .head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #d9480f; pointer-events: none; z-index: 2; }
+  .blk.now { box-shadow: inset 0 0 0 2px #d9480f; }
+  .preview { position: absolute; right: 16px; bottom: calc(100% + 12px); width: 320px; border-radius: 10px; overflow: hidden; background: #0b0b0b; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
+  .preview.big { width: min(720px, calc(100vw - 64px)); }
+  .screen { position: relative; aspect-ratio: 16 / 9; display: flex; gap: 3px; }
+  .screen.collage-on { padding: 8% 6%; box-sizing: border-box; }
+  .screen img, .screen video, .screen .vid { flex: 1; min-width: 0; width: 100%; height: 100%; object-fit: contain; }
+  .pcard { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; color: #dadada; font-size: 13px; text-align: center; background: #222; }
+  .pcard.ph { background: repeating-linear-gradient(135deg, #2b2b2b 0 10px, #333 10px 20px); }
+  .tag { position: absolute; left: 8px; top: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 11px; }
+  .pbar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; color: #dadada; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .pbar span { flex: 1; }
+  .pbar button { min-width: 32px; min-height: 28px; border: 1px solid #555; border-radius: 6px; background: none; color: #eee; font-size: 12px; }
+  .words { gap: 4px; }
+  .word { padding: 2px 6px; border: 1px solid transparent; border-radius: 6px; background: #fff; font-size: 13px; }
+  .word.cut { border-color: var(--accent); background: #eef2fb; color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .word:disabled { opacity: 0.5; }
+  .words .help { flex-basis: 100%; font-size: 12px; color: var(--muted); }
   .timeline { margin-top: 32px; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); }
   .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 10px; }
   h2 { margin: 0; font-size: 14px; font-weight: 600; }
