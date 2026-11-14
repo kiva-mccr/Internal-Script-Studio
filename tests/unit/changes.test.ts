@@ -55,12 +55,12 @@ describe('fold', () => {
     const theirs = edit(example, (s) => {
       const [first] = s.blocks.splice(1, 1); // row 1 moved after row 2
       s.blocks.splice(2, 0, first);
-      s.blocks.push({ type: 'row', id: 'zzzzz', dialogue: 'Their new row.', onScreen: '', files: [], note: '' });
+      s.blocks.push({ type: 'row', id: 'zzzzz', dialogue: 'Their new row.', onScreen: '', files: [], timeline: '', note: '' });
       const last = rows(s).at(-2)!;
       s.blocks.splice(s.blocks.indexOf(last), 1); // the last of the example's rows deleted
     });
     const mine = edit(example, (s) => {
-      s.blocks.splice(1, 0, { type: 'row', id: 'mmmmm', dialogue: 'My new row.', onScreen: '', files: [], note: '' });
+      s.blocks.splice(1, 0, { type: 'row', id: 'mmmmm', dialogue: 'My new row.', onScreen: '', files: [], timeline: '', note: '' });
     });
     const result = fold(diff(example, theirs)!, mine);
     expect(result.clashes).toEqual([]);
