@@ -723,3 +723,5 @@ and suggestions, keeps every version, and exports them for production.
 - **Settled:** Svelte 5 + TypeScript (AP-1).
 - **Rejected:** accepting a whole section's (or one person's) suggestions at once (suggested 2026-11-14, turned down
   by the user): each person has to engage with each comment, one at a time. Don't suggest it again.
+- **Rejected:** a scratch read-aloud of rows without a take, in the browser's built-in voice (suggested 2026-11-14,
+  turned down by the user).
