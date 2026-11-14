@@ -182,7 +182,8 @@ Status: a first working version. What it does today:
   come, with its length) can follow any row; it shows as a bar between the rows too: click it to change it, ✕ to
   remove it (with Undo). In a sequence, click a word of the dialogue to start the next picture on it (cut on a word).
   While the script plays, the timeline stays at the bottom of the screen with a playhead, and a small preview above
-  its right end shows the picture of the moment (⤢ makes it big). − and + zoom; Hide folds the timeline away. Kept in the row's `Timeline:` line in script.md.
+  its right end shows the picture of the moment (⤢ makes it big). − and + zoom; Hide folds the timeline away.
+  Review shows the same timeline, read only: click a block to comment on its row ("row 2, on the timeline"). Kept in the row's `Timeline:` line in script.md.
 - **Assets:** the Assets tab lists every file, link and "still to find" note in the script once, with the rows that
   use it, with a thumbnail for pictures, PDFs and videos: what is missing from the folder first, then what is still to find or film, then the rest (or by row).
   The tab and the script list show how many files are missing. A row number goes to that row.

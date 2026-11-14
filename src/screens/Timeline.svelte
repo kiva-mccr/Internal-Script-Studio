@@ -10,16 +10,20 @@
   import { takeLength, type VoiceOver } from '../lib/voice.svelte';
   import { waveform, wavePath } from '../lib/waveform';
   import AfterEditor from './AfterEditor.svelte';
+  import { near } from '../lib/near';
 
   // The storyboard timeline (SB-1, board 63), under the last row in Write: sections, rows with their pictures, and
   // the voice-over, laid out in time. Mostly a view of the script; the only choices are the pictures and the holds
   // and placeholders, kept in each row's Timeline line. selected: the block picked (a row id, or "hold:<id>" /
   // "placeholder:<id>"), shared with the bars in the script. onTimeline sets a row's Timeline line; onFiles its
   // Files; onRemoveAfter removes the hold or placeholder after a row (with Undo); onShow scrolls to a row.
-  let { script, dir, voice, player, canPlay, selected = $bindable(), onTimeline, onFiles, onRemoveAfter, onShow, onPlayFrom, onNotice }: {
-    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; selected: string;
-    onTimeline: (id: string, line: string) => void; onFiles: (id: string, files: string[]) => void; onRemoveAfter: (id: string) => void;
-    onShow: (id: string) => void; onPlayFrom: (id: string) => void; onNotice: (message: string) => void;
+  // readOnly (Review): no choices; a click on a block comments on its row (onComment), a hold or placeholder on the
+  // row before it.
+  let { script, dir, voice, player, canPlay, selected = $bindable(), readOnly = false, onTimeline = () => {}, onFiles = () => {},
+    onRemoveAfter = () => {}, onShow = () => {}, onComment = () => {}, onPlayFrom, onNotice }: {
+    script: Script; dir: FileSystemDirectoryHandle; voice: VoiceOver; player: Player; canPlay: boolean; selected: string; readOnly?: boolean;
+    onTimeline?: (id: string, line: string) => void; onFiles?: (id: string, files: string[]) => void; onRemoveAfter?: (id: string) => void;
+    onShow?: (id: string) => void; onComment?: (row: string) => void; onPlayFrom: (id: string) => void; onNotice: (message: string) => void;
   } = $props();
 
   const KEY = 'timeline-hidden';
@@ -48,12 +52,14 @@
     return list;
   });
 
-  // The pictures, as blob URLs from the script's folder, made while the timeline is open and freed after.
+  // The pictures, as blob URLs from the script's folder, made while the timeline is open and freed after. Like the
+  // previews (AP-39), only once it comes near the screen: opening a script doesn't wait on the timeline's work.
+  let shown = $state(false);
   let urls = $state<Record<string, string>>({});
   const paths = $derived([...new Set(rows(script).flatMap((r) => pictureFiles(r).map((p) => p.path)))].join('\n'));
   $effect(() => {
     const list = paths ? paths.split('\n') : [];
-    if (hidden) return;
+    if (hidden || !shown) return;
     let gone = false;
     const made: string[] = [];
     (async () => {
@@ -75,7 +81,7 @@
   // Waveforms of the takes, by row id, made once each.
   let waves = $state<Record<string, string>>({});
   $effect(() => {
-    if (hidden) return;
+    if (hidden || !shown) return;
     for (const [id, take] of Object.entries(voice.takes)) {
       waveform(dir, id, take).then((peaks) => {
         if (peaks && waves[id] !== wavePath(peaks)) waves = { ...waves, [id]: wavePath(peaks) };
@@ -121,6 +127,7 @@
   let tipFor = $state(''); // the block hovered or focused, whose dialogue shows above it
 
   function pick(b: TimeBlock) {
+    if (readOnly) return onComment(b.kind === 'row' ? b.id : b.after);
     selected = selected === b.id ? '' : b.id;
     if (selected) onShow(b.kind === 'row' ? b.id : b.after);
   }
@@ -162,7 +169,7 @@
   }
 </script>
 
-<section class="timeline" class:pinned={player.started} aria-label="Timeline">
+<section class="timeline" class:pinned={player.started} aria-label="Timeline" use:near={() => (shown = true)}>
   {#if now}
     <div class="preview" class:big role="img" aria-label="Preview: {showing.tag}">
       <div class="screen" class:collage-on={showing.paths.length > 1}>
@@ -186,7 +193,7 @@
   {/if}
   <div class="top">
     <h2>Timeline</h2>
-    {#if total}<span class="sum">{clock(total)} <span class="help">· from the takes, read time where there is none</span></span>{/if}
+    {#if total}<span class="sum">{clock(total)} <span class="help">· {readOnly ? 'click a block to comment on its row' : 'from the takes, read time where there is none'}</span></span>{/if}
     <span class="grow"></span>
     {#if !hidden && total}
       <span class="zoom" role="group" aria-label="Zoom">
@@ -261,8 +268,8 @@
         </div>
       </div>
 
-      {#if player.started}
-        <!-- While playing, only the tracks: the panel comes back when it stops. -->
+      {#if player.started || readOnly}
+        <!-- While playing (and in Review), only the tracks: the panel comes back when it stops. -->
       {:else if selRow && block?.kind === 'row'}
         {@const files = pictureFiles(selRow)}
         {@const c = readChoices(selRow.timeline)}

@@ -73,7 +73,7 @@
   function where(c: Note) {
     const n = numbers.get(c.row ?? '');
     if (!n) return 'a deleted row';
-    return c.quote ? `row ${n}, ${LABELS[c.field ?? 'dialogue']}` : `row ${n}`;
+    return c.quote ? `row ${n}, ${LABELS[c.field ?? 'dialogue']}` : c.on === 'timeline' ? `row ${n}, on the timeline` : `row ${n}`;
   }
 
   // Next and previous comment (AP-44), even while typing in Write: pick it as a click would (Write goes to its row).

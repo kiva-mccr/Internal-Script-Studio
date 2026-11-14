@@ -37,7 +37,7 @@
 
   const LABELS: Record<Field, string> = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
 
-  let target = $state<{ row: string; field: Field; quote: string } | null>(null);
+  let target = $state<{ row: string; field: Field; quote: string; on?: 'timeline' } | null>(null);
   let draft = $state('');
   let draftFiles = $state<File[]>([]);
   let draftMissing = $state('');
@@ -79,10 +79,10 @@
 
   function where(t: Thread): string {
     const n = numbers.get(t.comment.row ?? '');
-    return n ? `row ${n}` : 'a deleted row';
+    return n ? `row ${n}${t.comment.on === 'timeline' ? ', on the timeline' : ''}` : 'a deleted row';
   }
 
-  export function start(t: { row: string; field: Field; quote: string }) {
+  export function start(t: { row: string; field: Field; quote: string; on?: 'timeline' }) {
     target = t;
     draft = '';
     draftFiles = [];
@@ -103,14 +103,14 @@
   async function send(e: SubmitEvent) {
     e.preventDefault();
     if (!target) return;
-    const { row, field, quote } = target;
+    const { row, field, quote, on } = target;
     if (suggesting) {
       if (draft === quote) return void ((draftMissing = 'Change the text first.'), box?.focus());
       if (await onAdd({ kind: 'suggestion', row, field, quote, replace: draft })) target = null;
       return;
     }
     if (!draft.trim() && !draftFiles.length) return void ((draftMissing = 'Write a comment first.'), box?.focus());
-    if (await onAdd({ kind: 'comment', row, field, quote, text: draft.trim() }, draftFiles)) target = null;
+    if (await onAdd({ kind: 'comment', row, field, quote, ...(on ? { on } : {}), text: draft.trim() }, draftFiles)) target = null;
   }
 
   // Deleted ones stay in place as "… deleted. Undo" while their id is in `gone` (RV-7).
@@ -121,7 +121,7 @@
 <aside aria-label="Comments" data-tour="review-cards" bind:this={aside}>
   {#if target}
     <form class="card compose" aria-label="New comment" novalidate onsubmit={send}>
-      <div class="who">{suggesting ? 'Suggest a change to' : 'Comment on'} row {numbers.get(target.row)}{target.quote ? ` · ${LABELS[target.field]}` : ''}</div>
+      <div class="who">{suggesting ? 'Suggest a change to' : 'Comment on'} row {numbers.get(target.row)}{target.quote ? ` · ${LABELS[target.field]}` : target.on === 'timeline' ? ', on the timeline' : ''}</div>
       {#if target.quote && target.field !== 'files'}
         <div class="switch" role="group" aria-label="Comment or suggest">
           <button type="button" aria-pressed={!suggesting} onclick={() => suggest(false)}>Comment</button>

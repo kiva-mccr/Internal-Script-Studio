@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { readFile, setUp } from './folder';
+import { readFile, readJsonFiles, setUp } from './folder';
 
 const example = readFileSync('docs/example/Episode 03 - How Photosynthesis Works/script.md', 'utf8');
 const svg = (fill: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="${fill}"/></svg>`;
@@ -133,4 +133,20 @@ test('playing: the timeline pins to the bottom, the preview follows, a hold play
   await expect(page.locator('.preview.big')).toBeVisible();
   await page.keyboard.press('Escape'); // stops it (if the last rows haven't already)
   await expect(page.locator('.timeline.pinned')).toHaveCount(0);
+});
+
+test('in Review the timeline is read only, and a click on a block comments on its row', async ({ page }) => {
+  await setUp(page, '#/Episode%2003', { ...files, 'Episode 03/script.md': script.replace('- assets/music-bed.mp3\n', '- assets/music-bed.mp3\n\nTimeline: then hold 1 s\n') });
+  await page.getByRole('button', { name: /^Review/ }).click();
+  const t = timeline(page);
+  await expect(t.getByText('click a block to comment on its row')).toBeVisible();
+  // A hold comments on the row before it; no panel opens.
+  await t.getByRole('button', { name: /^Hold · / }).click();
+  await expect(t.locator('.panel')).toHaveCount(0);
+  const form = page.getByRole('form', { name: 'New comment' });
+  await expect(form).toContainText('Comment on row 2, on the timeline');
+  await form.getByLabel('Comment', { exact: true }).fill('Hold this a bit longer?');
+  await form.getByRole('button', { name: 'Add comment' }).click();
+  await expect(page.getByRole('article', { name: 'Comment by Sam' })).toContainText('Sam commented · row 2, on the timeline');
+  expect(await readJsonFiles(page, 'Episode 03/.studio/comments')).toMatchObject([{ kind: 'comment', row: 'p8x2m', on: 'timeline', quote: '' }]);
 });

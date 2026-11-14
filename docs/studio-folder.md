@@ -194,6 +194,8 @@ It is a warning, not a lock: anyone can still edit, and conflicts are caught as 
 
 - `when` here keeps milliseconds (`2026-11-09T14:30:00.123Z`), so a resolve and a reopen in the same second
   still come in order; file names keep seconds.
+- A comment made on a row's block of the storyboard timeline (SB-1, in Review) has `"on": "timeline"` and an
+  empty `quote`; it is shown as "row 2, on the timeline".
 - `kind` is `comment`, `reply` (with `"about": "<id>"`), or `suggestion` (with `"replace": "…"`, the new text for
   `quote`).
 - What happens to it later is a new file, never an edit: `resolve`, `reopen`, `accept`, `reject` or `hold`, each

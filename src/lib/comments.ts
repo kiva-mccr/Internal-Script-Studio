@@ -27,6 +27,7 @@ export type Note = {
   row?: string;
   field?: Field;
   quote?: string; // the selected text; empty for a comment on the whole field
+  on?: 'timeline'; // made on the row's block of the storyboard timeline (SB-1), not on its text
   text?: string; // a comment's words, or a flag's note (may be empty)
   replace?: string; // a suggestion's new text for `quote`
   about?: string; // the comment a reply, resolve, reopen, hold, edit or delete is about

@@ -4,7 +4,7 @@ A Svelte action, `use:near={callback}`: calls back once when the element comes w
 (AP-39). File previews in a long script are made as their rows come near, so opening it doesn't make every preview
 at once and the rows on screen get theirs first.
 
-- **Used by:** `screens/FilesCell.svelte`. **Tests:** `tests/e2e/previews.spec.ts` (a far row's preview waits).
+- **Used by:** `screens/FilesCell.svelte`, `screens/Timeline.svelte` (its pictures and waveforms). **Tests:** `tests/e2e/previews.spec.ts` (a far row's preview waits).
 
 ## Rules and pitfalls
 

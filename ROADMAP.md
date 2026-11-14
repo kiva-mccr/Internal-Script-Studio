@@ -366,7 +366,7 @@ and suggestions, keeps every version, and exports them for production.
 
 - [ ] **HI-2** A graph view of the changes: versions as a timeline or tree, showing who changed what and where two
   saves were combined.
-- [ ] **SB-1** Animatic / storyboard timeline: the rows' images laid out in order along a timeline, with timings.
+- [x] **SB-1** Animatic / storyboard timeline: the rows' images laid out in order along a timeline, with timings.
   More from the user: a timeline view on the Write page, at the very bottom of the script while editing or
   reviewing, and locked to the bottom of the screen while the script plays (AU-2). Later it holds the photos of a
   storyboard column, collaged and in sequence, and can be output as an .mp4 or another video format. Mock-up first.
@@ -406,6 +406,11 @@ and suggestions, keeps every version, and exports them for production.
     "water" "carbon", then hold 2 s` or `Timeline: then placeholder 3 s "Drone shot"`. Update docs/script-format.md.
   - Left out (the user: overcomplicating): a pause between sections, dropping onto the timeline, suggested
     pictures, carrying the last picture on, slow zoom on stills.
+  Built (2026-11-14) as drawn, in four PRs: the `Timeline:` line and `(timeline)` files (lib/timeline.ts); the
+  timeline in Write with the bars (Timeline.svelte, TimelineBar.svelte); playing (plan is the timeline's layout, so
+  holds and placeholders play in silence), the preview and cut on a word; Review read only with comments "on the
+  timeline". Cut words are timed by an estimate (each word as far into the row as it is into the line, by letters),
+  not by a speech model reading the take: said to the user; a model can refine it later.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
 - [x] **AU-1** Recording audio for each line: record the dialogue of a row in the browser, kept beside the script

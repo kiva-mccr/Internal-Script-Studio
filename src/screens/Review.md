@@ -44,3 +44,5 @@ shared with Write's Comments tab (RV-13). Approve / Send back (RV-3) are in `Hea
   `active` is bound both ways, since a card picked there brightens its quote here. The open comments for the
   highlights are worked out here from `notes` too (leaving out deleted, resolved and held ones), not taken from it.
 - `text` is the cell-text function here (`fieldText as text`): never name a snippet `text`.
+- The storyboard timeline (SB-1) comes after the rows, read only (`Timeline.svelte` with `readOnly`): a click on a
+  block opens a comment on its row "on the timeline" (`on: 'timeline'` in the note).

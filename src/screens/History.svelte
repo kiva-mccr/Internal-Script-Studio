@@ -181,7 +181,7 @@
   const FIELD = { dialogue: 'Dialogue', on_screen: 'On screen', files: 'Images & files' };
   function cell(t: Thread): string {
     const n = rowNumbers.get(t.comment.row ?? '');
-    return n ? `row ${n}, ${FIELD[t.comment.field ?? 'dialogue']}` : 'a removed row';
+    return n ? `row ${n}, ${t.comment.on === 'timeline' ? 'on the timeline' : FIELD[t.comment.field ?? 'dialogue']}` : 'a removed row';
   }
   // An accepted suggestion says so in its change's header.
   function heading(where: string, list: Thread[] | undefined): string {
