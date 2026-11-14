@@ -370,6 +370,23 @@ and suggestions, keeps every version, and exports them for production.
   More from the user: a timeline view on the Write page, at the very bottom of the script while editing or
   reviewing, and locked to the bottom of the screen while the script plays (AU-2). Later it holds the photos of a
   storyboard column, collaged and in sequence, and can be output as an .mp4 or another video format. Mock-up first.
+  Brief from the user's answers (2026-11-14; SB-1 goes last in the queue):
+  - For everyone: another way to see what's happening, closer to the final video, and a rough template to hand to
+    the filmmakers. Replacing other tools (PowerPoint storyboards, rough cuts) maybe much later.
+  - Lives in the Write tab. Reviewers can comment on it (in Review).
+  - Big blocks for sections, small blocks for rows inside them. Each row's pictures are ones the person picks with a
+    collage / sequence tool: collage shows them side by side at once, sequence one after another within the row's
+    time. Dialogue shows only on hover. Voice-over takes show as a waveform.
+  - Timing comes from the take's length, or reading time without a take; no dragging edges. Pauses ("hold 2 s") and
+    placeholders of a given length can be inserted.
+  - Mostly view only, made from the script and the voice-over: no reordering; the only choices are timing (pauses,
+    placeholders) and the pictures. Clicking a block jumps to its row (play from there like the script, maybe).
+  - Playing shows a small video preview in the bottom right that can be maximised, moving with the script's and the
+    timeline's stepping and playing.
+  - Where the picks are kept: the user leans to a fourth column but worries it crowds the page; suggested instead,
+    picks come from (and add to) the row's Files and are kept with the row, so the three columns stay. For the
+    mock-up; it changes the script format (SF), agreed before building.
+  - Shelved for later: captions and transitions in the .mp4 (a toggle, not a priority); EX-19's export details.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
 - [x] **AU-1** Recording audio for each line: record the dialogue of a row in the browser, kept beside the script
