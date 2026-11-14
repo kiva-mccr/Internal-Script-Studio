@@ -5,6 +5,7 @@
   import { kindName, makePreview, previewKind, revokePreview, type Preview as Made } from '../lib/preview';
   import { sizeText } from '../lib/comments';
   import { readFileRef } from '../lib/script';
+  import { near } from '../lib/near';
 
   // files: the row's Files lines. root and here: the picked folder and this script's folder name, for "From other
   // scripts…" (AS-1); row: the row's number. onChange: called with the new list. onNotice: a message for the page.
@@ -37,9 +38,14 @@
   // no preview. Linked images use their link.
   let previews = $state<Record<string, Made | null>>({});
   let sizes = $state<Record<string, number>>({});
+  // AP-39: previews are made once the cell comes near the screen (`near`); until a file's is tried, a grey box of
+  // about its size holds the place (`.stand-in`), so the row doesn't jump when it comes.
+  let shown = $state(false);
+  let tried = $state<Set<string>>(new Set());
 
   $effect(() => {
     const paths = files.map(readFileRef).filter((ref) => ref.kind === 'path').map((ref) => ref.target);
+    if (!shown) return;
     let gone = false;
     const made: Made[] = [];
     (async () => {
@@ -51,9 +57,12 @@
         found[path] = file.size;
         const preview = await makePreview(file, path);
         if (gone) revokePreview(preview);
-        else if (preview) made.push((next[path] = preview));
+        else {
+          if (preview) made.push(preview);
+          next[path] = preview; // null: no preview after all, so its chip says its kind and size
+        }
       }
-      if (!gone) [previews, sizes] = [next, found];
+      if (!gone) [previews, sizes, tried] = [next, found, new Set(paths)];
     })();
     return () => {
       gone = true;
@@ -108,12 +117,14 @@
   }
 </script>
 
-<div class="files" data-tour="files">
+<div class="files" data-tour="files" use:near={() => (shown = true)}>
   {#each files as line, i (i + line)}
     {@const ref = readFileRef(line)}
     {@const preview = ref.kind === 'path' ? previews[ref.target] : null}
     {#if preview}
       <Preview {preview} name={ref.label} onOpen={() => openAsset(ref.target)} onFail={() => failed(ref.target)} />
+    {:else if ref.kind === 'path' && previewKind(ref.target) && !tried.has(ref.target)}
+      <span class="stand-in {previewKind(ref.target)}" aria-hidden="true"></span>
     {:else if ref.kind === 'link' && previewKind(ref.target) === 'image'}
       <button class="thumb" aria-label="Open {ref.label}" onclick={() => window.open(ref.target, '_blank', 'noopener')}>
         <img src={ref.target} alt="" onerror={(e) => ((e.currentTarget as HTMLElement).parentElement!.hidden = true)} />
@@ -155,6 +166,11 @@
   .thumb { display: block; max-width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: #fafafa; overflow: hidden; }
   .thumb:hover { border-color: var(--accent); }
   .thumb img { display: block; max-width: 100%; max-height: 120px; object-fit: contain; }
+  .stand-in { display: block; width: 160px; max-width: 100%; height: 120px; border-radius: 6px; background: #ededed; }
+  .stand-in.video { width: 213px; }
+  .stand-in.pdf { width: 86px; height: 112px; border-radius: 3px; }
+  .stand-in.audio { width: 220px; height: 42px; border-radius: 22px; }
+  .stand-in.text, .stand-in.word { width: 260px; height: 92px; }
   .chip { display: inline-flex; align-items: center; max-width: 100%; border-radius: 6px; background: #f5f5f5; font-size: 13px; }
   .chip > a, .open, .words { padding: 6px 4px 6px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
   .chip > a { text-decoration: underline; text-decoration-color: var(--line-strong); }

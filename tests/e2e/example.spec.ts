@@ -87,7 +87,7 @@ test('the example shows every kind of file the app previews, and a take on every
   await page.goto('./');
   await page.getByRole('button', { name: 'Open the example' }).click();
   await page.getByText('How Photosynthesis Works').click();
-  await expect(page.locator('video[aria-label="leaf-push-in.mp4"]')).toBeAttached();
+  await expect(page.getByRole('button', { name: 'Play leaf-push-in.mp4 here' })).toBeVisible(); // a still, no player yet
   await expect(page.getByRole('button', { name: 'Play music-bed.mp3' })).toBeVisible();
   await expect(page.getByText('Page 1 of 1')).toBeVisible(); // the PDF
   await expect(page.getByRole('button', { name: 'Open cell-micrograph.tif' })).toBeVisible();

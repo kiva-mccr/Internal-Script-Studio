@@ -37,15 +37,16 @@
   </button>
 {:else if preview.kind === 'video'}
   <div class="video">
-    <!-- svelte-ignore a11y_media_has_caption -->
-    <!-- #t=0.1 makes Chrome show a frame from the start as the still. -->
-    <video bind:this={media} src="{preview.url}#t=0.1" preload="metadata" playsinline controls={started}
-      aria-label={name} onloadedmetadata={() => (duration = media!.duration)} onerror={onFail}></video>
-    {#if !started}
-      <button type="button" class="play-over" aria-label="Play {name} here" onclick={play}>
+    {#if started}
+      <!-- svelte-ignore a11y_media_has_caption -->
+      <video src={preview.url} autoplay playsinline controls aria-label={name} onerror={onFail}></video>
+    {:else}
+      <!-- The still from the start (AP-39): the player is only made when ▶ is pressed. -->
+      <img src={preview.still} alt="" />
+      <button type="button" class="play-over" aria-label="Play {name} here" onclick={() => (started = true)}>
         <span class="disc"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2 L13 8 L4 14 Z" fill="#fff"></path></svg></span>
       </button>
-      {#if Number.isFinite(duration)}<span class="length">{clock(duration)}</span>{/if}
+      {#if Number.isFinite(preview.duration)}<span class="length">{clock(preview.duration)}</span>{/if}
     {/if}
   </div>
 {:else if preview.kind === 'audio'}
@@ -81,7 +82,7 @@
   .pdf { display: flex; align-items: flex-end; gap: 8px; padding: 0; border: 0; background: none; color: var(--muted); font-size: 12px; text-align: left; }
   .pdf img { display: block; height: 112px; border: 1px solid var(--line-strong); border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
   .video { position: relative; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #000; line-height: 0; }
-  .video video { display: block; max-width: 100%; width: 213px; max-height: 120px; }
+  .video video, .video img { display: block; max-width: 100%; width: 213px; max-height: 120px; object-fit: contain; }
   .play-over { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border: 0; background: none; }
   .disc, .length { background: rgba(20, 20, 20, 0.72); color: #fff; }
   .disc { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; }

@@ -128,9 +128,12 @@ test('each kind of file gets its preview in Images & files', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'end-card.pptx · PowerPoint, 1 KB' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'broken.mp4 · MP4, 1 KB' })).toBeVisible();
 
-  // A video plays right in the cell: ▶ starts it and brings the player's own controls.
+  // A video shows a still from its start, and no player until ▶ (AP-39); ▶ plays it right in the cell with the
+  // player's own controls.
   const video = page.locator('video[aria-label="clip.webm"]');
-  await expect(video).not.toHaveAttribute('controls');
+  const still = page.locator('.video img');
+  await expect.poll(() => still.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(page.locator('video')).toHaveCount(0);
   await page.getByRole('button', { name: 'Play clip.webm here' }).click();
   await expect(video).toHaveAttribute('controls');
   await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime)).toBeGreaterThan(0);
@@ -148,6 +151,56 @@ test('the Assets tab shows thumbnails of TIFFs, PDFs and videos too', async ({ p
   await openPreviews(page);
   await page.getByRole('button', { name: /^Assets/ }).click();
   const list = page.getByRole('region', { name: 'Assets' });
-  await expect(list.locator('.thumb img')).toHaveCount(2, { timeout: 15000 }); // scan.tif and storyboard.pdf
-  await expect(list.locator('.thumb video:visible')).toHaveCount(1); // clip.webm; broken.mp4 can't be played
+  // scan.tif, storyboard.pdf and clip.webm's still (broken.mp4 can't be played); never a player (AP-39).
+  await expect(list.locator('.thumb img')).toHaveCount(3, { timeout: 15000 });
+  await expect(list.locator('video')).toHaveCount(0);
+});
+
+// AP-39: a big picture is previewed from a small copy, at most 240 px tall (twice the 120 px it is shown at), so
+// scrolling doesn't make Chrome unpack the whole photo again and again.
+function bmp(width: number, height: number): Buffer {
+  const rowBytes = Math.ceil((width * 3) / 4) * 4;
+  const buf = Buffer.alloc(54 + rowBytes * height);
+  buf.write('BM', 0);
+  buf.writeUInt32LE(buf.length, 2);
+  buf.writeUInt32LE(54, 10);
+  buf.writeUInt32LE(40, 14);
+  buf.writeInt32LE(width, 18);
+  buf.writeInt32LE(height, 22);
+  buf.writeUInt16LE(1, 26);
+  buf.writeUInt16LE(24, 28);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) buf.writeUIntLE(x < width / 2 ? 0x30a050 : 0x2050c0, 54 + y * rowBytes + x * 3, 3);
+  return buf;
+}
+
+test('a big picture is previewed from a small copy', async ({ page }) => {
+  await setUp(page, '#/Big', {
+    'Big/script.md': `---\ntitle: Big\n---\n\n# Files\n\n${row(1, ['photo.bmp', 'small.bmp'])}`,
+    'Big/assets/photo.bmp': b64(bmp(800, 600)),
+    'Big/assets/small.bmp': b64(bmp(40, 30)),
+  });
+  const big = page.getByRole('button', { name: 'Open photo.bmp' }).locator('img');
+  await expect.poll(() => big.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([320, 240]);
+  // A picture small already is shown as itself.
+  const small = page.getByRole('button', { name: 'Open small.bmp' }).locator('img');
+  await expect.poll(() => small.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([40, 30]);
+});
+
+test('previews wait for their row to come near, with a grey stand-in until then', async ({ page }) => {
+  // 40 rows with a file each: row 40 is far more than two screens down.
+  const rows = Array.from({ length: 40 }, (_, i) => row(i + 1, [`scan-${i + 1}.tif`]));
+  const files: Record<string, string> = { 'Far/script.md': `---\ntitle: Far\n---\n\n# Files\n\n${rows.join('\n')}` };
+  for (let i = 1; i <= 40; i++) files[`Far/assets/scan-${i}.tif`] = b64(tiff());
+  await setUp(page, '#/Far', files);
+  await expect(page.getByRole('button', { name: 'Open scan-1.tif' })).toBeVisible({ timeout: 15000 });
+
+  const last = page.locator('[data-block]').filter({ has: page.getByLabel('Dialogue, row 40') });
+  await expect(last.locator('.stand-in.tif')).toBeAttached();
+  await expect(last.getByRole('button', { name: 'Open scan-40.tif' })).toHaveCount(0);
+  // The stand-in is about the preview's size, so the row doesn't jump when it comes.
+  expect(await last.locator('.stand-in').evaluate((el) => el.getBoundingClientRect().height)).toBe(120);
+
+  await last.scrollIntoViewIfNeeded();
+  await expect(last.getByRole('button', { name: 'Open scan-40.tif' })).toBeVisible({ timeout: 15000 });
+  await expect(last.locator('.stand-in')).toHaveCount(0);
 });

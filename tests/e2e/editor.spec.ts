@@ -23,7 +23,7 @@ test('shows the three columns, sections and files', async ({ page }) => {
   await expect(page.locator('header .title')).toHaveText('How Photosynthesis Works');
   await expect(page.getByLabel('Section title')).toHaveCount(3);
   await expect(page.getByLabel('On screen, row 1')).toHaveValue('Slow push-in on a sunlit leaf.');
-  await expect(page.getByRole('button', { name: 'leaf-closeup.jpg', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^leaf-closeup\.jpg/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Chloroplast zoom animation' })).toHaveAttribute('href', 'https://example.com/chloroplast-zoom.mp4');
 });
 
