@@ -587,9 +587,11 @@ and suggestions, keeps every version, and exports them for production.
   copies live only while the script is open (the user's pick; nothing written to the folder). After: 17 ms a frame
   with the photos, the longest frame while new rows came in 33 ms (photos) and 76 ms (videos). A file whose preview
   can't be made (not really a picture) now shows its kind and size on the chip, like a video that won't play.
-- [ ] **RV-23** Fold columns in Review too (asked by the user): the ‹ fold from AP-17 (Write only today) also works
-  in Review, every column open by default. Whether Review remembers its own folds or shares Write's is for the
-  mock-up. Mock-up first.
+- [x] **RV-23** Fold columns in Review too (asked by the user): the ‹ fold from AP-17 (Write only today) also works
+  in Review, every column open by default.
+  Built as mock-up 60: the same ‹ and › (shared `FoldHeads.svelte`, `lib/folds.svelte.ts`), a grey dot on rows with
+  something in a folded column. Review keeps its own folds (`review-folded`), apart from Write's, remembered in this
+  browser for every script. Picking a comment whose words are in a folded column opens that column.
 - [x] **AP-41** Copy the details of any error (asked by the user): every error message gets a small, quiet "copy
   details" button that copies the full error (the browser's error name and message, what the app was doing, the
   app's version, the browser) for debugging, without cluttering the message. Messages name OneDrive or another

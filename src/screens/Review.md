@@ -26,6 +26,10 @@ shared with Write's Comments tab (RV-13). Approve / Send back (RV-3) are in `Hea
 - Accepting goes through `Editor.svelte` (`onApply`): the quote is replaced in Write's text, then saved as usual. It
   only works if the quote is there as typed (not across formatting marks); otherwise a message, nothing changed.
 - A section's read time (AP-12) sits at the right of its title, as in Write.
+- Folded columns (RV-23, board 60): `shut` (a `Folds`, `review-folded`), apart from Write's; headings are
+  `FoldHeads.svelte`. `folds` is a different thing (Only changed rows). The grid's columns are set on each row, the
+  heading and removed rows (`grid`), not in the CSS. Picking a card (`pick`, through `bind:active`) opens the column
+  of its quote; a whole-row comment opens nothing.
 - The note sent for review (RV-8) shows at the top (`sent`, read by `Editor.svelte` from History while the script is
   in review); Hide folds it to a "Sam's note" button until Review is left.
 - Takes and Play the script (AU-9, board 36): only to listen. The take line is `Take.svelte` with no `onCurrent` or

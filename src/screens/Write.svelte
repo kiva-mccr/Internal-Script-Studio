@@ -8,12 +8,13 @@
   import type { Words } from '../lib/started';
   import type { Flag, Thread } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
-  import { keep, recall } from '../lib/remember';
+  import { Folds } from '../lib/folds.svelte';
   import { chosenMic } from '../lib/mic';
   import type { VoiceOver } from '../lib/voice.svelte';
   import Find from './Find.svelte';
   import FlagIcon from './FlagIcon.svelte';
   import WriteRow from './WriteRow.svelte';
+  import FoldHeads from './FoldHeads.svelte';
 
   // onChange: something was edited (the Editor saves). onDeleted: a row or section was deleted, or a paste made rows,
   // with the blocks as they were before, so the Editor can offer Undo. onNotice: a message for the person.
@@ -45,17 +46,8 @@
   });
 
   // Columns folded away to a thin strip (AP-17), remembered in this browser for every script, never in the script.
-  type Column = 'dialogue' | 'screen' | 'files';
-  const COLUMNS: { key: Column; name: string; fr: number }[] = [
-    { key: 'dialogue', name: 'Dialogue', fr: 1.25 },
-    { key: 'screen', name: 'On screen', fr: 1 },
-    { key: 'files', name: 'Images & files', fr: 0.8 },
-  ];
-  const stored = new Set(recall('write-folded').split(',').filter((c) => COLUMNS.some((col) => col.key === c)));
-  // Never all three: the last one open has no fold button, and a stored "all folded" opens Dialogue again.
-  if (stored.size === COLUMNS.length) stored.delete('dialogue');
-  let folded = $state(stored);
-  const columns = $derived(`40px 28px ${COLUMNS.map((c) => (folded.has(c.key) ? '28px' : `minmax(0, ${c.fr}fr)`)).join(' ')}`);
+  const folds = new Folds('write-folded');
+  const columns = $derived(folds.grid('40px 28px', [1.25, 1, 0.8]));
 
   // Find and replace (AP-32, board 44): Ctrl+F opens the bar; with it open, Ctrl+F from elsewhere comes back to it,
   // and from inside it gives the browser's own find.
@@ -69,17 +61,7 @@
     if (finding) finder?.focus();
     else finding = true;
   }
-  const unfold = (field: 'dialogue' | 'onScreen' | 'files') => {
-    const key: Column = field === 'onScreen' ? 'screen' : field;
-    if (folded.has(key)) fold(key);
-  };
-
-  function fold(key: Column) {
-    const next = new Set(folded);
-    if (!next.delete(key)) next.add(key);
-    folded = next;
-    keep('write-folded', [...next].join(','));
-  }
+  const unfold = (field: 'dialogue' | 'onScreen' | 'files') => folds.open(field === 'onScreen' ? 'screen' : field);
 
   // The dialogue of the row with that id, kept with its take.
   const lineOf = (id: string) => {
@@ -147,7 +129,7 @@
   })));
   $effect(() => {
     const [list, on] = [talk, talking];
-    void [quoted, folded]; // the fields' text, and which are drawn
+    void [quoted, folds.folded]; // the fields' text, and which are drawn
     tick().then(() => {
       if (!table) return;
       const marks: Range[] = [];
@@ -340,17 +322,7 @@
 <div class="table" bind:this={table} onkeydown={keys} style:--find-h="{finding ? findHeight : 0}px">
   <div class="head grid" style:grid-template-columns={columns}>
     <span>#</span><span></span>
-    {#each COLUMNS as col (col.key)}
-      {#if folded.has(col.key)}
-        <span><button class="unfold" aria-label="Show {col.name}" title="Show {col.name}" onclick={() => fold(col.key)}>›</button></span>
-      {:else}
-        <span class="heading">{col.name}
-          {#if folded.size < COLUMNS.length - 1}
-            <button class="fold" aria-label="Fold {col.name} away" title="Fold away" onclick={() => fold(col.key)}>‹</button>
-          {/if}
-        </span>
-      {/if}
-    {/each}
+    <FoldHeads {folds} />
   </div>
   {@render removedRows('')}
   {#each script.blocks as block, i (block)}
@@ -367,7 +339,7 @@
         </span>
       </div>
     {:else}
-      <WriteRow bind:block={() => block, (b) => (script.blocks[i] = b)} {i} n={numbers.get(block)} {columns} {folded} {dir} {root} {folderName} {voice} {player} {canPlay} {name}
+      <WriteRow bind:block={() => block, (b) => (script.blocks[i] = b)} {i} n={numbers.get(block)} {columns} folded={folds.folded} {dir} {root} {folderName} {voice} {player} {canPlay} {name}
         flag={flagged.get(block.id)} stepped={current === block.id} said={talkByRow.get(block.id) ?? []} talking={talkRow === block.id} {visit}
         came={came?.row === block.id ? came : null} start={started.get(block.id)} onPutBack={(field) => putBack(block, field)} {onChange} {onNotice} {onPlayFrom} {onFlag} {onTalk}
         onMove={(by) => move(i, by)} onInsert={() => insertRow(i + 1)} onRemove={() => remove(i)} onToSection={() => toSection(i)}
@@ -401,11 +373,6 @@
   .section:hover .tools, .section:focus-within .tools { opacity: 1; }
   .tools button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; }
   .tools button:hover { background: #f0f0f0; color: var(--ink); }
-  .heading { display: flex; align-items: center; gap: 4px; }
-  .fold, .unfold { width: 28px; height: 28px; margin: -6px 0; padding: 0; border: 0; border-radius: 6px; background: none;
-    color: #8a8a8a; font-size: 16px; }
-  .fold:hover, .unfold:hover { background: #f0f0f0; color: var(--ink); }
-  .unfold { background: #f2f2f2; color: var(--muted); }
   .section { display: flex; align-items: center; gap: 12px; padding: 28px 12px 8px; border-bottom: 1px solid var(--line); }
   .section-title { flex: 1; border: 0; padding: 4px 0; font: inherit; font-size: 18px; font-weight: 600; background: none; }
   .section-title:focus { outline: none; background: #f7f9ff; }

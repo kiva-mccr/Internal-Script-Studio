@@ -31,7 +31,7 @@ deleting, keys, the flag bar, find, quotes marked, removed rows). Any column but
   on. Moving a row takes its box out of the page for a moment, so the cursor (box and selection) is put back after
   `tick()`, found again by `data-block`. Alt+Up/Down swaps with the block next to it, a section too, like ↑ and ↓.
 - Text areas grow with their text through `field-sizing: content` (Chrome and Edge only, like the app).
-- Folded columns are this browser's choice (`write-folded` in localStorage, through `recall`/`keep`), for every
+- Folded columns are this browser's choice (`write-folded`, a `Folds` from `lib/folds.svelte.ts`; headings `FoldHeads.svelte`), for every
   script; never in the script, so nothing syncs. The grid's columns are set on each row (`columns`), not in the CSS.
 - Review comments (RV-13, board 37; the bubble and the quote click are `WriteRow.svelte`'s): a row with open ones (`talk`, from the Editor) shows a blue bubble with the count
   under its number (`.bubble`, `display: flex` or it sat over the number); the row tools, flag and § move down to

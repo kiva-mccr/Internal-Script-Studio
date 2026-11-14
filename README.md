@@ -115,7 +115,9 @@ Status: a first working version. What it does today:
   with Undo it slides into a folded "On hold" list, isn't counted as open, and comes back into the open list, marked
   "Back from hold", at the next Send for review or official version (Send for review says so); Take off hold brings
   it back sooner. Comments are listed in line order; Sort switches to newest first (Time) or to suggestions, then
-  comments on words, then comments on a whole row (Type), remembered for Review and Write alike. Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
+  comments on words, then comments on a whole row (Type), remembered for Review and Write alike. Columns fold away
+  with their ‹ as in Write, but Review keeps its own (all open until you fold them here); picking a comment on a
+  folded column opens it. Edit or Delete what you wrote yourself while it is still open ("edited" shows after the time; Delete
   has Undo). Comments and replies can carry files: Attach file, drop files on the box, or paste a screenshot (up to
   50 MB each; bigger things go in OneDrive as a link). They show the same previews as Images & files, with the name
   and size under them; other files a chip; clicking opens one. They are kept in the script's `.studio/files/` and never deleted. The Write and Review tabs show what's new for you: Review, once it is sent for review, the rows changed since it was last sent back; Write, once it is sent back, the comments and suggestions from the review still open. Opening a tab clears its number, and it then counts only what comes later (your own never count). Send for review (in Write), with an optional note for the

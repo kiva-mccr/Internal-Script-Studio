@@ -3,6 +3,7 @@
   import { tick } from 'svelte';
   import { fieldText as text, threads, type Field, type Flag, type Note } from '../lib/comments';
   import FlagIcon from './FlagIcon.svelte';
+  import FoldHeads from './FoldHeads.svelte';
   import ReviewComments from './ReviewComments.svelte';
   import SelectionComment from './SelectionComment.svelte';
   import Take from './Take.svelte';
@@ -11,6 +12,7 @@
   import { plain, rangeOf, renderMath, toHtml } from '../lib/format';
   import { parseScript, type Row, type Script } from '../lib/script';
   import { keep, recall } from '../lib/remember';
+  import { Folds, type Column } from '../lib/folds.svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { at } from '../lib/when';
   import { sinceReview, type Version } from '../lib/history';
@@ -72,6 +74,17 @@
   const numbers = $derived(new Map(rowList.map((row, i) => [row.id, i + 1])));
 
   let table = $state<HTMLElement>();
+
+  // Columns folded away (RV-23, board 60): as in Write, but Review's own, so all three are open until folded here.
+  const shut = new Folds('review-folded');
+  const grid = $derived(shut.grid('56px', [1.25, 1, 0.7]));
+  const column = (field: Field): Column => (field === 'on_screen' ? 'screen' : field);
+  // Picking a card whose words are in a folded column opens that column, so you see what it is about.
+  function pick(id: string) {
+    active = id;
+    const t = open.find((t) => t.comment.id === id);
+    if (t?.comment.quote) shut.open(column(t.comment.field ?? 'dialogue'));
+  }
 
   // Listening (AU-9): a take's ▶ plays it alone, or pauses and carries on the script while it plays that row.
   async function play(id: string) {
@@ -138,7 +151,7 @@
   $effect(() => {
     const list = open;
     const on = active;
-    void [script, marks, edits, onlyChanged]; // each redraws the cells
+    void [script, marks, edits, onlyChanged, shut.folded]; // each redraws the cells
     tick().then(async () => {
       if (!table) return;
       await renderMath(table);
@@ -182,7 +195,7 @@
         {/if}
       </div>
     {/if}
-    <div class="head grid"><span>#</span><span>Dialogue</span><span>On screen</span><span>Images &amp; files</span></div>
+    <div class="head grid" style:grid-template-columns={grid}><span>#</span><FoldHeads folds={shut} /></div>
     {@render removedRows('')}
     {#each script.blocks as block, i (i)}
       {#if block.type === 'section'}
@@ -198,7 +211,7 @@
         {@const sounding = voice.playing === block.id || (here && player.on)}
         {@const by = was !== undefined ? visitBy(block.id) : undefined}
         <div class="row grid" class:active={open.some((t) => t.comment.id === active && t.comment.row === block.id)}
-          class:changed={was !== undefined} class:visit-on={by && visit?.on === block.id} class:here data-play={block.id} data-visit={by ? block.id : undefined} data-tour="review-row">
+          style:grid-template-columns={grid} class:changed={was !== undefined} class:visit-on={by && visit?.on === block.id} class:here data-play={block.id} data-visit={by ? block.id : undefined} data-tour="review-row">
           <div class="num">
             {#if canPlay && here && player.on}
               <button class="playfrom" aria-label="Pause at row {n}" title="Pause" onclick={() => player.toggle()}>❚❚</button>
@@ -229,7 +242,10 @@
                 {@render cell()}
               {/if}
             {/snippet}
-            {#if field === 'dialogue' && (take || here)}
+            {#if shut.has(column(field))}
+              <!-- A folded column (RV-23): a grey dot when the row has something there, as in Write. -->
+              <span class="dot">{#if text(block, field)}<span title="{name} has something here">•</span>{/if}</span>
+            {:else if field === 'dialogue' && (take || here)}
               <!-- The take under the dialogue, as in Write but only to listen (AU-9). -->
               <div class="spoken">
                 {@render content()}
@@ -258,13 +274,13 @@
     <SelectionComment bind:this={picker} script={table} onComment={start} />
   </div>
 
-  <ReviewComments bind:this={comments} bind:active {dir} {notes} {ends} {me} rows={rowList} {numbers} {onAdd} {onApply} />
+  <ReviewComments bind:this={comments} bind:active={() => active, pick} {dir} {notes} {ends} {me} rows={rowList} {numbers} {onAdd} {onApply} />
 </div>
 
 <!-- Rows removed since the last review (RV-4): one grey struck line each, where they were. -->
 {#snippet removedRows(after: string)}
   {#each removedAfter.get(after) ?? [] as row (row.id)}
-    <p class="removed grid"><span class="tag">Removed</span><span class="gone"><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s>{#if visitBy(row.id)}{' · '}{visitBy(row.id)?.who}{/if}</span></p>
+    <p class="removed grid" style:grid-template-columns={grid}><span class="tag">Removed</span><span class="gone"><s>{plain(row.dialogue || row.onScreen || row.files.join(', ')) || '(empty row)'}</s>{#if visitBy(row.id)}{' · '}{visitBy(row.id)?.who}{/if}</span></p>
   {/each}
 {/snippet}
 
@@ -282,7 +298,9 @@
   .review { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
   .script { position: relative; flex: 999 1 640px; min-width: 0; }
   .hint { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
-  .grid { display: grid; grid-template-columns: 56px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.7fr); gap: 20px; padding: 0 12px; }
+  /* Its columns are set on the element (`grid`), as a folded column is a thin strip. */
+  .grid { display: grid; gap: 20px; padding: 0 12px; }
+  .dot { text-align: center; color: #b8b8b8; }
   .head { position: sticky; top: 0; z-index: 1; background: var(--ground); padding-top: 10px; padding-bottom: 10px; font-size: 13px;
     font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); }
   .section { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding: 28px 12px 8px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--line); }
