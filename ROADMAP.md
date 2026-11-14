@@ -384,8 +384,9 @@ and suggestions, keeps every version, and exports them for production.
   - Playing shows a small video preview in the bottom right that can be maximised, moving with the script's and the
     timeline's stepping and playing.
   - Where the picks are kept: the user leans to a fourth column but worries it crowds the page; suggested instead,
-    picks come from (and add to) the row's Files and are kept with the row, so the three columns stay. For the
-    mock-up; it changes the script format (SF), agreed before building.
+    picks come from (and add to) the row's Files and are kept with the row, so the three columns stay. The user
+    agreed ("I like it"), adding: files added only for the timeline are shown minimised in the Files column, so they
+    don't take up space. It changes the script format (SF), agreed in the mock-up before building.
   - Shelved for later: captions and transitions in the .mp4 (a toggle, not a priority); EX-19's export details.
 - [ ] **YT-1** The published video: link the final YouTube video and keep its title, description and thumbnail with
   the script.
