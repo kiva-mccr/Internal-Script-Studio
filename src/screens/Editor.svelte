@@ -487,7 +487,7 @@
   {:else if script && dir}
     {#if showVisit && marks}{@render visitBar(marks)}{/if}
     <Write bind:script={() => script!, (s) => (file.script = s)} bind:finding {dir} root={folder} folderName={path[0]} {voice} {player} canPlay={canPlay} onPlayFrom={play} {name} {flagged} onFlag={flag} onChange={changed} onDeleted={deleted} onNotice={(m) => (notice = m)}
-      talk={openThreads} {talking} onTalk={showComment} visit={marks} {came} />
+      talk={openThreads} {talking} onTalk={showComment} visit={marks} {came} started={file.started.rows} />
   {/if}
 </main>
 {#snippet visitBar(shown: Marks)}

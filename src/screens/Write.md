@@ -49,3 +49,5 @@ deleting, keys, the flag bar, find, quotes marked, removed rows). Any column but
   Dialogue or On screen in its own `.was` line above the box, never in it (Images & files shows no old names here;
   Review does). Removed rows are a grey line after the row they followed (`removedRows`).
 - A section's read time (AP-12) sits after its title: its rows' dialogue at the speaking speed, hidden when 0.
+- Before you started (AP-38): `started` (the Editor's `file.started.rows`) goes to each row as `start`; Put it back
+  (`putBack`) copies the row for the Undo bar (`onDeleted`) before setting the field, like a paste.

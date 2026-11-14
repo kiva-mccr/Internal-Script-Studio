@@ -4,6 +4,7 @@
   import { emptyRow, type Block, type Script } from '../lib/script';
   import { plain, rangeOf } from '../lib/format';
   import type { Marks } from '../lib/visit';
+  import type { Words } from '../lib/started';
   import type { Flag, Thread } from '../lib/comments';
   import type { Player } from '../lib/play.svelte';
   import { keep, recall } from '../lib/remember';
@@ -24,10 +25,11 @@
   // finding: the find and replace bar is open (AP-32; Ctrl+F, or ⋯ in the top bar).
   // visit: rows others changed since this person last looked (RV-15), marked; the rows stay editable as ever.
   // came: a file just added to a row from a comment (RV-12), named under its chip.
-  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, visit, came = null, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
+  // started: each row's words when the script was opened (AP-38), shown under a cell you changed; Put it back.
+  let { script = $bindable(), finding = $bindable(), dir, root, folderName, voice, player, canPlay, name, flagged, talk, talking, visit, came = null, started, onChange, onDeleted, onNotice, onPlayFrom, onFlag, onTalk }: {
     script: Script; finding: boolean; dir: FileSystemDirectoryHandle; root: FileSystemDirectoryHandle; folderName: string; voice: VoiceOver; player: Player; canPlay: boolean; name: string;
     flagged: Map<string, Flag>; onFlag: (row: string, note: string | null) => Promise<boolean>;
-    talk: Thread[]; talking: string; onTalk: (id: string) => void; visit: Marks | null;
+    talk: Thread[]; talking: string; onTalk: (id: string) => void; visit: Marks | null; started: ReadonlyMap<string, Words>;
     came?: { row: string; line: string; from: string } | null;
     onChange: () => void; onPlayFrom: (id: string) => void;
     onDeleted: (before: Block[], what: string) => void; onNotice: (message: string) => void;
@@ -199,6 +201,16 @@
     box?.setSelectionRange(end, end);
   }
 
+  // Put it back (AP-38): a cell's words as they were when the script was opened, through the Undo bar.
+  function putBack(block: Block, field: 'dialogue' | 'onScreen') {
+    const was = block.type === 'row' && started.get(block.id);
+    if (!was) return;
+    const before = script.blocks.map((b) => (b === block ? { ...b } : b));
+    block[field] = was[field];
+    onDeleted(before, `Row ${numbers.get(block)}: ${field === 'dialogue' ? 'Dialogue' : 'On screen'} put back.`);
+    onChange();
+  }
+
   function remove(i: number) {
     const block = script.blocks[i];
     const what = block.type === 'row' ? `Row ${numbers.get(block)} deleted.` : `Section "${block.title}" deleted (its rows stay).`;
@@ -356,7 +368,7 @@
     {:else}
       <WriteRow bind:block={() => block, (b) => (script.blocks[i] = b)} {i} n={numbers.get(block)} {columns} {folded} {dir} {root} {folderName} {voice} {player} {canPlay} {name}
         flag={flagged.get(block.id)} stepped={current === block.id} said={talkByRow.get(block.id) ?? []} talking={talkRow === block.id} {visit}
-        came={came?.row === block.id ? came : null} {onChange} {onNotice} {onPlayFrom} {onFlag} {onTalk}
+        came={came?.row === block.id ? came : null} start={started.get(block.id)} onPutBack={(field) => putBack(block, field)} {onChange} {onNotice} {onPlayFrom} {onFlag} {onTalk}
         onMove={(by) => move(i, by)} onInsert={() => insertRow(i + 1)} onRemove={() => remove(i)} onToSection={() => toSection(i)}
         onToggleFlag={() => toggleFlag(block.id)} onMic={() => mic(block.id)} onPaste={(lines, head, tail) => pasteRows(block, lines, head, tail)} />
       {@render removedRows(block.id)}

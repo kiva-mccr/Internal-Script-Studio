@@ -10,6 +10,7 @@ import { addVersion, heads, listVersions, officialNumber, OUTSIDE, sendVersion, 
 import { merge, type Merged, type Side } from './merge';
 import { diff, fold } from './changes';
 import { listChanges, readChange, readFolded, removeChange, writeChange, writeFolded } from './changefiles';
+import { Started } from './started';
 
 // How long typing waits before it is saved (the user's pick: 30 s, or at once with Ctrl+S). Tests make it shorter
 // through `save-every` in this browser's storage.
@@ -44,6 +45,7 @@ export class Saving {
   folding = $state(''); // whose changes are being folded in right now (a spinner beside "… is editing")
   shared = ''; // the script as everyone has it: script.md plus every change file folded in, this person's too
   last: Version | null = null; // the newest History entry this page knows of
+  started = new Started(); // each row's words on opening, moved along by others' changes (AP-38)
   #seen = new Set<string>(); // change files already in `shared`
   #authors = new Set<string>(); // whose changes are in `shared` since the last History entry
   #entries: Editing[] = []; // everyone's "… is editing" files, from the last check
@@ -79,6 +81,7 @@ export class Saving {
     for (const name of folded?.changes ?? []) this.#seen.add(name);
     this.shared = this.#wrote = text;
     this.load(text);
+    if (this.script) this.started.take(this.script);
     this.#started = this.#startHistory(dir, text, folded?.sha256 ?? '');
     await this.#started;
     await this.here();
@@ -187,7 +190,9 @@ export class Saving {
       // nothing, except where a later change changed the same place: there script.md is kept, never asked about.
       const stale = Date.parse(fromStamp(name)) < (await scriptTime(dir)) - STALE_AFTER;
       const ours = fold(change.delta, this.shared);
+      const before = this.shared;
       this.shared = ours.text(Object.fromEntries(ours.clashes.map((c) => [c.key, stale ? 'mine' : 'theirs'])));
+      this.started.follow(before, this.shared);
       this.#seen.add(name);
       this.#authors.add(change.who);
       let merged = fold(change.delta, this.#pageText(false));
@@ -232,7 +237,9 @@ export class Saving {
         const outside = diff(this.#wrote, now);
         if (outside) {
           const ours = fold(outside, this.shared);
+          const before = this.shared;
           this.shared = ours.text(Object.fromEntries(ours.clashes.map((c) => [c.key, 'theirs'])));
+          this.started.follow(before, this.shared);
           this.#wrote = now;
           const page = fold(outside, this.#pageText(false));
           if (page.clashes.length) {

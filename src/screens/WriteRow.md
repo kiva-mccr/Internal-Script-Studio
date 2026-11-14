@@ -40,3 +40,8 @@ flag's note.
 - Row to section and back (AP-30, mock-up 39): § sits under the flag (`.promote`, placed like the flag), ¶ in a
   section's tools (Write's). Both are Write's (`onToSection`) and go through the Undo bar (`onDeleted`). The Undo message is worked out before the splice: after
   it the row has no number. A section turned into a row gets a fresh id (no take, flag or comments).
+- Before you started (AP-38, board 54): under a changed Dialogue or On screen cell (`start`, from `lib/started.ts`), a
+  grey "▸ Before you started" opens the old words, plain, in a grey box under the box (`opened`, per cell, closed at
+  first; it resets when Write is left). Put it back is Write's (`onPutBack`, through the Undo bar). The buttons' and the
+  box's names never contain "Dialogue, row n" or "On screen, row n": tests find the text boxes with `getByLabel`, which
+  matches part of a name.
