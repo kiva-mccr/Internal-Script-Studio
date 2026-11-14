@@ -145,7 +145,7 @@
             <div class="menu approve-menu" role="region" aria-label="Send back to writer">
               <label class="lead" for="back-note">A note for the writer</label>
               <textarea id="back-note" rows="4" bind:value={backNote} {@attach (el) => el.focus()} placeholder="What should they fix first? (optional)"></textarea>
-              <p class="quiet">They see it at the top of Comments in Write. It is kept in History.</p>
+              <p class="quiet help">They see it at the top of Comments in Write. It is kept in History.</p>
               <div class="actions">
                 <button class="outline" onclick={() => (menu = '')}>Cancel</button>
                 <button class="dark" onclick={sendBack}>Send back to writer</button>
@@ -163,7 +163,7 @@
                   <button onclick={() => ((menu = ''), onLoose(item.id))}><b>{item.head}</b><span>{item.text}</span></button>
                 {/each}
               </div>
-              <p class="quiet">You can still approve. They stay open in Review.</p>
+              <p class="quiet help">You can still approve. They stay open in Review.</p>
               <div class="actions">
                 <button class="outline" onclick={() => (menu = '')}>Keep reviewing</button>
                 <button class="dark" onclick={() => approve(true)}>Approve anyway</button>

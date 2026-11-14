@@ -193,7 +193,7 @@
 {#if error}
   <p class="error" role="alert">{error}<CopyDetails message={error} /></p>
 {:else if versions && versions.length === 0}
-  <p class="empty">No history yet. It starts with the next save.</p>
+  <p class="empty">No history yet.<span class="help"> It starts with the next save.</span></p>
 {:else if versions && selected}
   {#snippet entry(i: number)}
     {@const version = versions![i]}

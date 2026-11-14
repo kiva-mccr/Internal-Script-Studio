@@ -128,7 +128,7 @@
       {showHeld ? '▾' : '▸'} On hold · {held.length}
     </button>
     {#if showHeld}
-      <p class="quiet">Back in the open list at the next Send for review or official version.</p>
+      <p class="quiet help">Back in the open list at the next Send for review or official version.</p>
       {#each held as t (t.comment.id)}
         <div class="slot" out:slideAway>
           <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
@@ -150,7 +150,7 @@
       {/each}
     {/if}
   {/if}
-  <p class="quiet">Click a card to go to its row. New comments are started in Review.</p>
+  <p class="quiet help">Click a card to go to its row. New comments are started in Review.</p>
 </div>
 
 <style>

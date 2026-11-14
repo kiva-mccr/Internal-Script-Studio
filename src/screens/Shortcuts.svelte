@@ -93,7 +93,7 @@
     {#if line.action && changing === line.action && message}<p class="message" role="status">{message}</p>{/if}
   {/each}
 {/each}
-<p class="hint">Click a key to change it. No key switches between Write, Review and History: that step is always a click.</p>
+<p class="hint help">Click a key to change it. No key switches between Write, Review and History: that step is always a click.</p>
 
 <style>
   h3 { margin: 24px 0 4px; font-size: 13px; font-weight: 600; color: var(--muted); }

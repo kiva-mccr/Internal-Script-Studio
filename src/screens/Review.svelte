@@ -180,7 +180,7 @@
     {:else if sent}
       <button class="sent-folded" aria-expanded="false" onclick={() => (hideSent = false)}>{sent.who}'s note</button>
     {/if}
-    <p class="hint">Select any text, then press Comment, to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
+    <p class="hint help">Select any text, then press Comment, to comment or suggest a change. The writer accepts or rejects each suggestion.</p>
     {#if since}
       <div class="changes" class:off={!marking} role="group" aria-label="What's changed">
         <label class="tick"><input type="checkbox" bind:checked={marking} onchange={() => keep('review-changes', marking ? '' : 'off')} /> What's changed</label>

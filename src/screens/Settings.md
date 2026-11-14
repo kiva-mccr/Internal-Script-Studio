@@ -1,7 +1,7 @@
 # `src/screens/Settings.svelte`
 
 The Settings window (AU-3, mock-up 19), opened from ⋯ in the top bar. Drawn in the page (no browser dialog). Each
-kind of setting has its own small heading; the first is Voice-over, with the Microphone drop-down (`lib/mic.ts`; our own list since AU-5, board 33, so "(default)" sits on the right of the computer's default mic) and the three clean-up switches (AU-4, board 31, `lib/cleanup.svelte.ts`); then Read time (AP-12, board 21), the speaking
+kind of setting has its own small heading; the first is Screen, with Hide help text (AP-43, board 64, `lib/helptext.ts`); then Voice-over, with the Microphone drop-down (`lib/mic.ts`; our own list since AU-5, board 33, so "(default)" sits on the right of the computer's default mic) and the three clean-up switches (AU-4, board 31, `lib/cleanup.svelte.ts`); then Read time (AP-12, board 21), the speaking
 speed with − and + (10 at a time) and "Use N", the takes' speed, when the script has takes and N isn't the speed already.
 A choice takes effect at once and is kept in this browser only.
 
@@ -18,3 +18,4 @@ A choice takes effect at once and is kept in this browser only.
 - The Write screen has a file chip called "leaf-closeup.jpg": tests pick ×'s "Close" with `exact: true`.
 - Keyboard shortcuts (AP-44) is the last part, `Shortcuts.svelte`, with its own rules.
 - The speed box sets the speed on change (leaving the box or Enter), then shows the speed as kept (60 to 400).
+- The line under Hide help text is never marked `help`, so it can be found again; the other hints here are.
