@@ -7,6 +7,9 @@
   import type { Row, Script } from '../lib/script';
   import { ago } from '../lib/when';
   import CommentCard from './CommentCard.svelte';
+  import SortSwitch from './SortSwitch.svelte';
+  import { heading, sortThreads, toSort, SORT_KEY } from '../lib/commentsort';
+  import { recall } from '../lib/remember';
 
   // Write's Comments tab (RV-13, board 37 idea A): the writer replies, resolves and accepts or rejects suggestions
   // beside the text. New comments are started in Review. A card takes you to its row (onShow).
@@ -51,10 +54,12 @@
       .filter((t) => !t.deleted || gone.includes(t.comment.id))
       .map((t) => ({ ...t, replies: t.replies.filter((r) => !r.deleted || gone.includes(r.id)) })),
   );
-  const shown = $derived(all.filter((t) => (!t.resolved && !t.held) || recent.has(t.comment.id)));
-  const held = $derived(all.filter((t) => !t.resolved && t.held && !recent.has(t.comment.id)));
-  const resolved = $derived(all.filter((t) => t.resolved && !recent.has(t.comment.id)));
   const rows = $derived(script.blocks.filter((b): b is Row => b.type === 'row'));
+  let sort = $state(toSort(recall(SORT_KEY))); // RV-16: Line by default, or Time or Type
+  const sorted = $derived(sortThreads(all, sort, rows));
+  const shown = $derived(sorted.filter((t) => (!t.resolved && !t.held) || recent.has(t.comment.id)));
+  const held = $derived(sorted.filter((t) => !t.resolved && t.held && !recent.has(t.comment.id)));
+  const resolved = $derived(sorted.filter((t) => t.resolved && !recent.has(t.comment.id)));
   const numbers = $derived(new Map(rows.map((row, i) => [row.id, i + 1])));
 
   // "Use in script" (RV-12) on an open card's files, into its row; none for a deleted row.
@@ -93,7 +98,9 @@
       {#if back.message}<p class="message">{back.message}</p>{/if}
     </div>
   {/if}
-  {#each shown as t (t.comment.id)}
+  {#if all.length}<div class="bar"><SortSwitch bind:sort /></div>{/if}
+  {#each shown as t, i (t.comment.id)}
+    {#if heading(shown, i, sort)}<h3 class="kind">{heading(shown, i, sort)}</h3>{/if}
     <div class="slot" out:slideAway>
       <CommentCard {t} {dir} {me} where={where(t.comment)} gone={quoteGone(t.comment, rows)} active={t.comment.id === active}
         recent={recent.has(t.comment.id)} undoResolve use={t.resolved ? undefined : use(t.comment)} onActivate={() => ((active = t.comment.id), t.comment.row && onShow(t.comment.row))}
@@ -142,4 +149,6 @@
   .link { align-self: flex-start; }
   .slot { display: flex; flex-direction: column; }
   .quiet { margin: 0; font-size: 12px; color: var(--muted); }
+  .bar { display: flex; justify-content: flex-end; }
+  .kind { margin: 4px 0 0; font-size: 12px; font-weight: 600; color: var(--muted); }
 </style>

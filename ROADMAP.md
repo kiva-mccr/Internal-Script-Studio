@@ -469,10 +469,13 @@ and suggestions, keeps every version, and exports them for production.
   rows stay editable in Write, the old words on their own line above the box (5a); a ✓ Seen per row clears that one
   ("2 changes left", 5b). Built so: `lib/visit.ts` credits each row to the last version that changed it (compared
   with its parent, merges skipped); the bar is `VisitBar.svelte`, shared by Write and Review.
-- [ ] **RV-16** Comments in line order (asked by the user): the comment lists (Review, and Write's Comments tab) show
+- [x] **RV-16** Comments in line order (asked by the user): the comment lists (Review, and Write's Comments tab) show
   comments in the order of the rows they are on, by default, with a switch to sort them by time or by type instead.
   By type puts suggestions first, then comments on specific words, then comments on a whole row (the user's order).
-  Placed by the user after the current queue. Mock-up first.
+  Agreed on board 55 ("Love it") with its suggested choices: a "Sort Line · Time · Type" switch beside
+  "Open · n" in Review and atop Write's Comments tab; in a row the whole-row comment first, then words by column and
+  place in the text, deleted rows last; Time newest first; Type with small headings and counts; one choice per
+  computer for both screens; On hold and Resolved sorted the same. Built so: `lib/commentsort.ts`, `SortSwitch.svelte`.
 - [x] **RV-17** Clicking a row's comment bubble again scrolls back to its comment (a bug the user hit): when the
   comment is still selected but scrolled out of view, a second click on its bubble does nothing; it should bring the
   comment back into view. Bug fix, no mock-up needed. Built so: a click on a quote does the same.

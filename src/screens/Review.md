@@ -48,3 +48,5 @@ Comments tab (RV-13). Approve / Send back (RV-3) are in `Header.svelte`.
 - Changed since you last looked (RV-15): with no `reviewedAt` the Editor passes `visit`, and its marks are drawn as
   RV-4's (`marks`), plus who and ✓ Seen under the tag. Show the edits then follows the Editor's bar (`edits`), not
   Review's own tick. The bar itself is the Editor's (`VisitBar.svelte`), so the RV-4 bar and it never show together.
+- Sorted (RV-16): `lib/commentsort.ts`; the switch (`SortSwitch.svelte`) is beside "Open · n", sharing Write's
+  remembered choice. By Type, an `h3.kind` heading starts each kind in the open list (not `h3`: sections use it).

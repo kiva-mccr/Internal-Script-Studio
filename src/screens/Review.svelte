@@ -7,6 +7,8 @@
   import CommentCard from './CommentCard.svelte';
   import FlagIcon from './FlagIcon.svelte';
   import SelectionComment from './SelectionComment.svelte';
+  import SortSwitch from './SortSwitch.svelte';
+  import { heading, sortThreads, toSort, SORT_KEY } from '../lib/commentsort';
   import Take from './Take.svelte';
   import type { Player } from '../lib/play.svelte';
   import type { VoiceOver } from '../lib/voice.svelte';
@@ -87,9 +89,12 @@
   );
   const live = $derived(all.filter((t) => !t.deleted));
   const open = $derived(live.filter((t) => !t.resolved && !t.held));
-  const shown = $derived(all.filter((t) => (!t.resolved && !t.held) || recent.includes(t.comment.id) || holding.has(t.comment.id)));
-  const held = $derived(all.filter((t) => !t.resolved && t.held && !holding.has(t.comment.id)));
-  const resolved = $derived(all.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+  let sort = $state(toSort(recall(SORT_KEY))); // RV-16: Line by default, or Time or Type
+  const sorted = $derived(sortThreads(all, sort, script.blocks.filter((b): b is Row => b.type === 'row')));
+  const shown = $derived(sorted.filter((t) => (!t.resolved && !t.held) || recent.includes(t.comment.id) || holding.has(t.comment.id)));
+  const held = $derived(sorted.filter((t) => !t.resolved && t.held && !holding.has(t.comment.id)));
+  const resolved = $derived(sorted.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+
 
   const words = $derived(sectionWords(script)); // each section's read time (AP-12)
   const numbers = $derived(
@@ -352,8 +357,12 @@
       </form>
     {/if}
 
-    <h2>Open · {open.length}</h2>
-    {#each shown as t (t.comment.id)}
+    <div class="open">
+      <h2>Open · {open.length}</h2>
+      {#if all.length}<SortSwitch bind:sort />{/if}
+    </div>
+    {#each shown as t, i (t.comment.id)}
+      {#if heading(shown, i, sort)}<h3 class="kind">{heading(shown, i, sort)}</h3>{/if}
       <div class="slot" out:slideAway>{@render card(t)}</div>
     {:else}
       <p class="quiet">No open comments.</p>
@@ -460,6 +469,9 @@
   .cell :global(a) { color: var(--accent); }
   .cell :global(s) { color: #8a8a8a; }
   h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .open { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+  .open h2 { margin: 0; }
+  .kind { margin: 4px 0 0; font-size: 12px; font-weight: 600; color: var(--muted); }
   .card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
   .compose { border-color: var(--accent); }
   .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
