@@ -16,4 +16,5 @@ A choice takes effect at once and is kept in this browser only.
 - The Microphone list is a button (role combobox) and a listbox: its keys are on the button, like a browser's
   drop-down. Esc there closes only the list (it marks the key handled, and the window's Esc skips handled keys).
 - The Write screen has a file chip called "leaf-closeup.jpg": tests pick ×'s "Close" with `exact: true`.
+- Keyboard shortcuts (AP-44) is the last part, `Shortcuts.svelte`, with its own rules.
 - The speed box sets the speed on change (leaving the box or Enter), then shows the speed as kept (60 to 400).

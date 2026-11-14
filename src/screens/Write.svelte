@@ -1,6 +1,7 @@
 <script lang="ts">
   import { problem } from '../lib/problems';
   import { tick } from 'svelte';
+  import { shortcuts, type Action } from '../lib/shortcuts.svelte';
   import { clock, sectionWords, speaking } from '../lib/readtime.svelte';
   import { emptyRow, type Block, type Script } from '../lib/script';
   import { plain, rangeOf } from '../lib/format';
@@ -253,14 +254,21 @@
     onChange();
   }
 
-  // Keyboard flow (AP-14): Tab and Shift+Tab go from text box to text box (section titles, Dialogue, On screen),
-  // past the buttons in between; Ctrl+Enter adds a row below and goes to it; Alt+Up / Alt+Down move the row.
+  // Keyboard flow (AP-14) and shortcuts (AP-44, keys in `lib/shortcuts.svelte.ts`): Tab and Shift+Tab go from text box
+  // to text box (section titles, Dialogue, On screen), past the buttons in between; Ctrl+Up / Ctrl+Down go to the same
+  // column in the row above or below; rows are added, moved and deleted from the keyboard.
   const BOXES = '.section-title, textarea';
+  const ROW_KEYS: Action[] = ['rowDown', 'rowUp', 'addBelow', 'addAbove', 'moveDown', 'moveUp', 'deleteRow'];
+  // The box to land in on block j: the same column if it is a row, its title if it is a section.
+  const boxAt = (j: number, column: string) =>
+    table?.querySelector<HTMLTextAreaElement | HTMLInputElement>(`[data-block="${j}"] :is(.${column} textarea, .section-title)`)
+    ?? table?.querySelector<HTMLTextAreaElement>(`[data-block="${j}"] textarea`);
   async function keys(e: KeyboardEvent) {
     const box = e.target as HTMLElement;
     const block = box.closest<HTMLElement>('[data-block]');
     if (!table || !block || !box.matches(BOXES)) return;
     const i = Number(block.dataset.block);
+    const column = box.closest('.screen') ? 'screen' : 'dialogue';
     if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
       const all = [...table.querySelectorAll<HTMLElement>(BOXES)];
       const next = all[all.indexOf(box) + (e.shiftKey ? -1 : 1)];
@@ -268,14 +276,33 @@
       if (!next) return;
       e.preventDefault();
       next.focus();
-    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
-      e.preventDefault();
-      insertRow(i + 1);
+      return;
+    }
+    const action = shortcuts.match(e, ROW_KEYS);
+    if (!action) return;
+    e.preventDefault();
+    if (action === 'rowDown' || action === 'rowUp') {
+      // Section titles are skipped: Tab still reaches them.
+      const by = action === 'rowUp' ? -1 : 1;
+      let j = i + by;
+      while (script.blocks[j]?.type === 'section') j += by;
+      const next = script.blocks[j] && boxAt(j, column);
+      if (!next) return;
+      next.focus();
+      next.setSelectionRange(next.value.length, next.value.length);
+    } else if (action === 'addBelow' || action === 'addAbove') {
+      const at = action === 'addAbove' ? i : i + 1;
+      insertRow(at);
       await tick();
-      table.querySelector<HTMLElement>(`[data-block="${i + 1}"] textarea`)?.focus();
-    } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-      e.preventDefault();
-      const j = i + (e.key === 'ArrowUp' ? -1 : 1);
+      table.querySelector<HTMLElement>(`[data-block="${at}"] textarea`)?.focus();
+    } else if (action === 'deleteRow') {
+      remove(i);
+      await tick();
+      // The cursor goes to the block that took its place, or the one before when it was the last.
+      const j = Math.min(i, script.blocks.length - 1);
+      if (j >= 0) boxAt(j, column)?.focus();
+    } else {
+      const j = i + (action === 'moveUp' ? -1 : 1);
       if (j < 0 || j >= script.blocks.length) return;
       // Moving takes the box out of the page for a moment, so the cursor is put back where it was.
       const nth = [...block.querySelectorAll(BOXES)].indexOf(box);
@@ -332,10 +359,10 @@
           use:focusIf={fresh === block} placeholder="New section" aria-label="Section title" />
         {#if words.get(block)}<span class="time" title="{words.get(block)} words at {speaking.wpm} words a minute">{clock((words.get(block)! / speaking.wpm) * 60)}</span>{/if}
         <span class="tools">
-          <button aria-label="Move section up" title="Move up" onclick={() => move(i, -1)}>↑</button>
-          <button aria-label="Move section down" title="Move down" onclick={() => move(i, 1)}>↓</button>
+          <button aria-label="Move section up" title={shortcuts.title('Move up', 'moveUp')} onclick={() => move(i, -1)}>↑</button>
+          <button aria-label="Move section down" title={shortcuts.title('Move down', 'moveDown')} onclick={() => move(i, 1)}>↓</button>
           <button aria-label="Turn section into a row" title="Turn into a row" onclick={() => toRow(i)}>¶</button>
-          <button aria-label="Delete section" title="Delete" onclick={() => remove(i)}>×</button>
+          <button aria-label="Delete section" title={shortcuts.title('Delete', 'deleteRow')} onclick={() => remove(i)}>×</button>
         </span>
       </div>
     {:else}

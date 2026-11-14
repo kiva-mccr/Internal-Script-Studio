@@ -21,5 +21,7 @@ or Suggest a change, files through `AttachBox.svelte`), "Open · n" with the sor
 - Files on comments (RV-11): the comment, reply and edit boxes are wrapped in `AttachBox.svelte`; a suggestion
   (and its edit box) has none, and switching to Suggest a change drops any picked files. A comment or reply may be
   only files. Cards show them with `Attached.svelte`. Snippets in the boxes are named `typing`.
+- Alt+N / Alt+P (AP-44, `stepComment`): a window key that picks the next open card in the order shown (through
+  `active`, so Review opens a folded column) and scrolls the card and its row (`[data-play]`, Review's row) into view.
 - Sorted (RV-16): `lib/commentsort.ts`; the switch (`SortSwitch.svelte`) is beside "Open · n", sharing Write's
   remembered choice. By Type, an `h3.kind` heading starts each kind in the open list.

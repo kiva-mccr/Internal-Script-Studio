@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
   import { Linger } from '../lib/linger.svelte';
+  import { stepComment } from '../lib/shortcuts.svelte';
   import { slideAway } from '../lib/slide';
   import { quoteGone, threads, type Field, type Note, type Thread } from '../lib/comments';
   import { heading, sortThreads, toSort, SORT_KEY } from '../lib/commentsort';
@@ -50,6 +51,7 @@
   // Put on hold here (RV-19): in place with Undo for 5 seconds, then into On hold, sliding away.
   const holding = new Linger();
   onDestroy(() => holding.clear());
+
   // Deleted ones are kept only while they are in `gone`.
   const all = $derived(
     threads(notes, true, ends)
@@ -62,6 +64,18 @@
   const shown = $derived(sorted.filter((t) => (!t.resolved && !t.held) || recent.includes(t.comment.id) || holding.has(t.comment.id)));
   const held = $derived(sorted.filter((t) => !t.resolved && t.held && !holding.has(t.comment.id)));
   const resolved = $derived(sorted.filter((t) => t.resolved && !recent.includes(t.comment.id)));
+
+  // Next and previous comment (AP-44): pick it as a click would, and bring its card and its row into view.
+  let aside = $state<HTMLElement>();
+  async function stepKeys(e: KeyboardEvent) {
+    const id = stepComment(e, sorted.filter((t) => !t.deleted && !t.resolved && !t.held).map((t) => t.comment.id), active);
+    if (!id) return;
+    active = id;
+    await tick();
+    aside?.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+    const row = open.find((t) => t.comment.id === id)?.comment.row;
+    document.querySelector(`[data-play="${row}"]`)?.scrollIntoView({ block: 'nearest' });
+  }
 
   function where(t: Thread): string {
     const n = numbers.get(t.comment.row ?? '');
@@ -103,7 +117,8 @@
   const setGone = (id: string, deleted: boolean) => (gone = deleted ? [...gone, id] : gone.filter((g) => g !== id));
 </script>
 
-<aside aria-label="Comments" data-tour="review-cards">
+<svelte:window onkeydown={stepKeys} />
+<aside aria-label="Comments" data-tour="review-cards" bind:this={aside}>
   {#if target}
     <form class="card compose" aria-label="New comment" novalidate onsubmit={send}>
       <div class="who">{suggesting ? 'Suggest a change to' : 'Comment on'} row {numbers.get(target.row)}{target.quote ? ` · ${LABELS[target.field]}` : ''}</div>

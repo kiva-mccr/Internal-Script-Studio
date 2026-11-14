@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, tick, untrack } from 'svelte';
   import { Linger } from '../lib/linger.svelte';
+  import { stepComment } from '../lib/shortcuts.svelte';
   import { slideAway } from '../lib/slide';
   import { quoteGone, threads, type Attachment, type Field, type Note } from '../lib/comments';
   import type { Version } from '../lib/history';
@@ -75,6 +76,17 @@
     return c.quote ? `row ${n}, ${LABELS[c.field ?? 'dialogue']}` : `row ${n}`;
   }
 
+  // Next and previous comment (AP-44), even while typing in Write: pick it as a click would (Write goes to its row).
+  async function stepKeys(e: KeyboardEvent) {
+    const id = stepComment(e, sorted.filter((t) => !t.deleted && !t.resolved && !t.held).map((t) => t.comment.id), active);
+    if (!id) return;
+    active = id;
+    const row = all.find((t) => t.comment.id === id)?.comment.row;
+    if (row) onShow(row);
+    await tick();
+    list?.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest' });
+  }
+
   // A bubble or a quote in Write picked a card: bring it into view in the panel, every time it is asked for, even
   // when it is already the one being read (RV-17), and flash its outline so the eye finds it (RV-20).
   let list = $state<HTMLElement>();
@@ -91,6 +103,7 @@
   });
 </script>
 
+<svelte:window onkeydown={stepKeys} />
 <div class="comments" bind:this={list}>
   {#if back}
     <div class="back" role="note" aria-label="Note from {back.who}">
